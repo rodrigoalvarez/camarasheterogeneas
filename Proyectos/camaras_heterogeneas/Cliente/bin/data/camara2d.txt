@@ -1,0 +1,4 @@
+context-id: 1 
+context-resolutionX: 640 
+context-resolutionY: 480 
+context-colorRGB: 1 

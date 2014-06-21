@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="release" />
+	<File name="..\..\..\..\addons\ofxNetwork\src\ofxUDPManager.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="1293" topLine="48" />
+	</File>
+	<File name="src\FrameUtils.h" open="1" top="0" tabpos="2">
+		<Cursor position="4216" topLine="147" />
+	</File>
+	<File name="src\ThreadData.h" open="1" top="0" tabpos="3">
+		<Cursor position="419" topLine="0" />
+	</File>
+	<File name="src\testApp.cpp" open="1" top="1" tabpos="1">
+		<Cursor position="1000" topLine="15" />
+	</File>
+	<File name="src\testApp.h" open="0" top="0" tabpos="1">
+		<Cursor position="1079" topLine="27" />
+	</File>
+</CodeBlocks_layout_file>
