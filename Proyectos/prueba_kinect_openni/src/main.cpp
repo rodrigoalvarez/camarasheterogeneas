@@ -8,7 +8,7 @@
 #include "recordONIVideos.h"
 #include "playONIVideos.h"
 //#include "meshFromONIVideo.h"
-
+#include "mainGenerarMalla.h"
 #include "ofAppGlutWindow.h"
 
 //========================================================================
@@ -26,7 +26,8 @@ int main( ) {
     //ofRunApp( new testHandTrackingApp());
     //ofRunApp( new testONIRecordingApp());
     //ofRunApp( new recordONIVideos());
-    ofRunApp( new playONIVideos());
+    //ofRunApp( new playONIVideos());
+    ofRunApp( new mainGenerarMalla());
     //ofRunApp( new meshFromONIVideo() );
 
 }
