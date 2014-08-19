@@ -22,3 +22,38 @@
 	<cmath>
 	<string>
 
+1408412429 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\color_cube.cpp
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"Model_PLY.h"
+	<iostream>
+	"FreeImage.h"
+	"matrix4x4.h"
+
+1408212772 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\model_ply.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<cmath>
+	<string>
+
+1408212772 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\model_ply.cpp
+	"Model_PLY.h"
+	<vector>
+
+1395211970 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\freeimage.h
+	<wchar.h>
+	<inttypes.h>
+
+1408411563 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\matrix4x4.h
+	<memory>
+	<cmath>
+	<iostream>
+	<string.h>
+
+1148006184 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\matrix4x4.cpp
+	"matrix4x4.h"
+
