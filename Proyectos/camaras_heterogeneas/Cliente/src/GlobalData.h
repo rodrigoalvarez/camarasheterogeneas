@@ -2,48 +2,33 @@
 
 #include "ofxXmlSettings.h"
 #include "ofMain.h"
+#include <array>
 
-struct t_translation {
-    int translationX;
-    int translationY;
-    int translationZ;
+
+struct DepthSettings {
+	double Near;
+	double Far;
+	double PointsDownSample;
 };
 
-struct t_rotation {
-    int rotation00;
-    int rotation01;
-    int rotation02;
-    int rotation10;
-    int rotation11;
-    int rotation12;
-    int rotation20;
-    int rotation21;
-    int rotation22;
+struct Camera {
+	int Id;
+	int ResolutionX;
+	int ResolutionY;
+	double ResolutionDownSample;
+	int FPS;
+	bool ColorRGB;
+	bool Use2D;
+	bool Use3D;
+	double Matrix[16];
+	string DataContext;
+	DepthSettings DepthSettings;
 };
 
-struct t_camera {
-    int id;
-    int resolutionX;
-    int resolutionY;
-    int resolutionDownSample;
-    int fps;
-    bool colorRGB;
-    bool use2D;
-    bool use3D;
-    float near3D;
-    float far3D;
-    float points3DDownSample;
-    //String dataContext;
-    t_translation * translation;
-    t_rotation * rotation;
-    t_camera * sig;
-};
 
 class GlobalData {
 
 	public:
-		int     getFPS();
-		bool    getGoLive();
 		int     getTotal3D();
         int     getTotal2D();
 		int     getTotalDevices();
@@ -51,9 +36,8 @@ class GlobalData {
 
         int      total3D;
         int      total2D;
-        bool     goLive;
-        int      realtimeFPS;
-        int      realtimePORT;
-        t_camera * camera;
-
+        array<Camera,3> cameras;
+		bool REAL_TIME;
+		int REAL_TIME_FPS;
+		int REAL_TIME_PORT;
 };

@@ -2,10 +2,10 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="COLOR_CUBE.cpp" open="1" top="1" tabpos="1">
-		<Cursor position="3627" topLine="84" />
+		<Cursor position="3430" topLine="122" />
 	</File>
 	<File name="Model_PLY.cpp" open="1" top="0" tabpos="3">
-		<Cursor position="190" topLine="75" />
+		<Cursor position="2150" topLine="134" />
 	</File>
 	<File name="Model_PLY.h" open="1" top="0" tabpos="2">
 		<Cursor position="388" topLine="0" />
