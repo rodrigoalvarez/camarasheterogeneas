@@ -53,7 +53,8 @@ void drawMesh()
 }
 
 static GLdouble viewer[] = {0.0,0.0,0.0};
-static GLdouble oldViewer[] = {0.0,0.0,5.0};
+static GLdouble oldViewer[] = {0.0,0.0,0.0};
+static GLdouble newViewer[] = {0.0,0.0,0.0};
 Matrix4x4f TextureTransform;
 
 float MVmatrix[16];
@@ -106,7 +107,7 @@ void display(void)
 	glPushMatrix();
 	glLoadIdentity();
 	if (modeTexture) {
-        glTranslatef(viewer[0], viewer[1], viewer[2]);
+        //glTranslatef(viewer[0], viewer[1], viewer[2]);
         glRotatef(0, 1.0f,0.0f,0.0f);
         glRotatef(0, 0.0f,1.0f,0.0f);
         glRotatef(0, 0.0f,0.0f,1.0f);
@@ -116,6 +117,7 @@ void display(void)
         glRotatef(-rotateObjectY + rotateTextureY, 0.0f,1.0f,0.0f);
         glRotatef(-rotateObjectZ + rotateTextureZ, 0.0f,0.0f,1.0f);
         glTranslatef(-viewer[0], -viewer[1], -viewer[2] + 20);
+        glTranslatef(viewer[0] - newViewer[0], viewer[1] - newViewer[1], viewer[2] - newViewer[2]);
 	}
 	glGetFloatv(GL_MODELVIEW_MATRIX,MVmatrix);
 	TextureTransform.setMatrix(MVmatrix);
@@ -148,6 +150,9 @@ void keys(unsigned char key, int x, int y)
         rotateTextureX = rotateObjectX;
         rotateTextureY = rotateObjectY;
         rotateTextureZ = rotateObjectZ;
+        newViewer[0] = viewer[0];
+        newViewer[1] = viewer[1];
+        newViewer[2] = viewer[2];
     }
 
 	if(key == 'w') rotateObjectX += 2.0;
