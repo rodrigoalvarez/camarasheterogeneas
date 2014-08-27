@@ -3,11 +3,17 @@
 #include<GL/glut.h>
 #include "Model_PLY.h"
 #include<iostream>
+#include <GL/glext.h>
 
 #include "FreeImage.h"
 #include "matrix4x4.h"
 
 using namespace std;
+
+GLuint *textures = new GLuint[2];
+PFNGLACTIVETEXTUREARBPROC       glActiveTextureARB       = NULL;
+PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2fARB     = NULL;
+PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB = NULL;
 
 Model_PLY* model = NULL;
 GLuint texObject, projTexture;
@@ -17,10 +23,10 @@ GLfloat vertices[][3]={{-1.0,-1.0,-1.0},{1.0,-1.0,-1.0},
 GLfloat colors[][3]={{0.0,0.0,0.0},{1.0,0.0,0.0},
               {1.0,1.0,0.0},{0.0,1.0,0.0},{0.0,0.0,1.0},
               {1.0,0.0,1.0},{1.0,1.0,1.0},{0.0,1.0,1.0}};
-
+int textureIndex = 0;
 
 void setVertex(int index) {
-    GLfloat vert[3] = {model->Faces_Triangles[index * 3], model->Faces_Triangles[index * 3 + 1], model->Faces_Triangles[index * 3 + 2]};
+    GLfloat vert[3] = { model->Faces_Triangles[index * 3], model->Faces_Triangles[index * 3 + 1], model->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
 }
 
@@ -47,6 +53,32 @@ void triangle(int index)
 
 void drawMesh()
 {
+    glActiveTextureARB(GL_TEXTURE0);
+    glDisable(GL_TEXTURE_2D);
+    glActiveTextureARB(GL_TEXTURE1);
+    glDisable(GL_TEXTURE_2D);
+    glActiveTextureARB(GL_TEXTURE2);
+    glDisable(GL_TEXTURE_2D);
+
+    if (textureIndex == 1) {
+        glActiveTextureARB(GL_TEXTURE0);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+    } else {
+    }
+    if (textureIndex == 2) {
+        glActiveTextureARB(GL_TEXTURE1);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textures[1]);
+    } else {
+    }
+    if (textureIndex == 3) {
+        glActiveTextureARB(GL_TEXTURE2);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, textures[2]);
+    } else {
+    }
+
     for (int i = 0; i < model->TotalFaces; i++) {
         triangle(i);
     }
@@ -107,7 +139,6 @@ void display(void)
 	glPushMatrix();
 	glLoadIdentity();
 	if (modeTexture) {
-        //glTranslatef(viewer[0], viewer[1], viewer[2]);
         glRotatef(0, 1.0f,0.0f,0.0f);
         glRotatef(0, 0.0f,1.0f,0.0f);
         glRotatef(0, 0.0f,0.0f,1.0f);
@@ -161,6 +192,19 @@ void keys(unsigned char key, int x, int y)
 	if(key == 'd') rotateObjectY -= 2.0;
 	if(key == 'e') rotateObjectZ += 2.0;
 	if(key == 'q') rotateObjectZ -= 2.0;
+
+	if(key == '1') {
+        textureIndex = 1;
+        display();
+	}
+	if(key == '2') {
+        textureIndex = 2;
+        display();
+	}
+	if(key == '3') {
+        textureIndex = 3;
+        display();
+	}
 
 	display();
 }
@@ -216,7 +260,7 @@ void loadLightMapTexture(const char *name)
 	GLfloat eyePlaneT[] =  {0.0f, 1.0f, 0.0f, 0.0f};
 	GLfloat eyePlaneR[] =  {0.0f, 0.0f, 1.0f, 0.0f};
 	GLfloat eyePlaneQ[] =  {0.0f, 0.0f, 0.0f, 1.0f};
-    GLfloat borderColor[4] = {0.6f, 0.6f, 0.6f, 1.0f};
+    GLfloat borderColor[] = {1.f, 1.f, 1.f, 1.0f};
 
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
@@ -292,9 +336,43 @@ int main(int argc, char **argv)
 	glutKeyboardFunc(keys);
 	glEnable(GL_DEPTH_TEST);
 
-	glEnable(GL_TEXTURE_2D);
+    glGenTextures(3, textures);
 
+    glActiveTextureARB       = (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+    glMultiTexCoord2fARB     = (PFNGLMULTITEXCOORD2FARBPROC)wglGetProcAddress("glMultiTexCoord2fARB");
+    glClientActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
+
+    if( !glActiveTextureARB || !glMultiTexCoord2fARB || !glClientActiveTextureARB )
+    {
+        MessageBox(NULL,"One or more GL_ARB_multitexture functions were not found",
+            "ERROR",MB_OK|MB_ICONEXCLAMATION);
+        return -1;
+    }
+
+    glActiveTextureARB(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    glDisable(GL_TEXTURE_2D);
 	loadLightMapTexture("lightmap.bmp");
+
+    glActiveTextureARB(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
+    glDisable(GL_TEXTURE_2D);
+	loadLightMapTexture("lightmap3.JPG");
+
+    glActiveTextureARB(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, textures[2]);
+    glDisable(GL_TEXTURE_2D);
+	loadLightMapTexture("lightmap2.JPG");
+
+    /*glActiveTextureARB(GL_TEXTURE0);
+    glDisable(GL_TEXTURE_2D);
+    glActiveTextureARB(GL_TEXTURE1);
+    glDisable(GL_TEXTURE_2D);
+    glActiveTextureARB(GL_TEXTURE2);
+    glDisable(GL_TEXTURE_2D);*/
+
+	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+	//glEnable(GL_TEXTURE_2D);
 
 	glutMainLoop();
 }
