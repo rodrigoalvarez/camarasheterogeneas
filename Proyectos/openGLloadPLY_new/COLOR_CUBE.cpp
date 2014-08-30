@@ -17,19 +17,18 @@ PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB = NULL;
 
 
 struct MasterTexture {
-    GLdouble viewer[3];// = {0.0,0.0,0.0};
-    GLdouble oldViewer[3];// = {0.0,0.0,0.0};
-    GLdouble newViewer[3];// = {0.0,0.0,0.0};
+    GLdouble viewer[3];
+    GLdouble newViewer[3];
 
     Matrix4x4f TextureTransform;
     float MVmatrix[16];
 
-    float rotateObjectX;// = 0.0f;
-    float rotateObjectY;// = 0.0f;
-    float rotateObjectZ;// = 0.0f;
-    float rotateTextureX;// = 0.0f;
-    float rotateTextureY;// = 0.0f;
-    float rotateTextureZ;// = 0.0f;
+    float rotateX;
+    float rotateY;
+    float rotateZ;
+    float newRotateX;
+    float newRotateY;
+    float newRotateZ;
 };
 
 
@@ -48,6 +47,7 @@ MasterTexture* masterNow = NULL;
 
 int cameraAxis = -1;
 int cameraMove = -1;
+GLdouble oldViewer[3];
 
 bool modeTexture = true;
 
@@ -68,8 +68,8 @@ void writeText() {
         cout << "Texture :: " << i << endl;
         cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
         cout << "Origin new position..." << endl << masterNow->newViewer[0]  << " " << masterNow->newViewer[1]  << " " << masterNow->newViewer[2] << endl;
-        cout << "Object rotate..." << endl << masterNow->rotateObjectX  << " " << masterNow->rotateObjectY  << " " << masterNow->rotateObjectZ << endl;
-        cout << "Texture rotate..." << endl << masterNow->rotateTextureX  << " " << masterNow->rotateTextureY  << " " << masterNow->rotateTextureZ << endl << endl;
+        cout << "Object rotate..." << endl << masterNow->rotateX  << " " << masterNow->rotateY  << " " << masterNow->rotateZ << endl;
+        cout << "Texture rotate..." << endl << masterNow->newRotateX  << " " << masterNow->newRotateY  << " " << masterNow->newRotateZ << endl << endl;
     }
 }
 
@@ -124,14 +124,20 @@ void stepTransformTexture() {
         glRotatef(0, 0.0f,1.0f,0.0f);
         glRotatef(0, 0.0f,0.0f,1.0f);
 	} else {
-        glTranslatef(masterNow->viewer[0], masterNow->viewer[1], masterNow->viewer[2] - 20);
+        glTranslatef(master[0].viewer[0],
+                     master[0].viewer[1],
+                     master[0].viewer[2] - 20);
 
-        glRotatef(masterNow->rotateTextureX - master[0].rotateObjectX, 1.0f,0.0f,0.0f);
-        glRotatef(masterNow->rotateTextureY - master[0].rotateObjectY, 0.0f,1.0f,0.0f);
-        glRotatef(masterNow->rotateTextureZ - master[0].rotateObjectZ, 0.0f,0.0f,1.0f);
+        glRotatef(masterNow->newRotateX - master[0].rotateX, 1.0f,0.0f,0.0f);
+        glRotatef(masterNow->newRotateY - master[0].rotateY, 0.0f,1.0f,0.0f);
+        glRotatef(masterNow->newRotateZ - master[0].rotateZ, 0.0f,0.0f,1.0f);
 
-        glTranslatef(-masterNow->viewer[0], -masterNow->viewer[1], -masterNow->viewer[2] + 20);
-        glTranslatef(masterNow->viewer[0] - masterNow->newViewer[0], masterNow->viewer[1] - masterNow->newViewer[1], masterNow->viewer[2] - masterNow->newViewer[2]);
+        glTranslatef(-master[0].viewer[0],
+                     -master[0].viewer[1],
+                     -master[0].viewer[2] + 20);
+        glTranslatef(master[0].viewer[0] - masterNow->newViewer[0],
+                     master[0].viewer[1] - masterNow->newViewer[1],
+                     master[0].viewer[2] - masterNow->newViewer[2]);
 	}
 }
 
@@ -142,19 +148,16 @@ void stepTexture() {
 	    glActiveTextureARB(GL_TEXTURE0);
         glEnable(GL_TEXTURE_2D);
         stepTransformTexture();
-        //glTranslatef(0.0f, 5.0f, 0.0f);
 	}
 	if (textureIndex == 2) {
 	    glActiveTextureARB(GL_TEXTURE1);
         glEnable(GL_TEXTURE_2D);
         stepTransformTexture();
-        //glTranslatef(0.0f, -5.0f, 0.0f);
 	}
 	if (textureIndex == 3) {
 	    glActiveTextureARB(GL_TEXTURE2);
         glEnable(GL_TEXTURE_2D);
         stepTransformTexture();
-        //glTranslatef(5.0f, 0.0f, 0.0f);
 	}
 	glGetFloatv(GL_MODELVIEW_MATRIX,masterNow->MVmatrix);
 	masterNow->TextureTransform.setMatrix(masterNow->MVmatrix);
@@ -181,9 +184,9 @@ void display(void) {
         textureIndex = 2;
         masterNow = &master[2];
         stepTexture();
-        /*textureIndex = 3;
+        textureIndex = 3;
         masterNow = &master[3];
-        stepTexture();*/
+        stepTexture();/**/
 
         textureIndex = 0;
         masterNow = &master[0];
@@ -193,9 +196,9 @@ void display(void) {
 
 	glLoadIdentity();
 	glTranslatef(masterNow->viewer[0], masterNow->viewer[1], masterNow->viewer[2] - 20);
-	glRotatef(masterNow->rotateObjectX, -1.0f,0.0f,0.0f);
-    glRotatef(masterNow->rotateObjectY, 0.0f,-1.0f,0.0f);
-    glRotatef(masterNow->rotateObjectZ, 0.0f,0.0f,-1.0f);
+	glRotatef(masterNow->rotateX, -1.0f,0.0f,0.0f);
+    glRotatef(masterNow->rotateY, 0.0f,-1.0f,0.0f);
+    glRotatef(masterNow->rotateZ, 0.0f,0.0f,-1.0f);
 	drawMesh();
 
 	stepClearTexture();
@@ -205,69 +208,53 @@ void display(void) {
     writeText();
 }
 
+void savePosition() {
+    masterNow->newRotateX = masterNow->rotateX;
+    masterNow->newRotateY = masterNow->rotateY;
+    masterNow->newRotateZ = masterNow->rotateZ;
+    masterNow->newViewer[0] = masterNow->viewer[0];
+    masterNow->newViewer[1] = masterNow->viewer[1];
+    masterNow->newViewer[2] = masterNow->viewer[2];
+}
+
 void keys(unsigned char key, int x, int y) {
     if(key == 't' && modeTexture) {
-        //modeTexture = true;
-        masterNow->rotateTextureX = 0;
-        masterNow->rotateTextureY = 0;
-        masterNow->rotateTextureZ = 0;
+        masterNow->newRotateX = 0;
+        masterNow->newRotateY = 0;
+        masterNow->newRotateZ = 0;
     }
     if(key == 'v' && textureIndex == 3) {
-        masterNow->rotateTextureX = masterNow->rotateObjectX;
-        masterNow->rotateTextureY = masterNow->rotateObjectY;
-        masterNow->rotateTextureZ = masterNow->rotateObjectZ;
-        masterNow->newViewer[0] = masterNow->viewer[0];
-        masterNow->newViewer[1] = masterNow->viewer[1];
-        masterNow->newViewer[2] = masterNow->viewer[2];
-
+        savePosition();
         modeTexture = false;
         textureIndex = 0;
         masterNow = &master[0];
     }
 
 	if(key == '1') {
-        masterNow->rotateTextureX = masterNow->rotateObjectX;
-        masterNow->rotateTextureY = masterNow->rotateObjectY;
-        masterNow->rotateTextureZ = masterNow->rotateObjectZ;
-        masterNow->newViewer[0] = masterNow->viewer[0];
-        masterNow->newViewer[1] = masterNow->viewer[1];
-        masterNow->newViewer[2] = masterNow->viewer[2];
-
+        savePosition();
         textureIndex = 1;
         masterNow = &master[1];
         display();
 	}
 	if(key == '2') {
-        masterNow->rotateTextureX = masterNow->rotateObjectX;
-        masterNow->rotateTextureY = masterNow->rotateObjectY;
-        masterNow->rotateTextureZ = masterNow->rotateObjectZ;
-        masterNow->newViewer[0] = masterNow->viewer[0];
-        masterNow->newViewer[1] = masterNow->viewer[1];
-        masterNow->newViewer[2] = masterNow->viewer[2];
-
+        savePosition();
         textureIndex = 2;
         masterNow = &master[2];
         display();
 	}
 	if(key == '3') {
-        masterNow->rotateTextureX = masterNow->rotateObjectX;
-        masterNow->rotateTextureY = masterNow->rotateObjectY;
-        masterNow->rotateTextureZ = masterNow->rotateObjectZ;
-        masterNow->newViewer[0] = masterNow->viewer[0];
-        masterNow->newViewer[1] = masterNow->viewer[1];
-        masterNow->newViewer[2] = masterNow->viewer[2];
-
+        savePosition();
         textureIndex = 3;
         masterNow = &master[3];
         display();
 	}
 
-	if(key == 'w') masterNow->rotateObjectX += 2.0;
-	if(key == 's') masterNow->rotateObjectX -= 2.0;
-	if(key == 'a') masterNow->rotateObjectY += 2.0;
-	if(key == 'd') masterNow->rotateObjectY -= 2.0;
-	if(key == 'e') masterNow->rotateObjectZ += 2.0;
-	if(key == 'q') masterNow->rotateObjectZ -= 2.0;
+	if(key == 'w') masterNow->rotateX += 2.0;
+	if(key == 's') masterNow->rotateX -= 2.0;
+	if(key == 'a') masterNow->rotateY += 2.0;
+	if(key == 'd') masterNow->rotateY -= 2.0;
+	if(key == 'e') masterNow->rotateZ += 2.0;
+	if(key == 'q') masterNow->rotateZ -= 2.0;
 
 	display();
 }
@@ -276,9 +263,9 @@ void mouse(int btn, int state, int x, int y) {
     cameraAxis = state == GLUT_DOWN ? btn : -1;
     if (state == GLUT_DOWN) {
         cameraMove = y;
-        masterNow->oldViewer[0] = masterNow->viewer[0];
-        masterNow->oldViewer[1] = masterNow->viewer[1];
-        masterNow->oldViewer[2] = masterNow->viewer[2];
+        oldViewer[0] = masterNow->viewer[0];
+        oldViewer[1] = masterNow->viewer[1];
+        oldViewer[2] = masterNow->viewer[2];
     }
     if (state == GLUT_UP) {
         cameraMove = -1;
@@ -292,11 +279,11 @@ void mouseMove(int x, int y) {
 	{
 		float deltaMove = (y - cameraMove) * 0.1f;
         if (cameraAxis == GLUT_LEFT_BUTTON) {
-            masterNow->viewer[0] = masterNow->oldViewer[0] + deltaMove;
+            masterNow->viewer[0] = oldViewer[0] + deltaMove;
         } else if (cameraAxis == GLUT_RIGHT_BUTTON) {
-            masterNow->viewer[1] = masterNow->oldViewer[1] + deltaMove;
+            masterNow->viewer[1] = oldViewer[1] + deltaMove;
         } else if (cameraAxis == GLUT_MIDDLE_BUTTON) {
-            masterNow->viewer[2] = masterNow->oldViewer[2] + deltaMove;
+            masterNow->viewer[2] = oldViewer[2] + deltaMove;
         }
 		display();
 	}
@@ -377,15 +364,14 @@ int main(int argc, char **argv) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             master[i].viewer[j] = 0.0;
-            master[i].oldViewer[j] = 0.0;
             master[i].newViewer[j] = 0.0;
         }
-        master[i].rotateObjectX = 0;
-        master[i].rotateObjectY = 0;
-        master[i].rotateObjectZ = 0;
-        master[i].rotateTextureX = 0;
-        master[i].rotateTextureY = 0;
-        master[i].rotateTextureZ = 0;
+        master[i].rotateX = 0;
+        master[i].rotateY = 0;
+        master[i].rotateZ = 0;
+        master[i].newRotateX = 0;
+        master[i].newRotateY = 0;
+        master[i].newRotateZ = 0;
     }
     textureIndex = 0;
     masterNow = &master[0];
@@ -406,7 +392,6 @@ int main(int argc, char **argv) {
 	glutDisplayFunc(display);
 	glutMouseFunc(mouse);
 	glutMotionFunc(mouseMove);
-	//glutMouseWheelFunc(mouseWheel);
 	glutKeyboardFunc(keys);
 	glEnable(GL_DEPTH_TEST);
 
@@ -438,15 +423,7 @@ int main(int argc, char **argv) {
     glDisable(GL_TEXTURE_2D);
 	loadLightMapTexture("lightmap2.JPG");
 
-    /*glActiveTextureARB(GL_TEXTURE0);
-    glDisable(GL_TEXTURE_2D);
-    glActiveTextureARB(GL_TEXTURE1);
-    glDisable(GL_TEXTURE_2D);
-    glActiveTextureARB(GL_TEXTURE2);
-    glDisable(GL_TEXTURE_2D);*/
-
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
-	//glEnable(GL_TEXTURE_2D);
 
 	glutMainLoop();
 }
