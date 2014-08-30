@@ -52,15 +52,21 @@ GLdouble oldViewer[3];
 bool modeTexture = true;
 
 int TotalConnectedTriangles = 0;
-int TotalConnectedPoints = 0;
+int TotalPoints = 0;
 int TotalFaces = 0;
+int MinCoord = 0;
+int MaxCoord = 0;
+int AlfaCoord = 0;
 
 
 void writeText() {
     system("cls");
     cout << "Triangles: " << TotalConnectedTriangles << endl;
-    cout << "Points: " << TotalConnectedPoints << endl;
+    cout << "Points: " << TotalPoints << endl;
     cout << "Faces: " << TotalFaces << endl;
+    cout << "MinCoord: " << MinCoord << endl;
+    cout << "MaxCoord: " << MaxCoord << endl;
+    cout << "AlfaCoord: " << AlfaCoord << endl;
     cout << "Mode: " << (modeTexture ? "Texture" : "View") << endl << endl;
 
     for (int i = 0; i < 4; i++) {
@@ -379,8 +385,11 @@ int main(int argc, char **argv) {
     model = new Model_PLY();
     model->Load("test3.ply");
     TotalConnectedTriangles = model->TotalConnectedTriangles;
-    TotalConnectedPoints = model->TotalConnectedPoints;
+    TotalPoints = model->TotalPoints;
     TotalFaces = model->TotalFaces;
+    MinCoord = model->MinCoord;
+    MaxCoord = model->MaxCoord;
+    AlfaCoord = model->AlfaCoord;
 
     writeText();
 
