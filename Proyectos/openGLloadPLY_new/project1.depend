@@ -57,11 +57,13 @@
 1148006184 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\matrix4x4.cpp
 	"matrix4x4.h"
 
-1409431562 source:c:\users\rodrigo\downloads\openglloadply\model_ply.cpp
+1409433372 source:c:\users\rodrigo\downloads\openglloadply\model_ply.cpp
 	"Model_PLY.h"
 	<vector>
+	<limits>
+	<cmath>
 
-1409432265 c:\users\rodrigo\downloads\openglloadply\model_ply.h
+1409433314 c:\users\rodrigo\downloads\openglloadply\model_ply.h
 	<windows.h>
 	<stdio.h>
 	<string.h>
@@ -70,11 +72,12 @@
 	<cmath>
 	<string>
 
-1409432773 source:c:\users\rodrigo\downloads\openglloadply\color_cube.cpp
+1409509527 source:c:\users\rodrigo\downloads\openglloadply\color_cube.cpp
 	<stdlib.h>
 	<windows.h>
 	<GL/glut.h>
 	"Model_PLY.h"
+	"masterPly.h"
 	<iostream>
 	<GL/glext.h>
 	"FreeImage.h"
@@ -92,4 +95,44 @@
 
 1408486552 source:c:\users\rodrigo\downloads\openglloadply\matrix4x4.cpp
 	"matrix4x4.h"
+
+1409510187 source:c:\users\rodrigo\downloads\openglloadply\masterply.cpp
+	"masterPly.h"
+	<time.h>
+	<vcg/complex/complex.h>
+	<vcg/complex/algorithms/point_sampling.h>
+	<vcg/complex/algorithms/create/ball_pivoting.h>
+	"plylib.h"
+	<vcg/complex/algorithms/update/topology.h>
+	<vcg/complex/algorithms/update/flag.h>
+	<vcg/complex/algorithms/update/normal.h>
+	<vcg/complex/algorithms/refine.h>
+	<wrap/io_trimesh/import_ply.h>
+	<wrap/io_trimesh/export_ply.h>
+	<wrap/io_trimesh/export_stl.h>
+	<vector>
+
+1409509225 c:\users\rodrigo\downloads\openglloadply\masterply.h
+
+1409496300 c:\users\rodrigo\downloads\openglloadply\plylib.h
+	<memory.h>
+	<vector>
+	<string>
+	<assert.h>
+
+1409496300 source:c:\users\rodrigo\downloads\openglloadply\plylib.cpp
+	<assert.h>
+	<direct.h>
+	<fcntl.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+	<assert.h>
+	<vector>
+	<algorithm>
+	"plylib.h"
 

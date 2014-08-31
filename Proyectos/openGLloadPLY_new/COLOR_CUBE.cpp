@@ -2,6 +2,7 @@
 #include<windows.h>
 #include<GL/glut.h>
 #include "Model_PLY.h"
+#include "masterPly.h"
 #include<iostream>
 #include <GL/glext.h>
 
@@ -60,7 +61,7 @@ int AlfaCoord = 0;
 
 
 void writeText() {
-    system("cls");
+    /*system("cls");
     cout << "Triangles: " << TotalConnectedTriangles << endl;
     cout << "Points: " << TotalPoints << endl;
     cout << "Faces: " << TotalFaces << endl;
@@ -76,7 +77,7 @@ void writeText() {
         cout << "Origin new position..." << endl << masterNow->newViewer[0]  << " " << masterNow->newViewer[1]  << " " << masterNow->newViewer[2] << endl;
         cout << "Object rotate..." << endl << masterNow->rotateX  << " " << masterNow->rotateY  << " " << masterNow->rotateZ << endl;
         cout << "Texture rotate..." << endl << masterNow->newRotateX  << " " << masterNow->newRotateY  << " " << masterNow->newRotateZ << endl << endl;
-    }
+    }*/
 }
 
 void setVertex(int index) {
@@ -367,6 +368,11 @@ void loadLightMapTexture(const char *name) {
 }
 
 int main(int argc, char **argv) {
+
+    MasterPly* ply = new MasterPly();
+    ply->Sampling("mallaRodrigo.ply", "test");
+
+
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             master[i].viewer[j] = 0.0;
@@ -383,7 +389,7 @@ int main(int argc, char **argv) {
     masterNow = &master[0];
 
     model = new Model_PLY();
-    model->Load("test3.ply");
+    model->Load("mallaRodrigo.ply");
     TotalConnectedTriangles = model->TotalConnectedTriangles;
     TotalPoints = model->TotalPoints;
     TotalFaces = model->TotalFaces;
