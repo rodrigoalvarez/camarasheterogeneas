@@ -11,6 +11,7 @@
 #include <vcg/complex/algorithms/update/flag.h>
 #include <vcg/complex/algorithms/update/normal.h>
 #include <vcg/complex/algorithms/refine.h>
+#include <vcg/complex/algorithms/textcoord_optimization.h>
 
 // input output
 /**/
@@ -40,6 +41,7 @@ class MyMesh    : public vcg::tri::TriMesh< std::vector<MyVertex>, std::vector<M
 	t.join();
 }*/
 
+
 void MasterPly::Sampling (char* input, char* output) {
 	MyMesh m;
 	MyMesh subM;
@@ -50,6 +52,25 @@ void MasterPly::Sampling (char* input, char* output) {
 		cout << "Error reading file  %s\n" << endl;
 		return;
 	}
+
+    std::vector<MyVertex> vvv = m.vert;
+    MyVertex vtx = vvv[0];
+
+/*for(int i=0;i<m.FN();++i)
+{
+ if(!fi->IsD())
+   {
+    MyMesh::CoordType b = vcg::Barycenter(*fi);
+   }
+}*/
+
+    for(MyMesh::FaceIterator f=m.face.begin();f!=m.face.end();++f) {
+        if(!f->IsD()) {
+            MyMesh::CoordType b = vcg::Barycenter(*f);
+            cout << "" << endl;
+
+        }
+    }
 
 	// calculate radius
 	rad = tri::SurfaceSampling<MyMesh,tri::TrivialSampler<MyMesh> >::ComputePoissonDiskRadius(m, 10000);

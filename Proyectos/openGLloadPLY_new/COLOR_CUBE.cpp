@@ -1,3 +1,4 @@
+#include <GL/glew.h>
 #include<stdlib.h>
 #include<windows.h>
 #include<GL/glut.h>
@@ -15,6 +16,10 @@ GLuint *textures = new GLuint[2];
 PFNGLACTIVETEXTUREARBPROC       glActiveTextureARB       = NULL;
 PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2fARB     = NULL;
 PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB = NULL;
+PFNGLBEGINQUERYARBPROC glBeginQueryARB = NULL;
+PFNGLGENQUERIESARBPROC glGenQueriesARB = NULL;
+PFNGLENDQUERYARBPROC glEndQueryARB = NULL;
+PFNGLGETQUERYOBJECTUIVPROC glGetQueryObjectuivARB = NULL;
 
 
 struct MasterTexture {
@@ -59,16 +64,18 @@ int MinCoord = 0;
 int MaxCoord = 0;
 int AlfaCoord = 0;
 
+int countHits = 0;
 
 void writeText() {
-    /*system("cls");
+    system("cls");
     cout << "Triangles: " << TotalConnectedTriangles << endl;
     cout << "Points: " << TotalPoints << endl;
     cout << "Faces: " << TotalFaces << endl;
     cout << "MinCoord: " << MinCoord << endl;
     cout << "MaxCoord: " << MaxCoord << endl;
     cout << "AlfaCoord: " << AlfaCoord << endl;
-    cout << "Mode: " << (modeTexture ? "Texture" : "View") << endl << endl;
+    cout << "Mode: " << (modeTexture ? "Texture" : "View") << endl;
+    cout << "Hints: " << countHits << endl << endl;
 
     for (int i = 0; i < 4; i++) {
         MasterTexture* masterNow = &master[i];
@@ -77,7 +84,7 @@ void writeText() {
         cout << "Origin new position..." << endl << masterNow->newViewer[0]  << " " << masterNow->newViewer[1]  << " " << masterNow->newViewer[2] << endl;
         cout << "Object rotate..." << endl << masterNow->rotateX  << " " << masterNow->rotateY  << " " << masterNow->rotateZ << endl;
         cout << "Texture rotate..." << endl << masterNow->newRotateX  << " " << masterNow->newRotateY  << " " << masterNow->newRotateZ << endl << endl;
-    }*/
+    }/**/
 }
 
 void setVertex(int index) {
@@ -85,8 +92,22 @@ void setVertex(int index) {
     glVertex3fv(vert);
 }
 
+GLuint localHits = 0;
+
 void triangle(int index) {
-    glColor3f(1.0f, 1.0f, 1.0f);
+
+    if (localHits > 150) {
+        glColor3f(1.0f, 0.0f, 0.0f);
+    } else if (localHits > 100) {
+        glColor3f(1.0f, 0.3f, 0.3f);
+    } else if (localHits > 50) {
+        glColor3f(1.0f, 0.6f, 0.6f);
+    } else {
+        glColor3f(1.0f, 0.9f, 0.9f);
+    }
+    //glColor3f(1.0f, 0.0f, 0.0f);
+    //glColor3f(1.0f, 1.0f, 1.0f);
+
 	glBegin(GL_POLYGON);
 		//glColor3fv(colors[0]);
 		setVertex(index * 3);
@@ -95,20 +116,55 @@ void triangle(int index) {
 		//glColor3fv(colors[2]);
 		setVertex(index * 3 + 2);
 	glEnd();
-    glBegin(GL_LINE_LOOP);
+    /*glBegin(GL_LINE_LOOP);
         glColor3f(0.5f, 0.5f, 0.5f);
         setVertex(index * 3);
         glColor3f(0.5f, 0.5f, 0.5f);
         setVertex(index * 3 + 1);
         glColor3f(0.5f, 0.5f, 0.5f);
         setVertex(index * 3 + 2);
-    glEnd();
+    glEnd();*/
 }
 
-void drawMesh() {
+void oldDrawMesh() {
     for (int i = 0; i < model->TotalFaces; i++) {
         triangle(i);
     }
+}
+
+void drawMesh() {
+
+    GLuint queries[model->TotalFaces];
+    GLuint sampleCount;
+
+    glGenQueriesARB(model->TotalFaces, queries);
+
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+
+    for (int i = 0; i < model->TotalFaces; i++) {
+        glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
+        triangle(i);
+        glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+    }
+
+    glEnable(GL_BLEND);
+    glDepthFunc(GL_EQUAL);
+    glDepthMask(GL_FALSE);
+
+    countHits = 0;
+    for (int i = 0; i < model->TotalFaces; i++) {
+        glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
+        if (sampleCount > 0) {
+            triangle(i);
+            localHits = sampleCount;
+            countHits++;
+        }
+    }
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
 }
 
 void textureProjection(Matrix4x4f &mv) {
@@ -181,6 +237,8 @@ void stepClearTexture() {
     glDisable(GL_TEXTURE_2D);
 }
 
+bool modeHits = true;
+
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
@@ -206,7 +264,12 @@ void display(void) {
 	glRotatef(masterNow->rotateX, -1.0f,0.0f,0.0f);
     glRotatef(masterNow->rotateY, 0.0f,-1.0f,0.0f);
     glRotatef(masterNow->rotateZ, 0.0f,0.0f,-1.0f);
-	drawMesh();
+
+    if (modeHits) {
+        drawMesh();
+    } else {
+        oldDrawMesh();
+    }
 
 	stepClearTexture();
 	glFlush();
@@ -235,6 +298,9 @@ void keys(unsigned char key, int x, int y) {
         modeTexture = false;
         textureIndex = 0;
         masterNow = &master[0];
+    }
+    if (key == 'h') {
+        modeHits = false;
     }
 
 	if(key == '1') {
@@ -369,9 +435,8 @@ void loadLightMapTexture(const char *name) {
 
 int main(int argc, char **argv) {
 
-    MasterPly* ply = new MasterPly();
-    ply->Sampling("mallaRodrigo.ply", "test");
-
+    //MasterPly* ply = new MasterPly();
+    //ply->Sampling("mallaRodrigo.ply", "test");
 
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -389,7 +454,7 @@ int main(int argc, char **argv) {
     masterNow = &master[0];
 
     model = new Model_PLY();
-    model->Load("mallaRodrigo.ply");
+    model->Load("test3.ply");
     TotalConnectedTriangles = model->TotalConnectedTriangles;
     TotalPoints = model->TotalPoints;
     TotalFaces = model->TotalFaces;
@@ -415,6 +480,10 @@ int main(int argc, char **argv) {
     glActiveTextureARB       = (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
     glMultiTexCoord2fARB     = (PFNGLMULTITEXCOORD2FARBPROC)wglGetProcAddress("glMultiTexCoord2fARB");
     glClientActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
+    glBeginQueryARB = (PFNGLBEGINQUERYARBPROC)wglGetProcAddress("glBeginQueryARB");
+    glGenQueriesARB = (PFNGLGENQUERIESARBPROC)wglGetProcAddress("glGenQueriesARB");
+    glEndQueryARB = (PFNGLENDQUERYARBPROC)wglGetProcAddress("glEndQueryARB");
+    glGetQueryObjectuivARB = (PFNGLGETQUERYOBJECTUIVPROC)wglGetProcAddress("glGetQueryObjectuivARB");
 
     if( !glActiveTextureARB || !glMultiTexCoord2fARB || !glClientActiveTextureARB )
     {

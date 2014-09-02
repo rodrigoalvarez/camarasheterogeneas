@@ -72,7 +72,8 @@
 	<cmath>
 	<string>
 
-1409509527 source:c:\users\rodrigo\downloads\openglloadply\color_cube.cpp
+1409701131 source:c:\users\rodrigo\downloads\openglloadply\color_cube.cpp
+	<GL/glew.h>
 	<stdlib.h>
 	<windows.h>
 	<GL/glut.h>
@@ -96,7 +97,7 @@
 1408486552 source:c:\users\rodrigo\downloads\openglloadply\matrix4x4.cpp
 	"matrix4x4.h"
 
-1409510187 source:c:\users\rodrigo\downloads\openglloadply\masterply.cpp
+1409518311 source:c:\users\rodrigo\downloads\openglloadply\masterply.cpp
 	"masterPly.h"
 	<time.h>
 	<vcg/complex/complex.h>
@@ -107,6 +108,7 @@
 	<vcg/complex/algorithms/update/flag.h>
 	<vcg/complex/algorithms/update/normal.h>
 	<vcg/complex/algorithms/refine.h>
+	<vcg/complex/algorithms/textcoord_optimization.h>
 	<wrap/io_trimesh/import_ply.h>
 	<wrap/io_trimesh/export_ply.h>
 	<wrap/io_trimesh/export_stl.h>
