@@ -1,5 +1,5 @@
 
-//#include <GL/glew.h>
+#include <GL/glew.h>
 #include<stdlib.h>
 #include<windows.h>
 #include<GL/glut.h>
@@ -16,7 +16,11 @@ using namespace std;
 GLuint *textures = new GLuint[2];
 PFNGLACTIVETEXTUREARBPROC       glActiveTextureARB       = NULL;
 PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2fARB     = NULL;
-PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB = NULL;
+PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB = NULL;/**/
+PFNGLBEGINQUERYARBPROC glBeginQueryARB = NULL;
+PFNGLGENQUERIESARBPROC glGenQueriesARB = NULL;
+PFNGLENDQUERYARBPROC glEndQueryARB = NULL;
+PFNGLGETQUERYOBJECTUIVPROC glGetQueryObjectuivARB = NULL;
 
 Model_PLY* model = NULL;
 GLuint texObject, projTexture;
@@ -45,14 +49,14 @@ void triangle(int index)
 		setVertex(index * 3 + 2);
 	glEnd();
 	//glBindTexture(GL_TEXTURE_2D, textures[1]);
-	glColor3f(0.0f, 0.0f, 1.0f);
+	/*glColor3f(0.0f, 0.0f, 1.0f);
     glBegin(GL_LINE_LOOP);
 		setVertex(index * 3);
 		//glColor3f(0.0f, 0.0f, 1.0f);
 		setVertex(index * 3 + 1);
 		//glColor3f(0.0f, 0.0f, 1.0f);
 		setVertex(index * 3 + 2);
-	glEnd();
+	glEnd();*/
 }
 
 void colorcube()
@@ -73,9 +77,41 @@ void colorcube()
     /*glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD); // not standard, must be an extension
 */
-    for (int i = 0; i < model->TotalFaces; i++) {
+
+    /*for (int i = 0; i < model->TotalFaces; i++) {
         triangle(i);
+    }*/
+    int N = model->TotalFaces;
+    GLuint queries[N];
+    GLuint sampleCount;
+
+    glGenQueriesARB(N, queries);
+    // First rendering pass plus almost-free visibility checks
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+    // configure shader 0
+    for (int i = 0; i < N; i++) {
+        glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
+        // render object i
+        triangle(i);
+        glEndQueryARB(GL_SAMPLES_PASSED_ARB);
     }
+
+    // Second pass only on objects that were visible
+    glEnable(GL_BLEND);
+    //glBlendFunc(...);
+    glDepthFunc(GL_EQUAL);
+    glDepthMask(GL_FALSE);
+    // configure shader 1
+    for (int i = 0; i < N; i++) {
+        glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
+        if (sampleCount > 0) {
+            // render object i
+            triangle(i);
+        }
+    }
+
     glActiveTextureARB(GL_TEXTURE0);
     glDisable(GL_TEXTURE_2D);
     glActiveTextureARB(GL_TEXTURE1);
@@ -303,10 +339,11 @@ int main(int argc, char **argv)
 	glutKeyboardFunc(keys);
 	glEnable(GL_DEPTH_TEST);
 
-    /*glewInit();GLenum err = glewInit();
+    /*glewInit();
+    GLenum err = glewInit();
     if (GLEW_OK != err)
     {
-      /* Problem: glewInit failed, something is seriously wrong.
+       //Problem: glewInit failed, something is seriously wrong.
       fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
 
     }
@@ -317,6 +354,10 @@ int main(int argc, char **argv)
     glActiveTextureARB       = (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
     glMultiTexCoord2fARB     = (PFNGLMULTITEXCOORD2FARBPROC)wglGetProcAddress("glMultiTexCoord2fARB");
     glClientActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
+    glBeginQueryARB = (PFNGLBEGINQUERYARBPROC)wglGetProcAddress("glBeginQueryARB");
+    glGenQueriesARB = (PFNGLGENQUERIESARBPROC)wglGetProcAddress("glGenQueriesARB");
+    glEndQueryARB = (PFNGLENDQUERYARBPROC)wglGetProcAddress("glEndQueryARB");
+    glGetQueryObjectuivARB = (PFNGLGETQUERYOBJECTUIVPROC)wglGetProcAddress("glGetQueryObjectuivARB");
 
     if( !glActiveTextureARB || !glMultiTexCoord2fARB || !glClientActiveTextureARB )
     {
@@ -324,7 +365,6 @@ int main(int argc, char **argv)
             "ERROR",MB_OK|MB_ICONEXCLAMATION);
         return -1;
     }
-
 
     glActiveTextureARB(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textures[0]);
@@ -345,5 +385,9 @@ int main(int argc, char **argv)
 
 
 	glutMainLoop();
+}
+
+void occlusionQuery(){
+
 }
 /* Tengo que ver como seleccionar la imagen a mover y que se mueva esa y no otra*/
