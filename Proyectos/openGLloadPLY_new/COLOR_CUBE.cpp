@@ -93,6 +93,7 @@ void setVertex(int index) {
 }
 
 GLuint localHits = 0;
+int testFaces[912];
 
 void triangle(int index) {
 
@@ -102,8 +103,10 @@ void triangle(int index) {
         glColor3f(1.0f, 0.3f, 0.3f);
     } else if (localHits > 50) {
         glColor3f(1.0f, 0.6f, 0.6f);
+    } else if (localHits > 0) {
+        glColor3f(1.0f, 0.8f, 0.8f);
     } else {
-        glColor3f(1.0f, 0.9f, 0.9f);
+        glColor3f(1.0f, 1.0f, 1.0f);
     }
     //glColor3f(1.0f, 0.0f, 0.0f);
     //glColor3f(1.0f, 1.0f, 1.0f);
@@ -128,7 +131,10 @@ void triangle(int index) {
 
 void oldDrawMesh() {
     for (int i = 0; i < model->TotalFaces; i++) {
-        triangle(i);
+        localHits = testFaces[i];
+        if (localHits > 0) {
+            triangle(i);
+        }
     }
 }
 
@@ -157,8 +163,9 @@ void drawMesh() {
     for (int i = 0; i < model->TotalFaces; i++) {
         glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
         if (sampleCount > 0) {
-            triangle(i);
+            testFaces[i] = sampleCount;
             localHits = sampleCount;
+            triangle(i);
             countHits++;
         }
     }
