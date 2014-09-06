@@ -1,0 +1,85 @@
+# depslib dependency file v1.0
+1409518517 source:c:\users\rodrigo\downloads\openglloadply\src\masterply.cpp
+	"masterPly.h"
+	<time.h>
+	<vcg/complex/complex.h>
+	<vcg/complex/algorithms/point_sampling.h>
+	<vcg/complex/algorithms/create/ball_pivoting.h>
+	"plylib.h"
+	<vcg/complex/algorithms/update/topology.h>
+	<vcg/complex/algorithms/update/flag.h>
+	<vcg/complex/algorithms/update/normal.h>
+	<vcg/complex/algorithms/refine.h>
+	<vcg/complex/algorithms/textcoord_optimization.h>
+	<wrap/io_trimesh/import_ply.h>
+	<wrap/io_trimesh/export_ply.h>
+	<wrap/io_trimesh/export_stl.h>
+	<vector>
+
+1409509225 c:\users\rodrigo\downloads\openglloadply\src\masterply.h
+
+1409496300 c:\users\rodrigo\downloads\openglloadply\src\plylib.h
+	<memory.h>
+	<vector>
+	<string>
+	<assert.h>
+
+1408486552 source:c:\users\rodrigo\downloads\openglloadply\src\matrix4x4.cpp
+	"matrix4x4.h"
+
+1408486552 c:\users\rodrigo\downloads\openglloadply\src\matrix4x4.h
+	<memory>
+	<cmath>
+	<iostream>
+	<string.h>
+
+1410015276 source:c:\users\rodrigo\downloads\openglloadply\src\modelply.cpp
+	"modelPly.h"
+	<vector>
+	<limits>
+	<cmath>
+
+1409433314 c:\users\rodrigo\downloads\openglloadply\src\modelply.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<cmath>
+	<string>
+
+1409496300 source:c:\users\rodrigo\downloads\openglloadply\src\plylib.cpp
+	<assert.h>
+	<direct.h>
+	<fcntl.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+	<assert.h>
+	<vector>
+	<algorithm>
+	"plylib.h"
+
+1410033124 source:c:\users\rodrigo\downloads\openglloadply\src\main.cpp
+	<GL/glew.h>
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"modelPly.h"
+	"masterPly.h"
+	<vector>
+	<fstream>
+	<sstream>
+	<iostream>
+	<GL/glext.h>
+	"FreeImage.h"
+	"matrix4x4.h"
+
+1408486551 c:\users\rodrigo\downloads\openglloadply\src\freeimage.h
+	<wchar.h>
+	<inttypes.h>
+
