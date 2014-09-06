@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GlobalData.h"
+#include "ofxQTVideoSaver.h"
 #include "ofMain.h"
 
 
@@ -18,4 +19,5 @@ class Thread2D : public ofThread {
         bool isAllocated;
         ofVideoGrabber vidGrabber;
         t_camera  * context;
+        ofxQtVideoSaver video;
 };

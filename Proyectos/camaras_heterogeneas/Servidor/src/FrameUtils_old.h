@@ -7,7 +7,8 @@
 #include <iostream>
 #include <sys/time.h>
 #include <sstream>
-#include "ofxCvShortImage.h"
+#include <ofxOpenCv.h>
+
 /*
 unsigned int  timestamp;
 ofImage img;
@@ -39,6 +40,7 @@ class FrameUtils {
         ofxCvShortImage img;
         img.allocate(300, 200);
         tData[0].spix       = img.getShortPixelsRef();
+        cout << " tData[0].spix.getWidth(): " << tData[0].spix.getWidth() << " tData[0].spix.getHeight(): " << tData[0].spix.getHeight() << endl;
 
         tData[0].state      = 3; //0-No inited, 1-Only Image, 2-Only Point Cloud, 3-Ambas
 
@@ -67,9 +69,7 @@ class FrameUtils {
              - (unsigned char *) imagebytearray
              - (int) pcWidth
              - (int) pcHeight
-             - (ofFloatPixels *) sXpix
-             - (ofFloatPixels *) sYpix
-             - (ofFloatPixels *) sZpix
+             - (unsigned short *) pointcloudbytearray
             */
 
         try {
@@ -88,9 +88,7 @@ class FrameUtils {
                         totSize += sizeof(int);     //(int) camWidth
                         totSize += sizeof(int);     //(int) camHeight
                         //Reservo lugar para la imágen.
-
-                        ofPixels p = tData[i].img.getPixelsRef();
-                        totSize += p.size();
+                        totSize += (tData[i].img.getWidth() * tData[i].img.getHeight() * 3);
                     }
 
                     //Si tiene nube;
@@ -98,8 +96,7 @@ class FrameUtils {
                         totSize += sizeof(int);     //(int) pcWidth
                         totSize += sizeof(int);     //(int) pcHeight
                         //Reservo lugar para la nube.
-
-                        totSize += (sizeof(float)) * tData[i].nubeW * tData[i].nubeH * 3;
+                        totSize += (sizeof(unsigned short)) * tData[i].spix.getWidth()*tData[i].spix.getHeight();
                     }
                 }
             }
@@ -122,11 +119,11 @@ class FrameUtils {
         return NULL;
     }
 
-    static std::pair <int, ThreadData *> getThreadDataFromByteArray(char * bytearray) {
+    static ThreadData * getThreadDataFromByteArray(char * bytearray) {
         try {
             int totCameras;
             memcpy(&(totCameras), (bytearray),     sizeof(int));
-            ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - totCameras " << totCameras;
+            ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - totCameras" << totCameras;
             if(totCameras > 0) {
                 ThreadData * tData  = new ThreadData[totCameras];
                 int i;
@@ -153,9 +150,7 @@ class FrameUtils {
                      - (unsigned char *) imagebytearray
                      - (int) pcWidth
                      - (int) pcHeight
-                     - ofFloatPixels  sXpix;
-                     - ofFloatPixels  sYpix;
-                     - ofFloatPixels  sZpix;
+                     - (unsigned short *) pointcloudbytearray
                     */
                     off_cliId           = start;
                     off_camId           = off_cliId     + sizeof(int);
@@ -170,17 +165,14 @@ class FrameUtils {
                     ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - cliId: " << tData[i].cliId;
                     ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - camId: " << tData[i].camId;
                     ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - state: " << tData[i].state;
-                    ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - curTime: " << tData[i].curTime.tv_usec << " " << tData[i].curTime.tv_sec;
 
                     start = off_curTime   + sizeof(timeval);
 
-                    ofLogVerbose() << "tData[i].state " << tData[i].state;
                     //Si (tData[i].state > 0) = Está inicializado
                     if(tData[i].state > 0) {
-                        ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - (tData[i].state > 0) ";
+
                         //Si tiene imágen;
                         if((tData[i].state == 1) || (tData[i].state == 3)) {
-
                             //Reservo lugar para la imágen.
                             off_imgWidth         = start;
                             off_imgHeight        = off_imgWidth  + sizeof(int);
@@ -192,15 +184,8 @@ class FrameUtils {
                             memcpy(&(w),     (off_imgWidth),     sizeof(int));
                             memcpy(&(h),     (off_imgHeight),    sizeof(int));
 
-                            ofLogVerbose() << "w || h - " << w << " || " << h;
-
                             ofImage imgDest3;
-                            //imgDest3.loadImage("foto0.jpg");
-                            try {
-                                imgDest3.setFromPixels((unsigned char *) off_imagebytearray, w, h, OF_IMAGE_COLOR, true);
-                            }catch(std::bad_alloc& ba) {}
-
-                            ofLogVerbose() << "imgDest3.setFromPixels";
+                            imgDest3.setFromPixels((unsigned char *) off_imagebytearray, w, h, OF_IMAGE_COLOR, true);
                             char dig = (char)(((int)'0')+i);
 
                             imgDest3.saveImage("imgDest" + ofToString(i) + ".jpg");
@@ -222,45 +207,30 @@ class FrameUtils {
                             memcpy(&(w),     (off_pcWidth),     sizeof(int));
                             memcpy(&(h),     (off_pcHeight),    sizeof(int));
 
-                            tData[i].nubeW  = w;
-                            tData[i].nubeH  = h;
-                            tData[i].xpix   = new float[w*h];
-                            tData[i].ypix   = new float[w*h];
-                            tData[i].zpix   = new float[w*h];
+                            ofxCvShortImage img;
+                            img.setFromPixels((unsigned char *) off_nubeByteArray, w, h);
 
-                            //tData[i].sXpix  = (ofFloatPixels &) off_nubeByteArray;//imgx.getFloatPixelsRef();
-                            memcpy((tData[i].xpix),     (off_nubeByteArray),     sizeof(float)*w*h);
-                            off_nubeByteArray   = off_nubeByteArray + w*h*sizeof(float);
+                            tData[i].spix           = img.getShortPixelsRef();
+                            cout << " tData[i].spix.getWidth(): " << tData[i].spix.getWidth() << " tData[i].spix.getHeight(): " << tData[i].spix.getHeight() << endl;
 
-                            memcpy((tData[i].ypix),     (off_nubeByteArray),     sizeof(float)*w*h);
-                            off_nubeByteArray   = off_nubeByteArray + w*h*sizeof(float);
-
-                            memcpy((tData[i].zpix),     (off_nubeByteArray),     sizeof(float)*w*h);
-                            off_nubeByteArray   = off_nubeByteArray + w*h*sizeof(float);
+                            //tData[i].spix.setFromPixels(img.getPixels());
 
                             //Reservo lugar para la nube.
-                            start = off_nubeByteArray;
+                            start = off_nubeByteArray + (sizeof(unsigned short)) * w * h;
 
                         }
                     }
                     cout << endl;
                 }
-                std::pair <int, ThreadData *> retVal;
-                retVal.first    = totCameras;
-                retVal.second   = tData;
-                return retVal;
+                return tData;
             }
         } catch (...) {
             ofLogWarning() << "[FrameUtils::getThreadDataFromByteArray] - Exception occurred.";
         }
-        std::pair <int, ThreadData *> retVal;
-        retVal.first    = 0;
-        retVal.second   = NULL;
-        return retVal;
+        return NULL;
     }
 
     static char * getFrameByteArray(ThreadData * tData, int totalCams, int size) {
-        ofLogVerbose() << " getFrameByteArray tData[0].nubeH " << tData[0].nubeH;
         /*
         Aquí tengo que formar el gran bytearray del frame (el tamaño ya está calculado en size).
         Cada ThreadData lo voy a transformar en un elemento bien controlado en tamaño para poder castearlo sin problema del otro lado.
@@ -271,9 +241,7 @@ class FrameUtils {
          - (int) state  //0-No inited, 1-Only Image, 2-Only Point Cloud, 3-Ambas
          - (timeval) curTime
          - (unsigned char *) imagebytearray
-         - ofFloatPixels  sXpix;
-         - ofFloatPixels  sYpix;
-         - ofFloatPixels  sZpix;
+         - (unsigned char *) pointcloudbytearray
         */
         char * combined = NULL;
         try {
@@ -327,7 +295,7 @@ class FrameUtils {
 
                         memcpy(off_imgWidth,       &w,    sizeof(int));
                         memcpy(off_imgHeight,      &h,    sizeof(int));
-                        memcpy(off_imagebytearray, tData[i].img.getPixels(), tData[i].img.getPixelsRef().size());
+                        memcpy(off_imagebytearray, tData[i].img.getPixels(), w*h*3);
 
                         start    = off_imagebytearray + (w*h*3);
                     }
@@ -338,29 +306,15 @@ class FrameUtils {
                         off_pcHeight         = off_pcWidth  + sizeof(int);
                         off_nubeByteArray    = off_pcHeight + sizeof(int);
 
-                        int w = tData[i].nubeW;
-                        int h = tData[i].nubeH;
-
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube guardado - w: " << tData[i].nubeW;
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube guardado - h: " << tData[i].nubeH;
+                        int w = tData[i].spix.getWidth();
+                        int h = tData[i].spix.getHeight();
 
                         memcpy(off_pcWidth,       &w,    sizeof(int));
                         memcpy(off_pcHeight,      &h,   sizeof(int));
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - ddddddddddd: " << tData[i].nubeH;
 
-                        memcpy(off_nubeByteArray,   tData[i].xpix, (sizeof(float) * w * h));
-                        off_nubeByteArray = off_nubeByteArray + (sizeof(float)) * w * h;
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - aaaaaaaaa: " << tData[i].nubeH;
+                        memcpy(off_nubeByteArray,   (unsigned short *)tData[i].spix.getPixels(), (sizeof(unsigned short)) * w * h);
 
-                        memcpy(off_nubeByteArray,   tData[i].ypix, (sizeof(float)) * w * h);
-                        off_nubeByteArray = off_nubeByteArray + (sizeof(float)) * w * h;
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - cccccccccc: " << tData[i].nubeH;
-
-                        memcpy(off_nubeByteArray,   tData[i].zpix, (sizeof(float)) * w * h);
-                        off_nubeByteArray = off_nubeByteArray + (sizeof(float)) * w * h;
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - wwwwwwwwwww: " << tData[i].nubeH;
-
-                        start = off_nubeByteArray;
+                        start = off_nubeByteArray + (sizeof(unsigned short)) * w * h;
                     }
                 }
             }

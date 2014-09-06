@@ -1,22 +1,37 @@
 #include "Thread3D.h"
 
+Thread3D::Thread3D() {
+    openNIRecorder = NULL;
+}
+
+Thread3D::~Thread3D() {
+    if(openNIRecorder != NULL) {
+        delete openNIRecorder;
+    }
+}
+
 void Thread3D::threadedFunction() {
     dataAllocated = false;
 
 	char buff[30];
+	openNIRecorder = new ofxOpenNI(context->id);
+	openNIRecorder->setup();
 
-	openNIRecorder.setup();
+	cout << "openNIRecorder->getNumDevices() " << openNIRecorder->getNumDevices() << endl;
+
 	if(context->use2D == 1) {
-	    openNIRecorder.addImageGenerator();
+	    openNIRecorder->addImageGenerator();
 	}
 
 	if(context->use3D == 1) {
-	    openNIRecorder.addDepthGenerator();
+	    openNIRecorder->addDepthGenerator();
 	}
+	ofLogVerbose() << "[Thread3D::threadedFunction] - context->use3D: " << context->use3D;
 
-    openNIRecorder.setRegister(true);
-    openNIRecorder.setMirror(true);
-    openNIRecorder.start();
+    openNIRecorder->setRegister(true);
+    openNIRecorder->setMirror(true);
+    openNIRecorder->setUseDepthRawPixels(true);
+    openNIRecorder->start();
 
     if(context->colorRGB == 1) {
         img.allocate(context->resolutionX, context->resolutionX, OF_IMAGE_COLOR);
@@ -30,13 +45,15 @@ void Thread3D::threadedFunction() {
 
 	sprintf( buff, "%u", ofGetSystemTimeMicros() );
 
-    openNIRecorder.startRecording( ofToDataPath( path  + "/oni_" + ofToString(ofGetUnixTime()) + "_" + buff + ".oni") );
+    openNIRecorder->startRecording( ofToDataPath( path  + "/oni_" + ofToString(ofGetUnixTime()) + "_" + buff + ".oni") );
 
 	while(isThreadRunning()) {
-	    openNIRecorder.update();
+	    ofSleepMillis(1000/FPS);
+	    openNIRecorder->update();
+	    updateData();
 	}
 
-	openNIRecorder.stop();
+	openNIRecorder->stop();
     // done
     img.clear();
 }
@@ -44,9 +61,9 @@ void Thread3D::threadedFunction() {
 void Thread3D::updateData() {
     dataAllocated = false;
 
-    if(openNIRecorder.isRecording()) {
+    if(openNIRecorder->isRecording()) {
         if(context->use2D) {
-            ofPixels&    ipixels    = openNIRecorder.getImagePixels();
+            ofPixels&    ipixels    = openNIRecorder->getImagePixels();
             if(context->colorRGB == 1) {
                 img.setFromPixels(ipixels.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_COLOR, true);
             } else {
@@ -58,7 +75,8 @@ void Thread3D::updateData() {
             }
         }
         if(context->use3D) {
-            spix    = openNIRecorder.getDepthRawPixels();
+            //openNIRecorder->
+            spix    = openNIRecorder->getDepthRawPixels();
             //Falta aplicarle la transformación según lo que venga en la matriz.
             //Falta aplicarle el downsample.
         }
@@ -67,7 +85,7 @@ void Thread3D::updateData() {
 }
 
 bool Thread3D::isDeviceInitted() {
-    return openNIRecorder.isRecording();
+    return openNIRecorder->isRecording();
 }
 
 bool Thread3D::isDataAllocated() {

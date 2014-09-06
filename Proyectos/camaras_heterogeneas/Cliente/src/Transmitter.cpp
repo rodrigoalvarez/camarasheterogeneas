@@ -3,79 +3,101 @@
 #include "ToHex.h"
 #include "Grabber.h"
 
-void Transmitter::threadedFunction() {
+#define  CLI_PORT 15000
 
-    //grabber->updateThreadData();
-    int counter         = 0;
-    int size            = 0;
-    unsigned int i      = 0;
+void Transmitter::threadedFunction() {
+    state       = 0;
+
+    std::string str = "1|15000";
+    cliId           = str;
 
     while(isThreadRunning()) {
-        //if(yacorrio)
-        size    = 0;
-        grabber->updateThreadData();
-        ThreadData * tdata = grabber->tData;
-        int destlen;
-        int srclen;
-        char   * destpix;
+        ofLogVerbose()  << endl << "[Transmitter::threadedFunction] while(isThreadRunning())";
+        ofSleepMillis(1000/FPS);
 
-        //for(int i = 0; i < (grabber->total2D + grabber->total3D); i++ ) {
-        //    size += sizeof(tdata);
-            if(tdata[i].inited) {
-                unsigned char * pix     = tdata[i].img.getPixels();
-                const char * dest       = HexEncode(pix);
-                unsigned char * dpix    = (unsigned char *) HexDecode(dest);
-
-                ofImage img;
-                img.setFromPixels( pix, tdata[i].img.width, tdata[i].img.height, OF_IMAGE_COLOR, true);
-                img.saveImage("img_deco.png");
-
-                ofFile file( "filename.txt", ofFile::WriteOnly );
-                // "size: " + " - " + ofToString(destlen)
-                file << dest;
-                file.close();
+        if(state == 0) { // 0 - Todavía no se conectó al servidor
+            try {
+                ofLogVerbose() << "[Transmitter::threadedFunction] state=0, conectando a " << SERVER << "-" << PORT_0;
+                TCP.setup( SERVER, PORT_0 );
+                TCPSVR.setup(CLI_PORT, true);
+                TCP.send( cliId );
+                TCP.close();
+                state = 2;
+            } catch (int e) {
+                ofLogVerbose() << "[Transmitter::threadedFunction] An exception occurred. Exception Nr. " << e;
+                state       = 3;
             }
-
-            /*srclen  = (tdata[i].img.width*tdata[i].img.height);
-
-            destlen = (srclen+2)*3*4;
-            destpix = new char [destlen];
-            int res = base64_encode(pix, srclen, destpix, destlen);
-            if(res > 0) {
-                unsigned char * decopix = new unsigned char [srclen];
-                int res2 = base64_decode(destpix, decopix, srclen);
-                //ofImage img;
-                if(res2 > 1) {
-                    img.setFromPixels(decopix, tdata[i].img.width, tdata[i].img.height, OF_IMAGE_COLOR, true);
-                    img.saveImage("img_deco.png");
-                    ofFile file( "filename.txt", ofFile::WriteOnly );
-                    // "size: " + " - " + ofToString(destlen)
-                    file << ofToString(res2);
-                    file.close();
+        } else if(state == 2) { // 2 - Tiene cliente asignado.
+            try {
+                if(TCPSVR.getNumClients() > 0) {
+                    if(TCPSVR.isClientConnected(0)) {
+                        ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Actualizando ultima informacion:";
+                        grabber->updateThreadData();
+                        ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Saliendo de actualizar";
+                        sendFrame((grabber->total2D + grabber->total3D), grabber->tData);
+                    } else {
+                        ofLogVerbose() << "[Transmitter::threadedFunction] El servidor no está conectado.";
+                    }
                 }
-                ofFile file( "filename_data.txt", ofFile::WriteOnly );
-                // "size: " + " - " + ofToString(destlen)
-                file << ofToString(destlen) + " " + ofToString(strlen(destpix));
-                file.close();
-                //unsigned char * pix = tdata[i].img.getPixels();
-                //size += sizeof(pix);
-                // size += tdata[i].spix.size();
-            }*/
-
-        //}
-
-        //Para c/camara
-        //  si es 2D
-        //      scaledown imagen
-        //  si es 3D
-        //      scaledown imagen
-        //      scaledown profundidad
-        /*
-        if(tdata[0].inited) {
-            //ofImage img      = tdata[0].img;
-            //tdata[0].img.saveImage("transmitter/timg-"+ofToString(counter)+".png");
-            counter++;
+            } catch (int e) {
+                ofLogVerbose() << "[Transmitter::threadedFunction] An exception occurred. Exception Nr. " << e;
+                state       = 3;
+            }
+        } else {
+            ofLogVerbose() << "[Transmitter::threadedFunction] state=3";
         }
-        */
     }
+}
+
+void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
+    cout << " al entrar a serdFrame " << tData[0].nubeH << endl;
+    /*
+    La idea es simular ahora el envío de un frame completo incluyendo sus imágenes y nubes de punto.
+     1) - Formar gran bytearray // Pronto.
+     2) - Dado el tamaño de los bloques en los que voy a tener que partir el gran bytearray,
+          separarlo agregando marcas para poder verificar y reordenarlo del otro lado.
+          Para control pensaba agregar por c/bloque: id(No de Frame), total(Total de bloques en los que se partió el bytearray), index (Número de ese bloque en la secuencia)
+     3) Calcular algún tipo de checksum de verificación del frame completo para poder verificar que los datos están más o menos bien.
+    */
+    int imageBytesToSend    = 0;
+    int totalBytesSent      = 0;
+    int messageSize         = 0;
+
+    int frameSize       = FrameUtils::getFrameSize(tData, totalCams);
+
+    cout << " al entrar a serdFrame2 " << tData[0].nubeH << endl;
+
+    char * bytearray    = FrameUtils::getFrameByteArray(tData, totalCams, frameSize);
+
+    int val0  = floor(frameSize / MAX_RECEIVE_SIZE);   //totMaxRecSize
+    int val1  = frameSize - val0 * MAX_RECEIVE_SIZE; //resto
+    TCPSVR.sendRawBytesToAll((char*) &val0, sizeof(int));
+    TCPSVR.sendRawBytesToAll((char*) &val1, sizeof(int));
+
+    ofLogVerbose()  << endl;
+    ofLogVerbose()  << "[Transmitter::sendFrame] ENVIANDO NUEVO FRAME:";
+    ofLogVerbose()  << "[Transmitter::sendFrame] totalCams " << totalCams;
+    ofLogVerbose()  << "[Transmitter::sendFrame] frameSize " << frameSize;
+    ofLogVerbose()  << "[Transmitter::sendFrame] cantidad de paquetes " << (val0 + val1);
+    ofLogVerbose()  << "[Transmitter::sendFrame] conexiones " << TCPSVR.getNumClients();
+    ofLogVerbose()  << endl;
+
+    // FIN DE INTENTO ENVIAR FOTO A VER SI FALLA
+
+    imageBytesToSend    = frameSize;
+    totalBytesSent      = 0;
+    messageSize         = MAX_RECEIVE_SIZE;
+    while( imageBytesToSend > 1 ) {
+        if(imageBytesToSend > messageSize) {
+            TCPSVR.sendRawBytesToAll((const char*) &bytearray[totalBytesSent], messageSize);
+            imageBytesToSend    -= messageSize;
+            totalBytesSent      += messageSize;
+        } else {
+            TCPSVR.sendRawBytesToAll((char*) &bytearray[totalBytesSent], imageBytesToSend);
+            totalBytesSent += imageBytesToSend;
+            imageBytesToSend = 0;
+        }
+    }
+
+    free(bytearray);
 }

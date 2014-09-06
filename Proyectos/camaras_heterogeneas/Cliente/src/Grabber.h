@@ -7,6 +7,7 @@
 #include "ThreadData.h"
 #include "Constants.h"
 #include "GlobalData.h"
+#include "ofMatrix4x4.h"
 
 class Grabber : public IGrabber {
 
@@ -25,7 +26,7 @@ class Grabber : public IGrabber {
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		void updateThreadData();
-
+        ofVec3f * transformPoint(ofVec3f point, ofMatrix4x4 transform);
         Thread2D * t2D;
 		Thread3D * t3D;
 		GlobalData * gdata;

@@ -2,24 +2,7 @@
 
 #include "ofxXmlSettings.h"
 #include "ofMain.h"
-
-struct t_translation {
-    int translationX;
-    int translationY;
-    int translationZ;
-};
-
-struct t_rotation {
-    int rotation00;
-    int rotation01;
-    int rotation02;
-    int rotation10;
-    int rotation11;
-    int rotation12;
-    int rotation20;
-    int rotation21;
-    int rotation22;
-};
+#include "ofMatrix4x4.h"
 
 struct t_camera {
     int id;
@@ -33,9 +16,9 @@ struct t_camera {
     float near3D;
     float far3D;
     float points3DDownSample;
-    //String dataContext;
-    t_translation * translation;
-    t_rotation * rotation;
+    ofMatrix4x4 matrix;
+    ofVec3f xyz;
+    ofVec3f abc;
     t_camera * sig;
 };
 
@@ -52,6 +35,8 @@ class GlobalData {
         int      total3D;
         int      total2D;
         bool     goLive;
+        int      cliId;
+        int      port;
         int      realtimeFPS;
         int      realtimePORT;
         t_camera * camera;
