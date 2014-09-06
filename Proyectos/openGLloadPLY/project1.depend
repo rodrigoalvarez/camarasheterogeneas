@@ -1,0 +1,140 @@
+# depslib dependency file v1.0
+1189868558 source:c:\users\rodrigo\downloads\pg\openglproject\project1\main.cpp
+	<windows.h>
+
+1408212101 source:c:\users\rodrigo\downloads\pg\openglproject\project1\color_cube.cpp
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"Model_PLY.h"
+	<iostream>
+
+1408208581 source:c:\users\rodrigo\downloads\pg\openglproject\project1\model_ply.cpp
+	"Model_PLY.h"
+	<vector>
+
+1408205271 c:\users\rodrigo\downloads\pg\openglproject\project1\model_ply.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<cmath>
+	<string>
+
+1408412429 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\color_cube.cpp
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"Model_PLY.h"
+	<iostream>
+	"FreeImage.h"
+	"matrix4x4.h"
+
+1408212772 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\model_ply.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<cmath>
+	<string>
+
+1408212772 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\model_ply.cpp
+	"Model_PLY.h"
+	<vector>
+
+1395211970 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\freeimage.h
+	<wchar.h>
+	<inttypes.h>
+
+1408411563 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\matrix4x4.h
+	<memory>
+	<cmath>
+	<iostream>
+	<string.h>
+
+1148006184 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\matrix4x4.cpp
+	"matrix4x4.h"
+
+1409433372 source:c:\users\rodrigo\downloads\openglloadply\model_ply.cpp
+	"Model_PLY.h"
+	<vector>
+	<limits>
+	<cmath>
+
+1409433314 c:\users\rodrigo\downloads\openglloadply\model_ply.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<cmath>
+	<string>
+
+1409837361 source:c:\users\rodrigo\downloads\openglloadply\color_cube.cpp
+	<GL/glew.h>
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"Model_PLY.h"
+	"masterPly.h"
+	<iostream>
+	<GL/glext.h>
+	"FreeImage.h"
+	"matrix4x4.h"
+
+1408486551 c:\users\rodrigo\downloads\openglloadply\freeimage.h
+	<wchar.h>
+	<inttypes.h>
+
+1408486552 c:\users\rodrigo\downloads\openglloadply\matrix4x4.h
+	<memory>
+	<cmath>
+	<iostream>
+	<string.h>
+
+1408486552 source:c:\users\rodrigo\downloads\openglloadply\matrix4x4.cpp
+	"matrix4x4.h"
+
+1409518311 source:c:\users\rodrigo\downloads\openglloadply\masterply.cpp
+	"masterPly.h"
+	<time.h>
+	<vcg/complex/complex.h>
+	<vcg/complex/algorithms/point_sampling.h>
+	<vcg/complex/algorithms/create/ball_pivoting.h>
+	"plylib.h"
+	<vcg/complex/algorithms/update/topology.h>
+	<vcg/complex/algorithms/update/flag.h>
+	<vcg/complex/algorithms/update/normal.h>
+	<vcg/complex/algorithms/refine.h>
+	<vcg/complex/algorithms/textcoord_optimization.h>
+	<wrap/io_trimesh/import_ply.h>
+	<wrap/io_trimesh/export_ply.h>
+	<wrap/io_trimesh/export_stl.h>
+	<vector>
+
+1409509225 c:\users\rodrigo\downloads\openglloadply\masterply.h
+
+1409496300 c:\users\rodrigo\downloads\openglloadply\plylib.h
+	<memory.h>
+	<vector>
+	<string>
+	<assert.h>
+
+1409496300 source:c:\users\rodrigo\downloads\openglloadply\plylib.cpp
+	<assert.h>
+	<direct.h>
+	<fcntl.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+	<assert.h>
+	<vector>
+	<algorithm>
+	"plylib.h"
+

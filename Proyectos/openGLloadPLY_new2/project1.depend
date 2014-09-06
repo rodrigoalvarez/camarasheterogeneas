@@ -1,0 +1,130 @@
+# depslib dependency file v1.0
+1189868558 source:c:\users\rodrigo\downloads\pg\openglproject\project1\main.cpp
+	<windows.h>
+
+1408212101 source:c:\users\rodrigo\downloads\pg\openglproject\project1\color_cube.cpp
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"Model_PLY.h"
+	<iostream>
+
+1408208581 source:c:\users\rodrigo\downloads\pg\openglproject\project1\model_ply.cpp
+	"Model_PLY.h"
+	<vector>
+
+1408205271 c:\users\rodrigo\downloads\pg\openglproject\project1\model_ply.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<cmath>
+	<string>
+
+1408412429 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\color_cube.cpp
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"Model_PLY.h"
+	<iostream>
+	"FreeImage.h"
+	"matrix4x4.h"
+
+1408212772 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\model_ply.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<cmath>
+	<string>
+
+1408212772 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\model_ply.cpp
+	"Model_PLY.h"
+	<vector>
+
+1395211970 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\freeimage.h
+	<wchar.h>
+	<inttypes.h>
+
+1408411563 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\matrix4x4.h
+	<memory>
+	<cmath>
+	<iostream>
+	<string.h>
+
+1148006184 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply\matrix4x4.cpp
+	"matrix4x4.h"
+
+1408208581 source:c:\users\rodrigo\downloads\openglloadply\model_ply.cpp
+	"Model_PLY.h"
+	<vector>
+
+1408205271 c:\users\rodrigo\downloads\openglloadply\model_ply.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<cmath>
+	<string>
+
+1408658564 source:c:\users\rodrigo\downloads\openglloadply\color_cube.cpp
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"Model_PLY.h"
+	<iostream>
+	"FreeImage.h"
+	"matrix4x4.h"
+
+1408486551 c:\users\rodrigo\downloads\openglloadply\freeimage.h
+	<wchar.h>
+	<inttypes.h>
+
+1408486552 c:\users\rodrigo\downloads\openglloadply\matrix4x4.h
+	<memory>
+	<cmath>
+	<iostream>
+	<string.h>
+
+1408486552 source:c:\users\rodrigo\downloads\openglloadply\matrix4x4.cpp
+	"matrix4x4.h"
+
+1408909562 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply_new\color_cube.cpp
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	<GL/glext.h>
+	"Model_PLY.h"
+	<iostream>
+	"FreeImage.h"
+	"matrix4x4.h"
+
+1408659350 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply_new\model_ply.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<cmath>
+	<string>
+
+1408659350 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply_new\freeimage.h
+	<wchar.h>
+	<inttypes.h>
+
+1408659353 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply_new\matrix4x4.h
+	<memory>
+	<cmath>
+	<iostream>
+	<string.h>
+
+1408659353 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply_new\matrix4x4.cpp
+	"matrix4x4.h"
+
+1408659350 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\openglloadply_new\model_ply.cpp
+	"Model_PLY.h"
+	<vector>
+

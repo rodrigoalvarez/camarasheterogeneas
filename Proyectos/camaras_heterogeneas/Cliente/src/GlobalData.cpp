@@ -1,35 +1,26 @@
 #include "GlobalData.h"
 
-//--------------------------------------------------------------
-int GlobalData::getFPS() {
-
-}
-
-bool GlobalData::getGoLive() {
-
-}
 
 int GlobalData::getTotal3D() {
-
+	return total3D;
 }
 
 int GlobalData::getTotal2D() {
-
+	return total2D;
 }
 
 int GlobalData::getTotalDevices() {
-
+	return total2D + total3D;
 }
 
 void GlobalData::loadCalibData(char * xml) {
+
     ofxXmlSettings settings;
     settings.loadFile(xml);
-    t_camera * currCam = NULL;
-
     total2D = 0;
     total3D = 0;
 
-	if(settings.pushTag("settings")) {
+if(settings.pushTag("settings")) {
         cliId             = settings.getValue("cliId",          1);
         port              = settings.getValue("port",           15000);
 		goLive            = settings.getValue("realTime",       1);

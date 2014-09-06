@@ -31,19 +31,48 @@ struct Camera {
 array<Camera,3> cameras;
 array<ofxUISuperCanvas*,3> allCameras;
 array<ofxUISuperCanvas*,3> allMatrix;
+array<ofxUILabelButton*,3> allTabs;
+
+void getCameraTabs (ofxUIWidget* i) {
+	if (i->getName() == "CAMERA 0") {
+		allTabs[0] = (ofxUILabelButton*)i;
+	}
+	if (i->getName() == "CAMERA 1") {
+		allTabs[1] = (ofxUILabelButton*)i;
+	}
+	if (i->getName() == "CAMERA 2") {
+		allTabs[2] = (ofxUILabelButton*)i;
+	}
+}
+
+void loadXmlFile();
 
 void ofApp::setup() {
 
 	for (int i = 0; i < allCameras.size(); i++) {
 		allCameras[i] = NULL;
 		allMatrix[i] = NULL;
+		cameras[i].ResolutionX = 800;
+		cameras[i].ResolutionY = 600;
+		cameras[i].ResolutionDownSample = 1;
+		cameras[i].ColorRGB = true;
+		cameras[i].FPS = 24;
+		cameras[i].Use2D = false;
+		cameras[i].Use3D = false;
+		cameras[i].DataContext = "";
+		cameras[i].DepthSettings.Near = 0;
+		cameras[i].DepthSettings.Far = 0;
+		cameras[i].DepthSettings.PointsDownSample = 0;
+		for (int k = 0; k < 16; k++) {
+			cameras[i].Matrix[k] = 0;
+		}
 	}
 
 	ofSetVerticalSync(true); 
 	ofEnableSmoothing(); 
     
     gui = new ofxUISuperCanvas("XML GENERATOR");
-	gui->setHeight(500);
+	gui->setHeight(720);
 
     gui->addSpacer();
 	gui->addLabel("General Options:");
@@ -59,10 +88,25 @@ void ofApp::setup() {
     gui->addSpacer();
 	gui->addLabelButton("ADD CAMERA", false);
 	gui->addLabelButton("SAVE", false);
+	
+    gui->addSpacer();
+	gui->addLabelButton("CAMERA 0", false);
+	gui->addLabelButton("CAMERA 1", false);
+	gui->addLabelButton("CAMERA 2", false);
+
+	vector<ofxUIWidget*> widgets = gui->getWidgets();
+	for_each (widgets.begin(), widgets.end(), getCameraTabs);
+
+	allTabs[0]->setVisible(false);
+	allTabs[1]->setVisible(false);
+	allTabs[2]->setVisible(false);
 
     gui->autoSizeToFitWidgets();
     ofAddListener(gui->newGUIEvent,this,&ofApp::guiEvent);
     gui->loadSettings("guiSettings.xml");
+	gui->setHeight(720);
+
+	loadXmlFile();
 
 }
 
@@ -100,65 +144,65 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 	
 	if(name == "resolutionXValue") {
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].ResolutionX = ofToInt(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[1].ResolutionX = ofToInt(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[2].ResolutionX = ofToInt(widget->getTextString());
 		}
 	}
 	if(name == "resolutionYValue")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].ResolutionY = ofToInt(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[1].ResolutionY = ofToInt(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[2].ResolutionY = ofToInt(widget->getTextString());
 		}
 	}
 	if(name == "resolutionDownSampleValue")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].ResolutionDownSample = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[1].ResolutionDownSample = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[2].ResolutionDownSample = ofToDouble(widget->getTextString());
 		}
 	}
 	if(name == "colorRGB")
 	{
 		ofxUIToggle* widget = (ofxUIToggle*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].ColorRGB = widget->getValue() == 1;
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[1].ColorRGB = widget->getValue() == 1;
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[2].ColorRGB = widget->getValue() == 1;
 		}
 	}
 	if(name == "FPSValue")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].FPS = ofToInt(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[0].FPS = ofToInt(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[0].FPS = ofToInt(widget->getTextString());
 		}
 	}
@@ -166,26 +210,26 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 	if(name == "3D")
 	{
 		ofxUIToggle* widget = (ofxUIToggle*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].Use3D = widget->getValue() == 1;
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[1].Use3D = widget->getValue() == 1;
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[2].Use3D = widget->getValue() == 1;
 		}
 	}
 	if(name == "2D")
 	{
 		ofxUIToggle* widget = (ofxUIToggle*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].Use2D = widget->getValue() == 1;
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[1].Use2D = widget->getValue() == 1;
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[2].Use2D = widget->getValue() == 1;
 		}
 	}
@@ -193,261 +237,261 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 	if(name == "dataContextValue")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].DataContext = widget->getTextString();
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[1].DataContext = widget->getTextString();
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[2].DataContext = widget->getTextString();
 		}
 	}
 	if(name == "nearValue")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].DepthSettings.Near = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[1].DepthSettings.Near = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[2].DepthSettings.Near = ofToDouble(widget->getTextString());
 		}
 	}
 	if(name == "farValue")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].DepthSettings.Far = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[1].DepthSettings.Far = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[2].DepthSettings.Far = ofToDouble(widget->getTextString());
 		}
 	}
 	if(name == "pointsDownSampleValue")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "CAMERA 0") {
 			cameras[0].DepthSettings.PointsDownSample = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "CAMERA 1") {
 			cameras[1].DepthSettings.PointsDownSample = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "CAMERA 2") {
 			cameras[2].DepthSettings.PointsDownSample = ofToDouble(widget->getTextString());
 		}
 	}
 	
-	if(name == "m[0,0]")
+	if(name == "m00")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[0] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[0] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[0] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[0,1]")
+	if(name == "m01")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[1] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[1] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[1] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[0,2]")
+	if(name == "m02")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[2] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[2] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[2] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[0,3]")
+	if(name == "m03")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[3] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[3] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[3] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[1,0]")
+	if(name == "m10")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[4] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[4] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[4] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[1,1]")
+	if(name == "m11")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[5] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[5] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[5] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[1,2]")
+	if(name == "m12")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[6] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[6] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[6] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[1,3]")
+	if(name == "m13")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[7] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[7] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[7] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[2,0]")
+	if(name == "m20")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[8] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[8] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[8] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[2,1]")
+	if(name == "m21")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[9] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[9] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[9] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[2,2]")
+	if(name == "m22")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[10] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[10] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[10] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[2,3]")
+	if(name == "m23")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[11] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[11] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[11] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[3,0]")
+	if(name == "m30")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[12] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[12] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[12] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[3,1]")
+	if(name == "m31")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[13] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[13] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[13] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[3,2]")
+	if(name == "m32")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[14] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[14] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[14] = ofToDouble(widget->getTextString());
 		}
 	}
-	if(name == "m[3,3]")
+	if(name == "m33")
 	{
 		ofxUITextInput* widget = (ofxUITextInput*) e.widget;
-		if (canvasName == "CAMERA0") {
+		if (canvasName == "MATRIX 0") {
 			cameras[0].Matrix[15] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA1") {
+		if (canvasName == "MATRIX 1") {
 			cameras[1].Matrix[15] = ofToDouble(widget->getTextString());
 		}
-		if (canvasName == "CAMERA2") {
+		if (canvasName == "MATRIX 2") {
 			cameras[2].Matrix[15] = ofToDouble(widget->getTextString());
 		}
 	}
@@ -463,13 +507,14 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 	{
 		ofxUILabelButton* widget = (ofxUILabelButton*) e.widget;
 		if (widget->getValue() == 1) {
-			ofxUISuperCanvas* gui1;
-			ofxUISuperCanvas* gui2;
+			ofxUISuperCanvas* gui1 = NULL;
+			ofxUISuperCanvas* gui2 = NULL;
 			int i = 0;
 			for (; i < allCameras.size(); i++) {
 				if (allCameras[i] == NULL) {
 					gui1 = new ofxUISuperCanvas("CAMERA " + ofToString(i));
-					gui1->setPosition(250 + i * 500, 0);
+					gui1->setPosition(250, 0);
+					gui1->setVisible(false);
 					allCameras[i] = gui1;
 
 					gui1->autoSizeToFitWidgets();
@@ -477,17 +522,24 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 					gui1->loadSettings("guiSettings.xml");
 
 					gui2 = new ofxUISuperCanvas("MATRIX " + ofToString(i));
-					gui2->setPosition(480 + i * 500, 0);
+					gui2->setPosition(480, 0);
+					gui2->setVisible(false);
 					allMatrix[i] = gui2;
 					
 					gui2->autoSizeToFitWidgets();
 					ofAddListener(gui2->newGUIEvent,this,&ofApp::guiEvent);
 					gui2->loadSettings("guiSettings.xml");
+
+					allTabs[i]->setVisible(true);
 					break;
 				}
 			}
-			gui1->setHeight(500);
-			gui2->setHeight(500);
+			if (gui1 == NULL) {
+				return;
+			}
+			gui->setHeight(720);
+			gui1->setHeight(720);
+			gui2->setHeight(720);
 
 			gui1->addSpacer();
 			gui1->addLabel("Camera Options:");
@@ -530,23 +582,98 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
 			gui2->addLabel("Matrix Settings:");
 	
 			gui2->addLabel("m[0,0]");
-			gui2->addTextInput("m00", "0");
+			gui2->addTextInput("m00", ofToString(cameras[i].Matrix[0]));
 			gui2->addLabel("m[0,1]");
-			gui2->addTextInput("m01", "0");
+			gui2->addTextInput("m01", ofToString(cameras[i].Matrix[1]));
 			gui2->addLabel("m[0,2]");
-			gui2->addTextInput("m02", "0");
+			gui2->addTextInput("m02", ofToString(cameras[i].Matrix[2]));
+			gui2->addLabel("m[0,3]");
+			gui2->addTextInput("m03", ofToString(cameras[i].Matrix[3]));
 			gui2->addLabel("m[1,0]");
-			gui2->addTextInput("m10", "0");
+			gui2->addTextInput("m10", ofToString(cameras[i].Matrix[4]));
 			gui2->addLabel("m[1,1]");
-			gui2->addTextInput("m11", "0");
+			gui2->addTextInput("m11", ofToString(cameras[i].Matrix[5]));
 			gui2->addLabel("m[1,2]");
-			gui2->addTextInput("m12", "0");
+			gui2->addTextInput("m12", ofToString(cameras[i].Matrix[6]));
+			gui2->addLabel("m[1,3]");
+			gui2->addTextInput("m13", ofToString(cameras[i].Matrix[7]));
 			gui2->addLabel("m[2,0]");
-			gui2->addTextInput("m20", "0");
+			gui2->addTextInput("m20", ofToString(cameras[i].Matrix[8]));
 			gui2->addLabel("m[2,1]");
-			gui2->addTextInput("m21", "0");
+			gui2->addTextInput("m21", ofToString(cameras[i].Matrix[9]));
 			gui2->addLabel("m[2,2]");
-			gui2->addTextInput("m22", "0");
+			gui2->addTextInput("m22", ofToString(cameras[i].Matrix[10]));
+			gui2->addLabel("m[2,3]");
+			gui2->addTextInput("m23", ofToString(cameras[i].Matrix[11]));
+			gui2->addLabel("m[3,0]");
+			gui2->addTextInput("m30", ofToString(cameras[i].Matrix[12]));
+			gui2->addLabel("m[3,1]");
+			gui2->addTextInput("m31", ofToString(cameras[i].Matrix[13]));
+			gui2->addLabel("m[3,2]");
+			gui2->addTextInput("m32", ofToString(cameras[i].Matrix[14]));
+			gui2->addLabel("m[3,3]");
+			gui2->addTextInput("m33", ofToString(cameras[i].Matrix[15]));
+		}
+	}
+	
+	if(name == "CAMERA 0")
+	{
+		ofxUILabelButton* widget = (ofxUILabelButton*) e.widget;
+		if (widget->getValue() == 1) {
+			ofxUISuperCanvas* gui1 = allCameras[0];
+			ofxUISuperCanvas* gui2 = allMatrix[0];
+			gui1->setVisible(true);
+			gui2->setVisible(true);
+			gui1 = allCameras[1];
+			gui2 = allMatrix[1];
+			if (gui1 != NULL) {
+				gui1->setVisible(false);
+				gui2->setVisible(false);
+			}
+			gui1 = allCameras[2];
+			gui2 = allMatrix[2];
+			if (gui1 != NULL) {
+				gui1->setVisible(false);
+				gui2->setVisible(false);
+			}
+		}
+	}
+	if(name == "CAMERA 1")
+	{
+		ofxUILabelButton* widget = (ofxUILabelButton*) e.widget;
+		if (widget->getValue() == 1) {
+			ofxUISuperCanvas* gui1 = allCameras[0];
+			ofxUISuperCanvas* gui2 = allMatrix[0];
+			gui1->setVisible(false);
+			gui2->setVisible(false);
+			gui1 = allCameras[1];
+			gui2 = allMatrix[1];
+			gui1->setVisible(true);
+			gui2->setVisible(true);
+			gui1 = allCameras[2];
+			gui2 = allMatrix[2];
+			if (gui1 != NULL) {
+				gui1->setVisible(false);
+				gui2->setVisible(false);
+			}
+		}
+	}
+	if(name == "CAMERA 2")
+	{
+		ofxUILabelButton* widget = (ofxUILabelButton*) e.widget;
+		if (widget->getValue() == 1) {
+			ofxUISuperCanvas* gui1 = allCameras[0];
+			ofxUISuperCanvas* gui2 = allMatrix[0];
+			gui1->setVisible(false);
+			gui2->setVisible(false);
+			gui1 = allCameras[1];
+			gui2 = allMatrix[1];
+			gui1->setVisible(false);
+			gui2->setVisible(false);
+			gui1 = allCameras[2];
+			gui2 = allMatrix[2];
+			gui1->setVisible(true);
+			gui2->setVisible(true);
 		}
 	}
 }
@@ -557,6 +684,25 @@ void ofApp::keyPressed(int key) {
 
 void ofApp::keyReleased(int key) {
 
+}
+
+void loadXmlFile() {
+
+	string path = ofFilePath::getCurrentWorkingDirectory() + "data";
+	ofDirectory dir2D(path);
+	dir2D.allowExt("matrix");
+	dir2D.listDir();
+	int count = min(3, dir2D.numFiles());
+	for (int i = 0; i < count; i++) {
+		ofBuffer buffer = ofBufferFromFile(dir2D.getPath(i));
+		vector<string> lines = ofSplitString(buffer.getText(), "\n");
+		for (int k1 = 0; k1 < 4; k1++) {
+			for (int k2 = 0; k2 < 4; k2++) {
+				vector<string> numbers = ofSplitString(lines[k1], " ");
+				cameras[i].Matrix[k1 * 4 + k2] = ofToDouble(numbers[k2]);
+			}
+		}
+	}
 }
 
 void saveXmlFile() {
@@ -572,7 +718,7 @@ void saveXmlFile() {
 	settings.addTag("cameras");
 	settings.pushTag("cameras");
 
-	for(int i = 0; i < cameras.size(); i++) {
+	for(int i = 0; i < cameras.size() && allCameras[i] != NULL; i++) {
 		settings.addTag("camera");
 		settings.pushTag("camera", i);
 
@@ -598,8 +744,8 @@ void saveXmlFile() {
 		settings.pushTag("matrix");
 		for(int k = 0; k < sizeof(cameras[i].Matrix)/sizeof(*cameras[i].Matrix); k++) {
 			std::stringstream cellM;
-			cellM << "r" << k / 3 << k % 3;
-			settings.addValue(cellM.str(), cameras[i].Matrix[i]);
+			cellM << "r" << k / 4 << k % 4;
+			settings.addValue(cellM.str(), cameras[i].Matrix[k]);
 		}
 
 		settings.popTag();
