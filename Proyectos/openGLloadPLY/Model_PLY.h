@@ -20,7 +20,11 @@ class Model_PLY
 		float* Normals;
 
 		int TotalConnectedTriangles;
-		int TotalConnectedPoints;
+		int TotalPoints;
 		int TotalFaces;
+
+		float MinCoord;
+		float MaxCoord;
+		float AlfaCoord;
 };
 

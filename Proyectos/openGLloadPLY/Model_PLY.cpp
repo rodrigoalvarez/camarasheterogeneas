@@ -1,5 +1,7 @@
 #include "Model_PLY.h"
 #include <vector>
+#include <limits>
+#include <cmath>
 
 using namespace std;
 
@@ -42,7 +44,7 @@ float* Model_PLY::calculateNormal( float *coord1, float *coord2, float *coord3 )
 int Model_PLY::Load(char* filename)
 {
 	this->TotalConnectedTriangles = 0;
-	this->TotalConnectedPoints = 0;
+	this->TotalPoints = 0;
 
 	char* pch = strstr(filename,".ply");
 
@@ -83,7 +85,7 @@ int Model_PLY::Load(char* filename)
 				fgets(buffer,300,file);			// format
 			}
 			strcpy(buffer, buffer+strlen("element vertex"));
-			sscanf(buffer,"%i", &this->TotalConnectedPoints);
+			sscanf(buffer,"%i", &this->TotalPoints);
 
 			// Find number of vertexes
 			fseek(file,0,SEEK_SET);
@@ -102,7 +104,7 @@ int Model_PLY::Load(char* filename)
 
 			// read verteces
 			i =0;
-			for (int iterator = 0; iterator < this->TotalConnectedPoints; iterator++)
+			for (int iterator = 0; iterator < this->TotalPoints; iterator++)
 			{
 				fgets(buffer,300,file);
 
@@ -166,5 +168,21 @@ int Model_PLY::Load(char* filename)
 	} else {
 		printf("File does not have a .PLY extension. ");
 	}
+
+    MinCoord = std::numeric_limits<float>::max();
+    MaxCoord = std::numeric_limits<float>::min();
+    for (int i = 0; i < TotalConnectedTriangles * 3; i++) {
+        if (Faces_Triangles[i] < MinCoord) {
+            MinCoord = Faces_Triangles[i];
+        }
+        if (Faces_Triangles[i] > MaxCoord) {
+            MaxCoord = Faces_Triangles[i];
+        }
+    }
+    AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
+    for (int i = 0; i < TotalConnectedTriangles * 3; i++) {
+        Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
+    }
+
 	return TotalConnectedTriangles;
 }

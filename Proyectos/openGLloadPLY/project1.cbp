@@ -21,6 +21,7 @@
 					<Add library="..\..\..\..\..\..\Program Files (x86)\CodeBlocks\MinGW\lib\libopengl32.a" />
 					<Add library="..\..\..\..\..\..\Program Files (x86)\CodeBlocks\MinGW\lib\libwinmm.a" />
 					<Add library="..\..\..\..\..\..\Program Files (x86)\CodeBlocks\MinGW\lib\libgdi32.a" />
+					<Add library="Librerias\FreeImage.lib" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -47,6 +48,8 @@
 		<Unit filename="COLOR_CUBE.cpp" />
 		<Unit filename="Model_PLY.cpp" />
 		<Unit filename="Model_PLY.h" />
+		<Unit filename="matrix4x4.cpp" />
+		<Unit filename="matrix4x4.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />
