@@ -55,7 +55,7 @@ class Server : public ofBaseApp {
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
         void computeFrames();
-        void generarMalla(ThreadData *);
+        void generarMalla(ThreadData);
 
 		ofxUDPManager udpConnection;
 		ofxTCPServer TCP;

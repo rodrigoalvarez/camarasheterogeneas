@@ -97,9 +97,10 @@ class FrameUtils {
                     if((tData[i].state == 2) || (tData[i].state == 3)) {
                         totSize += sizeof(int);     //(int) pcWidth
                         totSize += sizeof(int);     //(int) pcHeight
+                        totSize += sizeof(int);     //(int) pcLength
                         //Reservo lugar para la nube.
 
-                        totSize += (sizeof(float)) * tData[i].nubeW * tData[i].nubeH * 3;
+                        totSize += (sizeof(float)) * tData[i].nubeLength * 3;
                     }
                 }
             }
@@ -140,6 +141,7 @@ class FrameUtils {
                 char* off_imagebytearray;
                 char* off_pcWidth;
                 char* off_pcHeight;
+                char* off_pcLength;
                 char* off_nubeByteArray;
 
                 for(i=0; i<totCameras; i++) {
@@ -214,31 +216,42 @@ class FrameUtils {
                         if((tData[i].state == 2) || (tData[i].state == 3)) {
 
                             off_pcHeight         = off_pcWidth  + sizeof(int);
-                            off_nubeByteArray    = off_pcHeight + sizeof(int);
+                            off_pcLength         = off_pcHeight + sizeof(int);
+                            off_nubeByteArray    = off_pcLength + sizeof(int);
 
                             int w                = (int) *off_pcWidth;
                             int h                = (int) *off_pcHeight;
+                            int nubeLength       = (int) *off_pcLength;
 
-                            memcpy(&(w),     (off_pcWidth),     sizeof(int));
-                            memcpy(&(h),     (off_pcHeight),    sizeof(int));
+                            memcpy(&(w),            (off_pcWidth),     sizeof(int));
+                            memcpy(&(h),            (off_pcHeight),    sizeof(int));
+                            memcpy(&(nubeLength),   (off_pcLength),    sizeof(int));
+
+                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube recuperado - w: " << w;
+                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube recuperado - h: " << h;
+                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube recuperado - nubeLength: " << nubeLength;
 
                             tData[i].nubeW  = w;
                             tData[i].nubeH  = h;
-                            tData[i].nubeLength = w*h;
-                            tData[i].xpix   = new float[w*h];
-                            tData[i].ypix   = new float[w*h];
-                            tData[i].zpix   = new float[w*h];
+                            tData[i].nubeLength = nubeLength;
 
-                            //tData[i].sXpix  = (ofFloatPixels &) off_nubeByteArray;//imgx.getFloatPixelsRef();
-                            memcpy((tData[i].xpix),     (off_nubeByteArray),     sizeof(float)*w*h);
-                            off_nubeByteArray   = off_nubeByteArray + w*h*sizeof(float);
+                            if(nubeLength > 0) {
+                                tData[i].xpix   = new float[nubeLength];
+                                tData[i].ypix   = new float[nubeLength];
+                                tData[i].zpix   = new float[nubeLength];
 
-                            memcpy((tData[i].ypix),     (off_nubeByteArray),     sizeof(float)*w*h);
-                            off_nubeByteArray   = off_nubeByteArray + w*h*sizeof(float);
+                                //tData[i].sXpix  = (ofFloatPixels &) off_nubeByteArray;//imgx.getFloatPixelsRef();
+                                memcpy((tData[i].xpix),     (off_nubeByteArray),     sizeof(float)*nubeLength);
+                                off_nubeByteArray   = off_nubeByteArray + nubeLength*sizeof(float);
 
-                            memcpy((tData[i].zpix),     (off_nubeByteArray),     sizeof(float)*w*h);
-                            off_nubeByteArray   = off_nubeByteArray + w*h*sizeof(float);
+                                memcpy((tData[i].ypix),     (off_nubeByteArray),     sizeof(float)*nubeLength);
+                                off_nubeByteArray   = off_nubeByteArray + nubeLength*sizeof(float);
 
+                                memcpy((tData[i].zpix),     (off_nubeByteArray),     sizeof(float)*nubeLength);
+                                off_nubeByteArray   = off_nubeByteArray + nubeLength*sizeof(float);
+                            }
+
+                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nubeLength: " << tData[i].nubeLength;
                             //Reservo lugar para la nube.
                             start = off_nubeByteArray;
 
@@ -290,6 +303,7 @@ class FrameUtils {
             char* off_imagebytearray;
             char* off_pcWidth;
             char* off_pcHeight;
+            char* off_pcLength;
             char* off_nubeByteArray;
 
             int i=0, totSize = 0;
@@ -337,29 +351,31 @@ class FrameUtils {
                     //Si tiene nube;
                     if((tData[i].state == 2) || (tData[i].state == 3)) {
                         off_pcHeight         = off_pcWidth  + sizeof(int);
-                        off_nubeByteArray    = off_pcHeight + sizeof(int);
+                        off_pcLength         = off_pcHeight + sizeof(int);
+                        off_nubeByteArray    = off_pcLength + sizeof(int);
 
-                        int w = tData[i].nubeW;
-                        int h = tData[i].nubeH;
+                        int w           = tData[i].nubeW;
+                        int h           = tData[i].nubeH;
+                        int nubeLength  = tData[i].nubeLength;
 
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube guardado - w: " << tData[i].nubeW;
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube guardado - h: " << tData[i].nubeH;
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube guardado - nubeLength: " << nubeLength;
 
-                        memcpy(off_pcWidth,       &w,    sizeof(int));
-                        memcpy(off_pcHeight,      &h,   sizeof(int));
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - ddddddddddd: " << tData[i].nubeH;
+                        memcpy(off_pcWidth,       &w,           sizeof(int));
+                        memcpy(off_pcHeight,      &h,           sizeof(int));
+                        memcpy(off_pcLength,      &nubeLength,  sizeof(int));
 
-                        memcpy(off_nubeByteArray,   tData[i].xpix, (sizeof(float) * w * h));
-                        off_nubeByteArray = off_nubeByteArray + (sizeof(float)) * w * h;
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - aaaaaaaaa: " << tData[i].nubeH;
+                        if(nubeLength > 0) {
+                            memcpy(off_nubeByteArray,   tData[i].xpix, (sizeof(float) * nubeLength));
+                            off_nubeByteArray = off_nubeByteArray + (sizeof(float)) * nubeLength;
 
-                        memcpy(off_nubeByteArray,   tData[i].ypix, (sizeof(float)) * w * h);
-                        off_nubeByteArray = off_nubeByteArray + (sizeof(float)) * w * h;
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - cccccccccc: " << tData[i].nubeH;
+                            memcpy(off_nubeByteArray,   tData[i].ypix, (sizeof(float)) * nubeLength);
+                            off_nubeByteArray = off_nubeByteArray + (sizeof(float)) * nubeLength;
 
-                        memcpy(off_nubeByteArray,   tData[i].zpix, (sizeof(float)) * w * h);
-                        off_nubeByteArray = off_nubeByteArray + (sizeof(float)) * w * h;
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - wwwwwwwwwww: " << tData[i].nubeH;
+                            memcpy(off_nubeByteArray,   tData[i].zpix, (sizeof(float)) * nubeLength);
+                            off_nubeByteArray = off_nubeByteArray + (sizeof(float)) * nubeLength;
+                        }
 
                         start = off_nubeByteArray;
                     }

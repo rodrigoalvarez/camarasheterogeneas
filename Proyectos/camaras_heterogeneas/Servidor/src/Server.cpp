@@ -26,8 +26,8 @@ void Server::setup() {
         tservers[i] = NULL;
 	}
 
-    generator.buffer = mb;
-    generator.startThread(true, false);
+    //generator.buffer = mb;
+    //generator.startThread(true, false);
 
 }
 
@@ -85,11 +85,10 @@ void Server::computeFrames() {
         ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Tope del buffer tiene " << head.first << " vistas de camaras.";
         for(int c = 0; c < head.first; c++) {
             mb->addFrame(&head.second[c], c, i);
-            ThreadData * t;
-
+            ofLogVerbose() << "[Server::computeFrames] - head.second[c].nubeLength " << head.second[c].nubeLength;
             if((head.second[c].state == 3) && (head.second[c].nubeW > 0) && (procesar == 1)) {
                 procesar = 0;
-                generarMalla(&head.second[c]);
+                generarMalla(head.second[c]);
             }
         }
 
@@ -119,8 +118,8 @@ void Server::exit() {
     delete mb;
 }
 
-void Server::generarMalla(ThreadData * data) {
-    ofLogVerbose() << "generarMalla()" << NULL;
+void Server::generarMalla(ThreadData data) {
+    ofLogVerbose() << "[Server::generarMalla] - generarMalla()";
     //ThreadData* data;
     //data = FrameUtils::getDummyFrame();//Obtengo el frame vacio
     int downsampling = 4;
@@ -135,13 +134,23 @@ void Server::generarMalla(ThreadData * data) {
     //Recorro los frames de cada camara y me quedo solo con los 3D
     //for (int i = 0; i<5; i++){
     //    if (data[i].state == 2 || data[i].state == 3){//Me fijo si el frame es 3D
-            for(int y=0; y < data->nubeH; y += downsampling) {
-                for(int x=0; x < data->nubeW; x += downsampling) {
-                    if((data->xpix[y * data->nubeW + x] != -1) && (data->ypix[y * data->nubeW + x] != -1) && (data->zpix[y * data->nubeW + x] != -1)) {
-                        fprintf (pFile, "%f %f %f\n", data->xpix[y * data->nubeW + x], data->ypix[y * data->nubeW + x], data->zpix[y * data->nubeW + x]);
-                    }
-                }
-            }
+
+    //for(int i=0; i < data->nubeLength; i += downsampling) {
+    ofLogVerbose() << "[Server::generarMalla] - generarMalla() - data->nubeLength: " << data.nubeLength;
+    for(int i=0; i < data.nubeLength; i ++) {
+        //if((data->xpix[i] != -1) && (data->ypix[y * data->nubeW + x] != -1) && (data->zpix[y * data->nubeW + x] != -1)) {
+        fprintf (pFile, "%f %f %f\n", data.xpix[i], data.ypix[i], data.zpix[i]);
+        //}
+    }
+
+//    for(int y=0; y < data->nubeH; y += downsampling) {
+//        for(int x=0; x < data->nubeW; x += downsampling) {
+//            if((data->xpix[y * data->nubeW + x] != -1) && (data->ypix[y * data->nubeW + x] != -1) && (data->zpix[y * data->nubeW + x] != -1)) {
+//                fprintf (pFile, "%f %f %f\n", data->xpix[y * data->nubeW + x], data->ypix[y * data->nubeW + x], data->zpix[y * data->nubeW + x]);
+//            }
+//        }
+//    }
+
     //    }
     //}
     fclose (pFile);
