@@ -18,6 +18,10 @@ class FieldManager {
         //map< std::pair <time_t, int> , Field * > field_map2;
         map< std::pair <time_t, int> , Field * > field_map;
 
+        timeval curIndex;
+        timeval maxIndex;
+        float minUnit;
+        float topeUnit;
         /**
         * Dado el timestamp del frame, retorna el tiempo correspondiente al field más cercano.
         */
@@ -50,4 +54,12 @@ class FieldManager {
 		* Remueve de memoria el Field pasado por parámetro.
 		*/
         void removeField(Field *);
+
+        /**
+        * Recorre según el indice de tiempo y retorna el siguiente
+        * objeto sin procesar.
+        */
+        Field * getNextFilledField();
+
+        bool timevalMinorEqualThan(timeval curIndex, timeval maxIndex );
 };

@@ -25,6 +25,8 @@ struct t_camera {
 class GlobalData {
 
 	public:
+		int     getFPS();
+		bool    getGoLive();
 		int     getTotal3D();
         int     getTotal2D();
 		int     getTotalDevices();
@@ -32,10 +34,11 @@ class GlobalData {
 
         int      total3D;
         int      total2D;
-		bool     goLive;
+        bool     goLive;
         int      cliId;
         int      port;
         int      realtimeFPS;
         int      realtimePORT;
         t_camera * camera;
+
 };

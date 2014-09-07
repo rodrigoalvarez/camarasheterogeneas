@@ -19,6 +19,7 @@ class Field {
         int totFrames;
         int id;
 
+        map< long int, ThreadData * > frame_map;
         Field();
 		~Field();
 

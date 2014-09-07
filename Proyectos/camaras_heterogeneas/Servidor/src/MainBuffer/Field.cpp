@@ -1,7 +1,6 @@
 #include "Field.h"
 
 using namespace std;
-map< long int, ThreadData * > frame_map;
 
 Field::Field() {
     totFrames   = 0;

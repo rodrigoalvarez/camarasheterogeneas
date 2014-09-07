@@ -6,13 +6,6 @@
 int procesar = 0;
 void Server::setup() {
 
-    /*
-    int totalCams       = 2;
-    ThreadData * td     = FrameUtils::getDummyFrame();
-    int frameSize       = FrameUtils::getFrameSize(td, totalCams);
-    char * bytearray    = FrameUtils::getFrameByteArray(td, totalCams, frameSize);
-    FrameUtils::getThreadDataFromByteArray(bytearray);
-    */
     ofLogToFile("server_log.txt", false);
     ofSetLogLevel(OF_LOG_VERBOSE);
 
@@ -32,6 +25,9 @@ void Server::setup() {
 	for(i = 0; i < MAX_THREADED_SERVERS; i++) {
         tservers[i] = NULL;
 	}
+
+    generator.buffer = mb;
+    generator.startThread(true, false);
 
 }
 

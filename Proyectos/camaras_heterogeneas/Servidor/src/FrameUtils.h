@@ -224,6 +224,7 @@ class FrameUtils {
 
                             tData[i].nubeW  = w;
                             tData[i].nubeH  = h;
+                            tData[i].nubeLength = w*h;
                             tData[i].xpix   = new float[w*h];
                             tData[i].ypix   = new float[w*h];
                             tData[i].zpix   = new float[w*h];

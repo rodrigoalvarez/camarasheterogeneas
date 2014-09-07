@@ -9,6 +9,7 @@
 #include "FrameUtils.h"
 #include "FrameBuffer.h"
 #include "MainBuffer/MainBuffer.h"
+#include "MeshGenerator.h"
 #include "Constants.h"
 
 struct t_translation {
@@ -61,6 +62,7 @@ class Server : public ofBaseApp {
         ThreadData * tData2;
         int currCliPort;
 
+        MeshGenerator generator;
         ThreadServer * tservers[MAX_THREADED_SERVERS];
         ThreadData   * buffer[MAX_BUFFER_SIZE];
         int totThreadedServers;

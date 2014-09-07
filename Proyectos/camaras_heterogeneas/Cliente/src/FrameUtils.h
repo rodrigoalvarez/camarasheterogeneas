@@ -224,16 +224,19 @@ class FrameUtils {
 
                             tData[i].nubeW  = w;
                             tData[i].nubeH  = h;
+                            tData[i].nubeLength = w*h;
                             tData[i].xpix   = new float[w*h];
                             tData[i].ypix   = new float[w*h];
                             tData[i].zpix   = new float[w*h];
 
                             //tData[i].sXpix  = (ofFloatPixels &) off_nubeByteArray;//imgx.getFloatPixelsRef();
-                            memcpy(&(tData[i].xpix),     (off_nubeByteArray),     sizeof(float)*w*h);
+                            memcpy((tData[i].xpix),     (off_nubeByteArray),     sizeof(float)*w*h);
                             off_nubeByteArray   = off_nubeByteArray + w*h*sizeof(float);
-                            memcpy(&(tData[i].ypix),     (off_nubeByteArray),     sizeof(float)*w*h);
+
+                            memcpy((tData[i].ypix),     (off_nubeByteArray),     sizeof(float)*w*h);
                             off_nubeByteArray   = off_nubeByteArray + w*h*sizeof(float);
-                            memcpy(&(tData[i].zpix),     (off_nubeByteArray),     sizeof(float)*w*h);
+
+                            memcpy((tData[i].zpix),     (off_nubeByteArray),     sizeof(float)*w*h);
                             off_nubeByteArray   = off_nubeByteArray + w*h*sizeof(float);
 
                             //Reservo lugar para la nube.

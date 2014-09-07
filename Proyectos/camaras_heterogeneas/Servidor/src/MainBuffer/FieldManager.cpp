@@ -2,7 +2,11 @@
 #include <sys/time.h>
 
 FieldManager::FieldManager() {
-
+    gettimeofday(&curIndex, NULL);
+    gettimeofday(&maxIndex, NULL);
+    minUnit   = floor((1000/SERVER_BUFF_FPS));
+    topeUnit  = minUnit * SERVER_BUFF_FPS;
+    curIndex.tv_usec = 0;
 }
 
 FieldManager::~FieldManager() {
@@ -24,6 +28,7 @@ void FieldManager::calcSyncTime(ThreadData * frame) {
     frame->key.first    = frame->curTime.tv_sec;
     frame->key.second   = step;
 
+
     //printf("current time: %d %d \n", frame->key.first, frame->key.second);
 }
 
@@ -41,7 +46,17 @@ Field * FieldManager::getFieldForTime(std::pair <time_t, int> timestamp) {
 
         Field * fi  = new Field();
         fi->id = field_map.size();
+
+
         field_map.insert ( std::pair< std::pair <time_t, int>, Field * > (search, fi) );
+
+        //actualizo el maximo valor guardado
+        timeval tmod;
+        tmod.tv_sec  = search.first;
+        tmod.tv_usec = search.second * minUnit;
+        if(timevalMinorEqualThan(maxIndex, tmod )) {
+            maxIndex = tmod;
+        }
 
         ofLogVerbose() << "[FieldManager::getFieldForTime] - " << "NO ENCONTRO";
         ofLogVerbose() << "[FieldManager::getFieldForTime] - " << "NUEVO FIELD " << fi->id;
@@ -81,4 +96,46 @@ Field * FieldManager::getOlderCompleteFrame() {
 */
 void FieldManager::removeField(Field *) {
 
+}
+
+/**
+* Recorre según el indice de tiempo y retorna el siguiente
+* objeto sin procesar.
+*/
+Field * FieldManager::getNextFilledField() {
+    bool encontro = false;
+    //int milli;
+    int step;
+    std::pair <time_t, int> search;
+    Field * fi = NULL;
+    while((!encontro) && timevalMinorEqualThan(curIndex, maxIndex )) {
+        //milli   = curIndex.tv_usec / 1000;
+        step    = (curIndex.tv_usec / minUnit);
+
+        //Buscar
+        search.first    = curIndex.tv_sec;
+        search.second   = step;
+
+        if(field_map.count(search) == 1) {
+            ofLogVerbose() << "[FieldManager::getNextFilledField] - ENCONTRO curIndex.tv_sec: " << curIndex.tv_sec << " - curIndex.tv_usec: " << curIndex.tv_usec;
+            encontro = true;
+            fi       = field_map[search]; //Faltaría después evaluar si borrarlo o no.
+        }
+
+        if(step >= (topeUnit-1)) {
+            curIndex.tv_sec  += 1;
+            curIndex.tv_usec  = 0;
+        } else {
+            curIndex.tv_usec += minUnit;
+        }
+    }
+    return fi;
+}
+
+bool FieldManager::timevalMinorEqualThan(timeval curIndex, timeval maxIndex ) {
+    if(curIndex.tv_sec < maxIndex.tv_sec) return true;
+    if(curIndex.tv_sec == maxIndex.tv_sec) {
+        if(curIndex.tv_usec <= maxIndex.tv_usec) return true;
+    }
+    return false;
 }
