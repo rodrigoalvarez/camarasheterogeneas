@@ -6,7 +6,7 @@
 		<Option makefile="makefile" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="addons\;src\;addons\ofxNetwork\src\;addons\ofxOpenCv\libs\opencv\include\opencv2\calib3d\;addons\ofxOpenCv\libs\opencv\include\opencv2\contrib\;addons\ofxOpenCv\libs\opencv\include\opencv2\core\;addons\ofxOpenCv\libs\opencv\include\opencv2\features2d\;addons\ofxOpenCv\libs\opencv\include\opencv2\flann\;addons\ofxOpenCv\libs\opencv\include\opencv2\gpu\;addons\ofxOpenCv\libs\opencv\include\opencv2\highgui\;addons\ofxOpenCv\libs\opencv\include\opencv2\imgproc\;addons\ofxOpenCv\libs\opencv\include\opencv2\legacy\;addons\ofxOpenCv\libs\opencv\include\opencv2\ml\;addons\ofxOpenCv\libs\opencv\include\opencv2\objdetect\;addons\ofxOpenCv\libs\opencv\include\opencv2\;addons\ofxOpenCv\libs\opencv\include\opencv2\ts\;addons\ofxOpenCv\libs\opencv\include\opencv2\video\;addons\ofxOpenCv\libs\opencv\include\opencv\;addons\ofxOpenCv\src\;addons\ofxXmlSettings\libs\;addons\ofxXmlSettings\src\;src\Data\;" />
+		<Option virtualFolders="addons\;src\;addons\ofxNetwork\src\;addons\ofxOpenCv\libs\opencv\include\opencv2\calib3d\;addons\ofxOpenCv\libs\opencv\include\opencv2\contrib\;addons\ofxOpenCv\libs\opencv\include\opencv2\core\;addons\ofxOpenCv\libs\opencv\include\opencv2\features2d\;addons\ofxOpenCv\libs\opencv\include\opencv2\flann\;addons\ofxOpenCv\libs\opencv\include\opencv2\gpu\;addons\ofxOpenCv\libs\opencv\include\opencv2\highgui\;addons\ofxOpenCv\libs\opencv\include\opencv2\imgproc\;addons\ofxOpenCv\libs\opencv\include\opencv2\legacy\;addons\ofxOpenCv\libs\opencv\include\opencv2\ml\;addons\ofxOpenCv\libs\opencv\include\opencv2\objdetect\;addons\ofxOpenCv\libs\opencv\include\opencv2\;addons\ofxOpenCv\libs\opencv\include\opencv2\ts\;addons\ofxOpenCv\libs\opencv\include\opencv2\video\;addons\ofxOpenCv\libs\opencv\include\opencv\;addons\ofxOpenCv\src\;addons\ofxXmlSettings\libs\;addons\ofxXmlSettings\src\;src\Data\;Threads\;src\Data\MainBuffer\;addons\ofxOpenNI\;" />
 		<Build>
 			<Target title="release">
 				<Option output="bin\$(PROJECT_NAME)" prefix_auto="1" extension_auto="1" />
@@ -92,6 +92,12 @@
 			<Add directory="..\..\..\..\addons\ofxOpenCv\libs\opencv\lib\win_cb" />
 			<Add directory="..\..\..\..\addons\ofxXmlSettings\libs" />
 			<Add directory="..\..\..\..\addons\ofxXmlSettings\src" />
+			<Add directory="..\..\..\..\addons\ofxOpenNI\include" />
+			<Add directory="..\..\..\..\addons\ofxOpenNI\include\openni" />
+			<Add directory="..\..\..\..\addons\ofxOpenNI\include\openni\Win32" />
+			<Add directory="..\..\..\..\addons\ofxOpenNI\include\nite" />
+			<Add directory="..\..\..\..\addons\ofxOpenNI\include\libusb" />
+			<Add directory="..\..\..\..\addons\ofxOpenNI\src" />
 		</Compiler>
 		<Linker>
 			<Add library="..\..\..\..\libs\FreeImage\lib\win_cb\FreeImage.lib" />
@@ -143,6 +149,11 @@
 			<Add library="..\..\..\..\addons\ofxOpenCv\libs\opencv\lib\win_cb\libopencv_gpu231.a" />
 			<Add library="..\..\..\..\addons\ofxOpenCv\libs\opencv\lib\win_cb\libopencv_ts231.a" />
 			<Add library="..\..\..\..\addons\ofxOpenCv\libs\opencv\lib\win_cb\libzlib.a" />
+			<Add library="..\..\..\..\addons\ofxOpenNI\win\copy_to_data_openni_path\lib\openNI.lib" />
+			<Add library="..\..\..\..\addons\ofxOpenNI\win\copy_to_data_openni_path\lib\XnVCNITE_1_5_2.lib" />
+			<Add library="..\..\..\..\addons\ofxOpenNI\win\copy_to_data_openni_path\lib\XnVFeatures_1_5_2.lib" />
+			<Add library="..\..\..\..\addons\ofxOpenNI\win\copy_to_data_openni_path\lib\XnVHandGenerator_1_5_2.lib" />
+			<Add library="..\..\..\..\addons\ofxOpenNI\win\copy_to_data_openni_path\lib\XnVNITE_1_5_2.lib" />
 		</Linker>
 		<ExtraCommands>
 			<Add after='xcopy /e /i /y &quot;$(PROJECT_DIR)..\..\..\..\export\win_cb\*.dll&quot;  &quot;$(PROJECT_DIR)bin&quot;' />
@@ -479,6 +490,21 @@
 		<Unit filename="..\..\..\..\addons\ofxOpenCv\src\ofxOpenCv.h">
 			<Option virtualFolder="addons\ofxOpenCv\src" />
 		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxOpenNI\src\ofxOpenNI.cpp">
+			<Option virtualFolder="addons\ofxOpenNI\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxOpenNI\src\ofxOpenNI.h">
+			<Option virtualFolder="addons\ofxOpenNI\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxOpenNI\src\ofxOpenNITypes.cpp">
+			<Option virtualFolder="addons\ofxOpenNI\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxOpenNI\src\ofxOpenNITypes.h">
+			<Option virtualFolder="addons\ofxOpenNI\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxOpenNI\src\ofxOpenNIUtils.h">
+			<Option virtualFolder="addons\ofxOpenNI\" />
+		</Unit>
 		<Unit filename="..\..\..\..\addons\ofxXmlSettings\libs\tinyxml.cpp">
 			<Option virtualFolder="addons\ofxXmlSettings\libs" />
 		</Unit>
@@ -497,19 +523,58 @@
 		<Unit filename="..\..\..\..\addons\ofxXmlSettings\src\ofxXmlSettings.h">
 			<Option virtualFolder="addons\ofxXmlSettings\src" />
 		</Unit>
+		<Unit filename="src\Constants.h">
+			<Option virtualFolder="src\Data\" />
+		</Unit>
+		<Unit filename="src\FrameBuffer.cpp">
+			<Option virtualFolder="src\Data\" />
+		</Unit>
+		<Unit filename="src\FrameBuffer.h">
+			<Option virtualFolder="src\Data\" />
+		</Unit>
 		<Unit filename="src\FrameUtils.h">
 			<Option virtualFolder="src\Data\" />
+		</Unit>
+		<Unit filename="src\MainBuffer\Field.cpp">
+			<Option virtualFolder="src\Data\MainBuffer\" />
+		</Unit>
+		<Unit filename="src\MainBuffer\Field.h">
+			<Option virtualFolder="src\Data\MainBuffer\" />
+		</Unit>
+		<Unit filename="src\MainBuffer\FieldManager.cpp">
+			<Option virtualFolder="src\Data\MainBuffer\" />
+		</Unit>
+		<Unit filename="src\MainBuffer\FieldManager.h">
+			<Option virtualFolder="src\Data\MainBuffer\" />
+		</Unit>
+		<Unit filename="src\MainBuffer\MainBuffer.cpp">
+			<Option virtualFolder="src\Data\MainBuffer\" />
+		</Unit>
+		<Unit filename="src\MainBuffer\MainBuffer.h">
+			<Option virtualFolder="src\Data\MainBuffer\" />
+		</Unit>
+		<Unit filename="src\MeshGenerator.cpp">
+			<Option virtualFolder="Threads\" />
+		</Unit>
+		<Unit filename="src\MeshGenerator.h">
+			<Option virtualFolder="Threads\" />
+		</Unit>
+		<Unit filename="src\Server.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\Server.h">
+			<Option virtualFolder="src\" />
 		</Unit>
 		<Unit filename="src\ThreadData.h">
 			<Option virtualFolder="src\Data\" />
 		</Unit>
+		<Unit filename="src\ThreadServer.cpp">
+			<Option virtualFolder="Threads\" />
+		</Unit>
+		<Unit filename="src\ThreadServer.h">
+			<Option virtualFolder="Threads\" />
+		</Unit>
 		<Unit filename="src\main.cpp">
-			<Option virtualFolder="src" />
-		</Unit>
-		<Unit filename="src\testApp.cpp">
-			<Option virtualFolder="src" />
-		</Unit>
-		<Unit filename="src\testApp.h">
 			<Option virtualFolder="src" />
 		</Unit>
 		<Extensions>
