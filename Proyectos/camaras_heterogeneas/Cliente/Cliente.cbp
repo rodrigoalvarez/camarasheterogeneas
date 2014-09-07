@@ -563,6 +563,9 @@
 		<Unit filename="src\Constants.h">
 			<Option virtualFolder="src\Data\" />
 		</Unit>
+		<Unit filename="src\FrameUtils.h">
+			<Option virtualFolder="src\Data\" />
+		</Unit>
 		<Unit filename="src\GlobalData.cpp">
 			<Option virtualFolder="src\Data\" />
 		</Unit>

@@ -19,5 +19,6 @@ class Thread2D : public ofThread {
         bool isAllocated;
         ofVideoGrabber vidGrabber;
         t_camera  * context;
+        t_data * sys_data;
         ofxQtVideoSaver video;
 };

@@ -4,6 +4,7 @@
 #include "IGrabber.h"
 #include "ofxNetwork.h"
 #include "ThreadData.h"
+#include "GlobalData.h"
 #include "FrameUtils.h"
 
 class Transmitter : public ofThread {
@@ -21,7 +22,7 @@ class Transmitter : public ofThread {
 		string cliId;
 		int serverPort;
 		int go;
-
+        t_data * sys_data;
 		void sendFrame(int totalCams, ThreadData * tData);
 
 };

@@ -1,29 +1,50 @@
 #include "Server.h"
 #include "ofxNetwork.h"
 #include <sys/time.h>
+
+#include <stdio.h>
+#include <sys/types.h>
+
+#include <string.h>
 //--------------------------------------------------------------
 
 int procesar = 0;
 void Server::setup() {
+    gdata   = new ServerGlobalData();
+    gdata->loadCalibData("settings.xml");
 
-    /*
-    int totalCams       = 2;
-    ThreadData * td     = FrameUtils::getDummyFrame();
-    int frameSize       = FrameUtils::getFrameSize(td, totalCams);
-    char * bytearray    = FrameUtils::getFrameByteArray(td, totalCams, frameSize);
-    FrameUtils::getThreadDataFromByteArray(bytearray);
-    */
+    //
+    string line;
+    ifstream IPFile;
+    int offset;
+    char* search0 = "IPv4 Address. . . . . . . . . . . :";      // search pattern
+
+    system("ipconfig > ip.txt");
+
+    IPFile.open ("ip.txt");
+    if(IPFile.is_open()) {
+       while(!IPFile.eof()) {
+           getline(IPFile,line);
+           if ((offset = line.find(search0, 0)) != string::npos) {
+           line.erase(0,39);
+           cout << line << endl;
+           IPFile.close();
+           }
+        }
+    }
+    //
+
     ofLogToFile("server_log.txt", false);
     ofSetLogLevel(OF_LOG_VERBOSE);
 
     mb    = new MainBuffer();
 
     ofShortPixels  spix;
-    //ofSetFrameRate(FPS);
-    TCP.setup(PORT_0);
+    ofSetFrameRate(gdata->sys_data->fps);
+    TCP.setup(gdata->sys_data->serverPort);
 
 	tData2              = NULL;
-	currCliPort         = PORT_0 + 1;
+	currCliPort         = gdata->sys_data->serverPort + 1;
 	totThreadedServers  = 0;
     buffLastIndex       = 0;
     buffCurrIndex       = 0;
@@ -32,6 +53,9 @@ void Server::setup() {
 	for(i = 0; i < MAX_THREADED_SERVERS; i++) {
         tservers[i] = NULL;
 	}
+
+    //generator.buffer = mb;
+    //generator.startThread(true, false);
 
 }
 
@@ -63,10 +87,11 @@ void Server::update() {
 
                 //NOTA: Además del puerto del thread que lo atiende debería pasarle hora actual del servidor (para que sincronice) y fps.
 
-                tservers[totThreadedServers]          = new ThreadServer();
-                tservers[totThreadedServers]->cliId   = atoi(cli.c_str());
-                tservers[totThreadedServers]->ip      = TCP.getClientIP(i);
-                tservers[totThreadedServers]->port    = atoi(port.c_str());
+                tservers[totThreadedServers]            = new ThreadServer();
+                tservers[totThreadedServers]->sys_data  = gdata->sys_data;
+                tservers[totThreadedServers]->cliId     = atoi(cli.c_str());
+                tservers[totThreadedServers]->ip        = TCP.getClientIP(i);
+                tservers[totThreadedServers]->port      = atoi(port.c_str());
                 tservers[totThreadedServers]->startThread(true, false);
 
                 currCliPort         ++;
@@ -80,7 +105,7 @@ void Server::update() {
 }
 
 void Server::computeFrames() {
-    ofSleepMillis(1000/FPS);
+    //ofSleepMillis(1000/gdata->sys_data->fps);
     ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totThreadedServers;
     for(int i = 0; i < totThreadedServers; i++) {
 
@@ -89,11 +114,10 @@ void Server::computeFrames() {
         ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Tope del buffer tiene " << head.first << " vistas de camaras.";
         for(int c = 0; c < head.first; c++) {
             mb->addFrame(&head.second[c], c, i);
-            ThreadData * t;
-
+            ofLogVerbose() << "[Server::computeFrames] - head.second[c].nubeLength " << head.second[c].nubeLength;
             if((head.second[c].state == 3) && (head.second[c].nubeW > 0) && (procesar == 1)) {
                 procesar = 0;
-                generarMalla(&head.second[c]);
+                generarMalla(head.second[c]);
             }
         }
 
@@ -123,8 +147,8 @@ void Server::exit() {
     delete mb;
 }
 
-void Server::generarMalla(ThreadData * data) {
-    ofLogVerbose() << "generarMalla()" << NULL;
+void Server::generarMalla(ThreadData data) {
+    ofLogVerbose() << "[Server::generarMalla] - generarMalla()";
     //ThreadData* data;
     //data = FrameUtils::getDummyFrame();//Obtengo el frame vacio
     int downsampling = 4;
@@ -139,13 +163,23 @@ void Server::generarMalla(ThreadData * data) {
     //Recorro los frames de cada camara y me quedo solo con los 3D
     //for (int i = 0; i<5; i++){
     //    if (data[i].state == 2 || data[i].state == 3){//Me fijo si el frame es 3D
-            for(int y=0; y < data->nubeH; y += downsampling) {
-                for(int x=0; x < data->nubeW; x += downsampling) {
-                    if((data->xpix[y * data->nubeW + x] != -1) && (data->ypix[y * data->nubeW + x] != -1) && (data->zpix[y * data->nubeW + x] != -1)) {
-                        fprintf (pFile, "%f %f %f\n", data->xpix[y * data->nubeW + x], data->ypix[y * data->nubeW + x], data->zpix[y * data->nubeW + x]);
-                    }
-                }
-            }
+
+    //for(int i=0; i < data->nubeLength; i += downsampling) {
+    ofLogVerbose() << "[Server::generarMalla] - generarMalla() - data->nubeLength: " << data.nubeLength;
+    for(int i=0; i < data.nubeLength; i ++) {
+        //if((data->xpix[i] != -1) && (data->ypix[y * data->nubeW + x] != -1) && (data->zpix[y * data->nubeW + x] != -1)) {
+        fprintf (pFile, "%f %f %f\n", data.xpix[i], data.ypix[i], data.zpix[i]);
+        //}
+    }
+
+//    for(int y=0; y < data->nubeH; y += downsampling) {
+//        for(int x=0; x < data->nubeW; x += downsampling) {
+//            if((data->xpix[y * data->nubeW + x] != -1) && (data->ypix[y * data->nubeW + x] != -1) && (data->zpix[y * data->nubeW + x] != -1)) {
+//                fprintf (pFile, "%f %f %f\n", data->xpix[y * data->nubeW + x], data->ypix[y * data->nubeW + x], data->zpix[y * data->nubeW + x]);
+//            }
+//        }
+//    }
+
     //    }
     //}
     fclose (pFile);

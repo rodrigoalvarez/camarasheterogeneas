@@ -1,8 +1,6 @@
 #include "Grabber.h"
 #include "Thread2D.h"
 
-
-
 //--------------------------------------------------------------
 void Grabber::setup() {
     ofSetLogLevel(OF_LOG_VERBOSE);
@@ -13,7 +11,7 @@ void Grabber::setup() {
 
     total2D     = gdata->total2D;    //Hacer que se cargue dinámico.
     total3D     = gdata->total3D;    //Hacer que se cargue dinámico.
-    goLive      = gdata->goLive;     //Hacer que se cargue dinámico.
+    goLive      = gdata->sys_data->goLive;     //Hacer que se cargue dinámico.
 
 
     if((gdata->total2D + gdata->total3D) > 0) {
@@ -42,10 +40,12 @@ void Grabber::setup() {
 
     while(camera != NULL) {
         if(camera->use3D == 1) {
+            t3D[i3D].sys_data                   = gdata->sys_data;
             t3D[i3D].context                    = camera;
             t3D[i3D].startThread(true, false);
             i3D ++;
         } else {
+            t2D[i2D].sys_data                   = gdata->sys_data;
             t2D[i2D].context                    = camera;
             t2D[i2D].startThread(true, false);
             i2D ++;
@@ -54,7 +54,8 @@ void Grabber::setup() {
     }
 
     if(goLive) { //Si desde el Calibrator se indicó que se debe trasmitir en vivo.
-        transmitter.grabber = this;
+        transmitter.grabber     = this;
+        transmitter.sys_data    = gdata->sys_data;
         transmitter.startThread(true, false);
     }
 }
@@ -158,51 +159,88 @@ void Grabber::updateThreadData() {
 
                 xn::DepthGenerator& Xn_depth = t3D[i].openNIRecorder->getDepthGenerator();
 
-                int downsampling = 1;
+                int downsampling = 2;
                 XnPoint3D Point2D, Point3D;
 
-                tData[di].xpix = new float[tData[di].nubeW * tData[di].nubeH];
+                /*tData[di].xpix = new float[tData[di].nubeW * tData[di].nubeH];
                 tData[di].ypix = new float[tData[di].nubeW * tData[di].nubeH];
-                tData[di].zpix = new float[tData[di].nubeW * tData[di].nubeH];
+                tData[di].zpix = new float[tData[di].nubeW * tData[di].nubeH];*/
 
                 int y   = 0;
                 int x   = 0;
                 float d = 0;
-                //tData[di].nubeLength    = 0;
+                tData[di].nubeLength    = 0;
                 ofVec3f v1;
                 ofVec3f * vt;
                 ofLogVerbose() << di << " tData[di].nubeH " << tData[di].nubeH << " tData[di].nubeW " << tData[di].nubeW;
 
-                for(y=0; y < tData[di].nubeH; y += downsampling) {
-                    for(x=0; x < tData[di].nubeW; x += downsampling) {
-                        d = rawPix[y * tData[di].nubeW + x];
-                        if(d != 0) {
-                            Point2D.X   = x;
-                            Point2D.Y   = y;
-                            Point2D.Z   = (float)d;
-                            try {
-                                Xn_depth.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
-                                v1.set(Point3D.X, Point3D.Y, Point3D.Z);
-                                vt = transformPoint(v1, t3D[i].context->matrix);
-                                tData[di].xpix[y * tData[di].nubeW + x] = vt->x;
-                                tData[di].ypix[y * tData[di].nubeW + x] = vt->y;
-                                tData[di].zpix[y * tData[di].nubeW + x] = vt->z;
-                                /*tData[di].xpix[y * tData[di].nubeW + x] = Point3D.X;
-                                tData[di].ypix[y * tData[di].nubeW + x] = Point3D.Y;
-                                tData[di].zpix[y * tData[di].nubeW + x] = Point3D.Z;*/
-                                delete vt;
-                                //tData[di].nubeLength ++;
-                            } catch(...) {
-                                ofLogVerbose() << "[Grabber::updateThreadData] " << "Excepción al transformar los puntos.";
-                            }
+                float * tmpX = NULL;
+                float * tmpY = NULL;
+                float * tmpZ = NULL;
 
-                        } else {
-                            tData[di].xpix[y * tData[di].nubeW + x] = -1;
-                            tData[di].ypix[y * tData[di].nubeW + x] = -1;
-                            tData[di].zpix[y * tData[di].nubeW + x] = -1;
+                if((tData[di].nubeW > 0) && (tData[di].nubeH > 0)) {
+                    tmpX = new float[tData[di].nubeW * tData[di].nubeH];
+                    tmpY = new float[tData[di].nubeW * tData[di].nubeH];
+                    tmpZ = new float[tData[di].nubeW * tData[di].nubeH];
+                }
+
+                for(y=0; y < tData[di].nubeH; y += downsampling) {
+                    if(y < tData[di].nubeH) {
+                        for(x=0; x < tData[di].nubeW; x += downsampling) {
+                            if(x < tData[di].nubeW) {
+                                d = rawPix[y * tData[di].nubeW + x];
+                                if(d != 0) {
+                                    Point2D.X   = x;
+                                    Point2D.Y   = y;
+                                    Point2D.Z   = (float)d;
+                                    try {
+                                        Xn_depth.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
+                                        v1.set(Point3D.X, Point3D.Y, Point3D.Z);
+                                        vt = transformPoint(v1, t3D[i].context->matrix);
+                                        //if(! ((roundf(vt->x) == 0.0) && (roundf(vt->y) == 0.0) && (round(vt->z) == 0.0)) ) {
+                                            ofLogVerbose() << "[Grabber::updateThreadData] " << "vt->x: " << vt->x  << "vt->y: " << vt->y << "vt->z: " << vt->z;
+                                            tmpX[tData[di].nubeLength] = vt->x;
+                                            tmpY[tData[di].nubeLength] = vt->y;
+                                            tmpZ[tData[di].nubeLength] = vt->z;
+                                            tData[di].nubeLength ++;
+                                        //}
+
+                                        delete vt;
+
+                                    } catch(...) {
+                                        ofLogVerbose() << "[Grabber::updateThreadData] " << "Excepción al transformar los puntos.";
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+
+                if(tData[di].nubeLength > 0) {
+                    tData[di].xpix = new float[tData[di].nubeLength];
+                    tData[di].ypix = new float[tData[di].nubeLength];
+                    tData[di].zpix = new float[tData[di].nubeLength];
+
+                    memcpy(tData[di].xpix,     tmpX,     sizeof(float) * tData[di].nubeLength);
+                    memcpy(tData[di].ypix,     tmpY,     sizeof(float) * tData[di].nubeLength);
+                    memcpy(tData[di].zpix,     tmpZ,     sizeof(float) * tData[di].nubeLength);
+
+                    /*
+                    char* fileName      = "frame_i.xyz";
+                    FILE * pFile;
+                    pFile = fopen (fileName,"w");
+
+                    for(int i=0; i < tData[di].nubeLength; i ++) {
+                        fprintf (pFile, "%f %f %f\n", tData[di].xpix[i], tData[di].ypix[i], tData[di].zpix[i]);
+                    }*/
+
+                }
+                if(tmpX != NULL) {
+                    delete tmpX;
+                    delete tmpY;
+                    delete tmpZ;
+                }
+
                 ofLogVerbose() << "[Grabber::updateThreadData] " << " saliendo del for for.";
                 /**/
             }

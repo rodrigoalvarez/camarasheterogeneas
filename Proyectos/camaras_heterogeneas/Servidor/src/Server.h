@@ -9,7 +9,9 @@
 #include "FrameUtils.h"
 #include "FrameBuffer.h"
 #include "MainBuffer/MainBuffer.h"
+#include "MeshGenerator.h"
 #include "Constants.h"
+#include "ServerGlobalData.h"
 
 struct t_translation {
     int translationX;
@@ -54,13 +56,14 @@ class Server : public ofBaseApp {
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
         void computeFrames();
-        void generarMalla(ThreadData *);
+        void generarMalla(ThreadData);
 
 		ofxUDPManager udpConnection;
 		ofxTCPServer TCP;
         ThreadData * tData2;
         int currCliPort;
 
+        MeshGenerator generator;
         ThreadServer * tservers[MAX_THREADED_SERVERS];
         ThreadData   * buffer[MAX_BUFFER_SIZE];
         int totThreadedServers;
@@ -68,4 +71,5 @@ class Server : public ofBaseApp {
         int buffLastIndex;
         int buffCurrIndex;
         MainBuffer * mb;
+        ServerGlobalData * gdata;
 };

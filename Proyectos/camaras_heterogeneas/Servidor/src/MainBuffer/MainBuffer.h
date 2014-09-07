@@ -23,6 +23,15 @@ class MainBuffer {
 		*/
 		void addFrame( ThreadData * frame , int cam, int cli);
 
+        /**
+		* Retorna el siguiente frame a ser procesado.
+		* Retorna un tipo pair conteniendo:
+		* pair.first: Nube de punto concatenada.
+		* pair.second: Array de ThreadData conteniendo las texturas de todas las cámaras
+		* de todos los clientes para ese frame (aún no implementado).
+		*/
+		std::pair <ThreadData *, ThreadData *> getNextFrame();
+
         //int * buffer[MAX_BUFF_SIZE];
 
 		/**

@@ -42,3 +42,36 @@ void MainBuffer::addFrame( ThreadData * frame , int cam, int cli) {
 long int MainBuffer::getCamId(int cam, int cli) {
     return ((cli + 1) * 10000 + cam);
 }
+
+/**
+* Retorna el siguiente frame a ser procesado.
+* Retorna un tipo pair conteniendo:
+* pair.first: Nube de punto concatenada.
+* pair.second: Array de ThreadData conteniendo las texturas de todas las cámaras
+* de todos los clientes para ese frame (aún no implementado).
+*/
+std::pair <ThreadData *, ThreadData *> MainBuffer::getNextFrame() {
+    Field * fi = fm->getNextFilledField();
+    std::pair <ThreadData *, ThreadData *> ret;
+    ret.first   = NULL;
+    ret.second  = NULL;
+
+    if(fi == NULL) {
+        ofLogVerbose() << "[MainBuffer::getNextFrame] No se encontró un frame sin procesar para devolver. Retorno NULL.";
+        return ret;
+    }
+
+    for (map< long int, ThreadData * >::iterator it = fi->frame_map.begin(); it != fi->frame_map.end(); ++it) {
+        if( (((ThreadData *) it->second)->state == 2 ) || (((ThreadData *) it->second)->state == 3 )) {
+            if(((ThreadData *) it->second)->nubeLength > 0) {
+                if(ret.first == NULL) {
+                    ret.first = (ThreadData *) it->second;
+                } else {
+                    ret.first->mergePointClouds((ThreadData *) it->second);
+                }
+            }
+        }
+    }
+
+    return ret;
+}
