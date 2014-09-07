@@ -49,10 +49,14 @@
 		<Unit filename="src\main.cpp" />
 		<Unit filename="src\masterPly.cpp" />
 		<Unit filename="src\masterPly.h" />
+		<Unit filename="src\masterSettings.cpp" />
+		<Unit filename="src\masterSettings.h" />
 		<Unit filename="src\matrix4x4.cpp" />
 		<Unit filename="src\matrix4x4.h" />
 		<Unit filename="src\modelPly.cpp" />
 		<Unit filename="src\modelPly.h" />
+		<Unit filename="src\modelXYZ.cpp" />
+		<Unit filename="src\modelXYZ.h" />
 		<Unit filename="src\plylib.cpp" />
 		<Unit filename="src\plylib.h" />
 		<Extensions>

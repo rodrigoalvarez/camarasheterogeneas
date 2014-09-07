@@ -14,7 +14,7 @@ Model_XYZ::Model_XYZ() {
 
 int Model_XYZ::Load(string fileName) {
 
-	this->TotalPoints = 0;
+	TotalPoints = 0;
     std::ifstream in(fileName.c_str());
     std::stringstream buffer;
     buffer << in.rdbuf();
@@ -47,4 +47,20 @@ int Model_XYZ::Load(string fileName) {
     }
 
 	return TotalPoints;
+}
+
+int Model_XYZ::Include(Model_XYZ* model) {
+
+    for (int i = 0; i < model->TotalPoints * 3; i++) {
+        Points.push_back(model->Points[i]);
+    }
+    TotalPoints += model->TotalPoints;
+	return TotalPoints;
+}
+
+int Model_XYZ::Clear() {
+
+    TotalPoints = 0;
+    Points.clear();
+	return 0;
 }

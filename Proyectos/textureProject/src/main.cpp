@@ -15,6 +15,11 @@
 #include "FreeImage.h"
 #include "matrix4x4.h"
 
+
+/* Hay 2 errores - 1ro que cuando junto los mesh en 3D no se mueve - 2do que no se muestra la hormiga en modo view */
+
+
+
 using namespace std;
 
 GLuint *textures = new GLuint[2];
@@ -26,7 +31,7 @@ PFNGLGENQUERIESARBPROC glGenQueriesARB = NULL;
 PFNGLENDQUERYARBPROC glEndQueryARB = NULL;
 PFNGLGETQUERYOBJECTUIVPROC glGetQueryObjectuivARB = NULL;
 
-GLfloat colors[][3] = { {0.0,0.0,0.0},
+GLfloat colors[][3] = { {1.0,1.0,1.0},
                         {1.0,0.0,0.0},
                         {0.0,1.0,0.0},
                         {0.0,0.0,1.0},
@@ -112,91 +117,71 @@ void setPointVertex(int index) {
     glVertex3fv(vert);
 }
 
-void drawElement(int index) {
-
-    if (calibration3DMode) {
-        //glColor3f(1.0f, 1.0f, 1.0f);
-        glColor3fv(colors[meshIndex]);
-        glBegin(GL_POINTS);
-            setPointVertex(index);
-        glEnd();
-
-    } else {
-        glColor3f(1.0f, 1.0f, 1.0f);
-        glBegin(GL_POLYGON);
+void draw2DElement(int index) {
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_POLYGON);
+        setFaceVertex(index * 3);
+        setFaceVertex(index * 3 + 1);
+        setFaceVertex(index * 3 + 2);
+    glEnd();
+    if (textureWire) {
+        glColor3f(0.5f, 0.5f, 0.5f);
+        glBegin(GL_LINE_LOOP);
             setFaceVertex(index * 3);
             setFaceVertex(index * 3 + 1);
             setFaceVertex(index * 3 + 2);
         glEnd();
-        if (textureWire) {
-            glColor3f(0.5f, 0.5f, 0.5f);
-            glBegin(GL_LINE_LOOP);
-                setFaceVertex(index * 3);
-                setFaceVertex(index * 3 + 1);
-                setFaceVertex(index * 3 + 2);
-            glEnd();
+    }
+}
+
+void draw3D() {
+    glColor3fv(colors[meshIndex]);
+    for (int i = 0; i < meshModel[meshIndex]->TotalPoints; i++) {
+        glBegin(GL_POINTS);
+            setPointVertex(i);
+        glEnd();
+    }
+}
+
+void draw2DView() {
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        int hits = 0;
+        for (int k = 1; k <= textureCount; k++) {
+            hits = max(hits, faces[k][i]);
+        }
+        if (hits > 0 && faces[textureIndex][i] == hits) {
+            draw2DElement(i);
         }
     }
 }
 
-void drawViewMesh() {
-
-    if (calibration3DMode) {
-        for (int i = 0; i < meshModel[meshIndex]->TotalPoints; i++) {
-            drawElement(i);
-        }
-    } else {
-        for (int i = 0; i < textureModel->TotalFaces; i++) {
-            int hits = 0;
-            for (int k = 1; k <= textureCount; k++) {
-                hits = max(hits, faces[k][i]);
+void draw2DCalibration() {
+    GLuint queries[textureModel->TotalFaces];
+    GLuint sampleCount;
+    glGenQueriesARB(textureModel->TotalFaces, queries);
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
+        draw2DElement(i);
+        glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+    }
+    glEnable(GL_BLEND);
+    glDepthFunc(GL_EQUAL);
+    glDepthMask(GL_FALSE);
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
+        if (sampleCount > 0) {
+            if (textureIndex > 0) {
+                faces[textureIndex][i] = sampleCount;
             }
-            if (hits > 0 && faces[textureIndex][i] == hits) {
-                drawElement(i);
-            }
+            draw2DElement(i);
         }
     }
-}
-
-void drawTextureMesh() {
-
-    if (calibration3DMode) {
-        for (int i = 0; i < meshModel[meshIndex]->TotalPoints; i++) {
-            drawElement(i);
-        }
-    } else {
-        GLuint queries[textureModel->TotalFaces];
-        GLuint sampleCount;
-
-        glGenQueriesARB(textureModel->TotalFaces, queries);
-
-        glDisable(GL_BLEND);
-        glDepthFunc(GL_LESS);
-        glDepthMask(GL_TRUE);
-
-        for (int i = 0; i < textureModel->TotalFaces; i++) {
-            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
-            drawElement(i);
-            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
-        }
-
-        glEnable(GL_BLEND);
-        glDepthFunc(GL_EQUAL);
-        glDepthMask(GL_FALSE);
-
-        for (int i = 0; i < textureModel->TotalFaces; i++) {
-            glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
-            if (sampleCount > 0) {
-                if (textureIndex > 0) {
-                    faces[textureIndex][i] = sampleCount;
-                }
-                drawElement(i);
-            }
-        }
-        glDisable(GL_BLEND);
-        glDepthFunc(GL_LESS);
-        glDepthMask(GL_TRUE);
-    }
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
 }
 
 void textureProjection(Matrix4x4f &mv) {
@@ -270,36 +255,43 @@ void stepClearTexture() {
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    if (textureViewMode) {
-
-        for (int i = 1; i <= textureCount; i++) {
-            textureIndex = i;
-            textureMasterNow = &textureMaster[textureIndex];
-            stepTexture();
-
-            glLoadIdentity();
-            glTranslatef(textureMaster[0].viewer[0], textureMaster[0].viewer[1], textureMaster[0].viewer[2] - 20);
-            glRotatef(textureMaster[0].rotate[0], -1.0f,0.0f,0.0f);
-            glRotatef(textureMaster[0].rotate[1], 0.0f,-1.0f,0.0f);
-            glRotatef(textureMaster[0].rotate[2], 0.0f,0.0f,-1.0f);
-            drawViewMesh();
-            stepClearTexture();
-        }
-
-        textureIndex = 0;
-        textureMasterNow = &textureMaster[0];
-
-    } else {
-        stepTexture();
+    if (calibration3DMode) {
 
         glLoadIdentity();
-        glTranslatef(textureMasterNow->viewer[0], textureMasterNow->viewer[1], textureMasterNow->viewer[2] - 20);
-        glRotatef(textureMasterNow->rotate[0], -1.0f,0.0f,0.0f);
-        glRotatef(textureMasterNow->rotate[1], 0.0f,-1.0f,0.0f);
-        glRotatef(textureMasterNow->rotate[2], 0.0f,0.0f,-1.0f);
+        glTranslatef(meshMasterNow->viewer[0], meshMasterNow->viewer[1], meshMasterNow->viewer[2] - 20);
+        glRotatef(meshMasterNow->rotate[0], -1.0f,0.0f,0.0f);
+        glRotatef(meshMasterNow->rotate[1], 0.0f,-1.0f,0.0f);
+        glRotatef(meshMasterNow->rotate[2], 0.0f,0.0f,-1.0f);
+        draw3D();
 
-        drawTextureMesh();
-        stepClearTexture();
+    } else {
+
+        if (textureViewMode) {
+            for (int i = 1; i <= textureCount; i++) {
+                textureIndex = i;
+                textureMasterNow = &textureMaster[textureIndex];
+                stepTexture();
+                glLoadIdentity();
+                glTranslatef(textureMaster[0].viewer[0], textureMaster[0].viewer[1], textureMaster[0].viewer[2] - 20);
+                glRotatef(textureMaster[0].rotate[0], -1.0f,0.0f,0.0f);
+                glRotatef(textureMaster[0].rotate[1], 0.0f,-1.0f,0.0f);
+                glRotatef(textureMaster[0].rotate[2], 0.0f,0.0f,-1.0f);
+                draw2DView();
+                stepClearTexture();
+            }
+            textureIndex = 0;
+            textureMasterNow = &textureMaster[0];
+
+        } else {
+            stepTexture();
+            glLoadIdentity();
+            glTranslatef(textureMasterNow->viewer[0], textureMasterNow->viewer[1], textureMasterNow->viewer[2] - 20);
+            glRotatef(textureMasterNow->rotate[0], -1.0f,0.0f,0.0f);
+            glRotatef(textureMasterNow->rotate[1], 0.0f,-1.0f,0.0f);
+            glRotatef(textureMasterNow->rotate[2], 0.0f,0.0f,-1.0f);
+            draw2DCalibration();
+            stepClearTexture();
+        }
     }
 
 	glFlush();
@@ -309,10 +301,10 @@ void display(void) {
 }
 
 void keys(unsigned char key, int x, int y) {
-    if (key == 'x') {
+    if (key == 'z') {
         calibration3DMode = true;
     }
-    if (key == 'z') {
+    if (key == 'x') {
         calibration3DMode = false;
     }
 
@@ -330,6 +322,10 @@ void keys(unsigned char key, int x, int y) {
             meshMasterNow->rotate[2] = 0;
         }
         if(key == 'v') {
+            meshModel[0]->Clear();
+            for (int i = 1; i <= meshCount; i++) {
+                meshModel[0]->Include(meshModel[i]);
+            }
             meshViewMode = true;
             meshIndex = 0;
             meshMasterNow = &meshMaster[meshIndex];
