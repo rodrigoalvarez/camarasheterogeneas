@@ -1,8 +1,6 @@
 #include "Grabber.h"
 #include "Thread2D.h"
 
-
-
 //--------------------------------------------------------------
 void Grabber::setup() {
     ofSetLogLevel(OF_LOG_VERBOSE);
@@ -13,7 +11,7 @@ void Grabber::setup() {
 
     total2D     = gdata->total2D;    //Hacer que se cargue dinámico.
     total3D     = gdata->total3D;    //Hacer que se cargue dinámico.
-    goLive      = gdata->goLive;     //Hacer que se cargue dinámico.
+    goLive      = gdata->sys_data->goLive;     //Hacer que se cargue dinámico.
 
 
     if((gdata->total2D + gdata->total3D) > 0) {
@@ -42,10 +40,12 @@ void Grabber::setup() {
 
     while(camera != NULL) {
         if(camera->use3D == 1) {
+            t3D[i3D].sys_data                   = gdata->sys_data;
             t3D[i3D].context                    = camera;
             t3D[i3D].startThread(true, false);
             i3D ++;
         } else {
+            t2D[i2D].sys_data                   = gdata->sys_data;
             t2D[i2D].context                    = camera;
             t2D[i2D].startThread(true, false);
             i2D ++;
@@ -54,7 +54,8 @@ void Grabber::setup() {
     }
 
     if(goLive) { //Si desde el Calibrator se indicó que se debe trasmitir en vivo.
-        transmitter.grabber = this;
+        transmitter.grabber     = this;
+        transmitter.sys_data    = gdata->sys_data;
         transmitter.startThread(true, false);
     }
 }
@@ -158,7 +159,7 @@ void Grabber::updateThreadData() {
 
                 xn::DepthGenerator& Xn_depth = t3D[i].openNIRecorder->getDepthGenerator();
 
-                int downsampling = 4;
+                int downsampling = 2;
                 XnPoint3D Point2D, Point3D;
 
                 /*tData[di].xpix = new float[tData[di].nubeW * tData[di].nubeH];

@@ -8,18 +8,18 @@
 void Transmitter::threadedFunction() {
     state       = 0;
 
-    std::string str = "1|15000";
+    std::string str =  ofToString(sys_data->cliId) + "|" + ofToString(sys_data->cliPort);
     cliId           = str;
 
     while(isThreadRunning()) {
         ofLogVerbose()  << endl << "[Transmitter::threadedFunction] while(isThreadRunning())";
-        ofSleepMillis(1000/FPS);
+        ofSleepMillis(1000/sys_data->fps);
 
         if(state == 0) { // 0 - Todavía no se conectó al servidor
             try {
-                ofLogVerbose() << "[Transmitter::threadedFunction] state=0, conectando a " << SERVER << "-" << PORT_0;
-                TCP.setup( SERVER, PORT_0 );
-                TCPSVR.setup(CLI_PORT, true);
+                ofLogVerbose() << "[Transmitter::threadedFunction] state=0, conectando a " << sys_data->serverIp << "-" << sys_data->serverPort;
+                TCP.setup( sys_data->serverIp, sys_data->serverPort );
+                TCPSVR.setup(sys_data->cliPort, true);
                 TCP.send( cliId );
                 TCP.close();
                 state = 2;
@@ -69,8 +69,8 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
 
     char * bytearray    = FrameUtils::getFrameByteArray(tData, totalCams, frameSize);
 
-    int val0  = floor(frameSize / MAX_RECEIVE_SIZE);   //totMaxRecSize
-    int val1  = frameSize - val0 * MAX_RECEIVE_SIZE; //resto
+    int val0  = floor(frameSize / sys_data->maxPackageSize);   //totMaxRecSize
+    int val1  = frameSize - val0 * sys_data->maxPackageSize; //resto
     TCPSVR.sendRawBytesToAll((char*) &val0, sizeof(int));
     TCPSVR.sendRawBytesToAll((char*) &val1, sizeof(int));
 
@@ -86,7 +86,7 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
 
     imageBytesToSend    = frameSize;
     totalBytesSent      = 0;
-    messageSize         = MAX_RECEIVE_SIZE;
+    messageSize         = sys_data->maxPackageSize;
     while( imageBytesToSend > 1 ) {
         if(imageBytesToSend > messageSize) {
             TCPSVR.sendRawBytesToAll((const char*) &bytearray[totalBytesSent], messageSize);

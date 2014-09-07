@@ -1,0 +1,6 @@
+<settings>
+	<serverPort>11969</serverPort>
+    <realTime>1</realTime>
+    <fps>1</fps>
+	<maxPackageSize>60000</maxPackageSize>
+</settings>

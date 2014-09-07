@@ -10,7 +10,7 @@ void ThreadServer::threadedFunction() {
 
     currBytearray = NULL;
     while(isThreadRunning()) {
-        ofSleepMillis(1000/FPS);
+        ofSleepMillis(1000/sys_data->fps);
         receiveFrame();
     }
 }
@@ -40,14 +40,14 @@ void ThreadServer::receiveFrame() {
             ofLogVerbose() << "" << endl;
             ofLogVerbose() << "[ThreadServer::receiveFrame] RECIBIENDO NUVO FRAME: ";
             do {
-                char * recBytearray  = new char [MAX_RECEIVE_SIZE];
-                numBytes             = TCPCLI.receiveRawBytes((char*) &recBytearray[0], MAX_RECEIVE_SIZE);
+                char * recBytearray  = new char [sys_data->maxPackageSize];
+                numBytes             = TCPCLI.receiveRawBytes((char*) &recBytearray[0], sys_data->maxPackageSize);
                 if(numBytes > 0 ) {
                     currBytearray        = FrameUtils::addToBytearray(recBytearray, numBytes, currBytearray, currTotal);
                     currTotal           += numBytes;
                 }
                 delete recBytearray;
-            } while(currTotal < (v0*MAX_RECEIVE_SIZE + v1));
+            } while(currTotal < (v0*sys_data->maxPackageSize + v1));
             ofLogVerbose() << "[ThreadServer::receiveFrame] Se recibio frame de: " << currTotal << " bytes";
 
             if(currTotal > 0) {

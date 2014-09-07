@@ -1,11 +1,13 @@
 <settings>
 	<cliId>1</cliId>
-	<port>15000</port>
+	<cliPort>15000</cliPort>
+	<serverIp>192.168.1.103</serverIp>
+	<serverPort>11969</serverPort>
     <realTime>1</realTime>
-    <realTimeFPS>10</realTimeFPS>
-    <realTimePort>3232</realTimePort>
+    <fps>1</fps>
+	<maxPackageSize>60000</maxPackageSize>
     <cameras>
-		<camera>
+		<!--<camera>
             <id>0</id>
             <resolutionX>640</resolutionX>
             <resolutionY>480</resolutionY>
@@ -24,7 +26,7 @@
 					<c>0</c>
 				</imgTransform>
 			</dataContext>
-        </camera>
+        </camera>-->
 		<camera>
             <id>1</id>
             <resolutionX>640</resolutionX>

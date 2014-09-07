@@ -6,6 +6,7 @@
 #include "ThreadData.h"
 #include "FrameUtils.h"
 #include "MainBuffer/MainBuffer.h"
+#include "ServerGlobalData.h"
 
 class MeshGenerator : public ofThread {
 	public:
@@ -16,4 +17,5 @@ class MeshGenerator : public ofThread {
 		void threadedFunction();
 		void processFrame();
 		MainBuffer * buffer;
+		t_data * sys_data;
 };

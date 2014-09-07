@@ -24,4 +24,5 @@ class Thread3D : public ofThread {
         ofFloatPixels  fZpix;
         ofShortPixels  spix;
         t_camera  * context;
+        t_data * sys_data;
 };

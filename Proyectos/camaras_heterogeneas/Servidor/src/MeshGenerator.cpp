@@ -8,7 +8,7 @@ void MeshGenerator::threadedFunction() {
     if(buffer == NULL) return;
 
     while(isThreadRunning()) {
-        ofSleepMillis(1000/FPS);
+        ofSleepMillis(1000/sys_data->fps);
         processFrame();
     }
 }

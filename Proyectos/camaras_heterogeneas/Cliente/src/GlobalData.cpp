@@ -30,11 +30,15 @@ void GlobalData::loadCalibData(char * xml) {
     total3D = 0;
 
 	if(settings.pushTag("settings")) {
-        cliId             = settings.getValue("cliId",          1);
-        port              = settings.getValue("port",           15000);
-		goLive            = settings.getValue("realTime",       1);
-		realtimeFPS       = settings.getValue("realTimeFPS",    10);
-		realtimePORT      = settings.getValue("realTimePort",   3232);
+
+	    sys_data                  = new t_data();
+	    sys_data->cliId           = settings.getValue("cliId",          1);
+        sys_data->cliPort         = settings.getValue("cliPort",        15000);
+		sys_data->serverIp        = settings.getValue("serverIp",       "127.0.0.1");
+		sys_data->serverPort      = settings.getValue("serverPort",     11969);
+		sys_data->goLive          = settings.getValue("realTime",       0);
+		sys_data->fps             = settings.getValue("fps",            10);
+		sys_data->maxPackageSize  = settings.getValue("maxPackageSize", 60000);
 
         if(settings.pushTag("cameras")) {
             //int i = 0;

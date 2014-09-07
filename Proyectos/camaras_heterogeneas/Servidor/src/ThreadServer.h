@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "ThreadData.h"
 #include "FrameUtils.h"
+#include "ServerGlobalData.h"
 #include "FrameBuffer.h"
 
 class ThreadServer : public ofThread {
@@ -25,4 +26,5 @@ class ThreadServer : public ofThread {
 		char * currBytearray;
 		ofstream myfile;
 		FrameBuffer fb;
+		t_data * sys_data;
 };

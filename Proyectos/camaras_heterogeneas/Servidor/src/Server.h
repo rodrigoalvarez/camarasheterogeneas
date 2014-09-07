@@ -11,6 +11,7 @@
 #include "MainBuffer/MainBuffer.h"
 #include "MeshGenerator.h"
 #include "Constants.h"
+#include "ServerGlobalData.h"
 
 struct t_translation {
     int translationX;
@@ -70,4 +71,5 @@ class Server : public ofBaseApp {
         int buffLastIndex;
         int buffCurrIndex;
         MainBuffer * mb;
+        ServerGlobalData * gdata;
 };

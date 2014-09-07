@@ -1,10 +1,38 @@
 #include "Server.h"
 #include "ofxNetwork.h"
 #include <sys/time.h>
+
+#include <stdio.h>
+#include <sys/types.h>
+
+#include <string.h>
 //--------------------------------------------------------------
 
 int procesar = 0;
 void Server::setup() {
+    gdata   = new ServerGlobalData();
+    gdata->loadCalibData("settings.xml");
+
+    //
+    string line;
+    ifstream IPFile;
+    int offset;
+    char* search0 = "IPv4 Address. . . . . . . . . . . :";      // search pattern
+
+    system("ipconfig > ip.txt");
+
+    IPFile.open ("ip.txt");
+    if(IPFile.is_open()) {
+       while(!IPFile.eof()) {
+           getline(IPFile,line);
+           if ((offset = line.find(search0, 0)) != string::npos) {
+           line.erase(0,39);
+           cout << line << endl;
+           IPFile.close();
+           }
+        }
+    }
+    //
 
     ofLogToFile("server_log.txt", false);
     ofSetLogLevel(OF_LOG_VERBOSE);
@@ -12,11 +40,11 @@ void Server::setup() {
     mb    = new MainBuffer();
 
     ofShortPixels  spix;
-    //ofSetFrameRate(FPS);
-    TCP.setup(PORT_0);
+    ofSetFrameRate(gdata->sys_data->fps);
+    TCP.setup(gdata->sys_data->serverPort);
 
 	tData2              = NULL;
-	currCliPort         = PORT_0 + 1;
+	currCliPort         = gdata->sys_data->serverPort + 1;
 	totThreadedServers  = 0;
     buffLastIndex       = 0;
     buffCurrIndex       = 0;
@@ -59,10 +87,11 @@ void Server::update() {
 
                 //NOTA: Además del puerto del thread que lo atiende debería pasarle hora actual del servidor (para que sincronice) y fps.
 
-                tservers[totThreadedServers]          = new ThreadServer();
-                tservers[totThreadedServers]->cliId   = atoi(cli.c_str());
-                tservers[totThreadedServers]->ip      = TCP.getClientIP(i);
-                tservers[totThreadedServers]->port    = atoi(port.c_str());
+                tservers[totThreadedServers]            = new ThreadServer();
+                tservers[totThreadedServers]->sys_data  = gdata->sys_data;
+                tservers[totThreadedServers]->cliId     = atoi(cli.c_str());
+                tservers[totThreadedServers]->ip        = TCP.getClientIP(i);
+                tservers[totThreadedServers]->port      = atoi(port.c_str());
                 tservers[totThreadedServers]->startThread(true, false);
 
                 currCliPort         ++;
@@ -76,7 +105,7 @@ void Server::update() {
 }
 
 void Server::computeFrames() {
-    ofSleepMillis(1000/FPS);
+    //ofSleepMillis(1000/gdata->sys_data->fps);
     ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totThreadedServers;
     for(int i = 0; i < totThreadedServers; i++) {
 

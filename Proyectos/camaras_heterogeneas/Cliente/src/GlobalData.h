@@ -2,6 +2,7 @@
 
 #include "ofxXmlSettings.h"
 #include "ofMain.h"
+//#include "Constants.h"
 #include "ofMatrix4x4.h"
 
 struct t_camera {
@@ -22,6 +23,17 @@ struct t_camera {
     t_camera * sig;
 };
 
+
+struct t_data {
+    bool     goLive;
+    int      cliId;
+    int      cliPort;
+    string   serverIp;
+    int      serverPort;
+    int      fps;
+    int      maxPackageSize;
+};
+
 class GlobalData {
 
 	public:
@@ -34,11 +46,8 @@ class GlobalData {
 
         int      total3D;
         int      total2D;
-        bool     goLive;
-        int      cliId;
-        int      port;
-        int      realtimeFPS;
-        int      realtimePORT;
-        t_camera * camera;
+
+        t_camera    * camera;
+        t_data      * sys_data;
 
 };
