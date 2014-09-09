@@ -12,7 +12,7 @@ Model_XYZ::Model_XYZ() {
 
 }
 
-int Model_XYZ::Load(string fileName) {
+int Model_XYZ::Load(string fileName, float minCoord, float maxCoord) {
 
 	TotalPoints = 0;
     std::ifstream in(fileName.c_str());
@@ -31,15 +31,20 @@ int Model_XYZ::Load(string fileName) {
     }
     in.close();
 
-    MinCoord = std::numeric_limits<float>::max();
-    MaxCoord = std::numeric_limits<float>::min();
-    for (int i = 0; i < TotalPoints * 3; i++) {
-        if (Points[i] < MinCoord) {
-            MinCoord = Points[i];
+    if (minCoord == 0 && maxCoord == 0) {
+        MinCoord = std::numeric_limits<float>::max();
+        MaxCoord = std::numeric_limits<float>::min();
+        for (int i = 0; i < TotalPoints * 3; i++) {
+            if (Points[i] < MinCoord) {
+                MinCoord = Points[i];
+            }
+            if (Points[i] > MaxCoord) {
+                MaxCoord = Points[i];
+            }
         }
-        if (Points[i] > MaxCoord) {
-            MaxCoord = Points[i];
-        }
+    } else {
+        MinCoord = minCoord;
+        MaxCoord = maxCoord;
     }
     AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
     for (int i = 0; i < TotalPoints * 3; i++) {
@@ -49,10 +54,15 @@ int Model_XYZ::Load(string fileName) {
 	return TotalPoints;
 }
 
-int Model_XYZ::Include(Model_XYZ* model) {
+int Model_XYZ::Include(Model_XYZ* model, GLdouble* m) {
 
-    for (int i = 0; i < model->TotalPoints * 3; i++) {
-        Points.push_back(model->Points[i]);
+    for (int i = 0; i < model->TotalPoints * 3; i += 3) {
+        float x = model->Points[i];
+        float y = model->Points[i+1];
+        float z = model->Points[i+2];
+        Points.push_back(m[0]*x + m[1]*y + m[2]*z);
+        Points.push_back(m[4]*x + m[5]*y + m[6]*z);
+        Points.push_back(m[8]*x + m[9]*y + m[10]*z);
     }
     TotalPoints += model->TotalPoints;
 	return TotalPoints;

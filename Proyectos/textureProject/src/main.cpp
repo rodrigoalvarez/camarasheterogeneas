@@ -15,11 +15,6 @@
 #include "FreeImage.h"
 #include "matrix4x4.h"
 
-
-/* Hay 2 errores - 1ro que cuando junto los mesh en 3D no se mueve - 2do que no se muestra la hormiga en modo view */
-
-
-
 using namespace std;
 
 GLuint *textures = new GLuint[2];
@@ -76,7 +71,7 @@ GLdouble oldViewer[3];
 
 
 void writeText() {
-    system("cls");
+    //system("cls");
     if(calibration3DMode) {
         cout << "3D CALIBRATION" << endl;
         cout << "Mode: " << (meshViewMode ? "View" : "Calibration") << endl << endl;
@@ -105,6 +100,25 @@ void writeText() {
             cout << endl;
         }
     }
+}
+
+void IncludeMesh (Model_XYZ* model, MasterMesh master) {
+    glPushMatrix();
+    glLoadIdentity();
+    glTranslatef(master.viewer[0], master.viewer[1], master.viewer[2]);
+    glRotatef(master.rotate[0], -1.0f,0.0f,0.0f);
+    glRotatef(master.rotate[1], 0.0f,-1.0f,0.0f);
+    glRotatef(master.rotate[2], 0.0f,0.0f,-1.0f);
+    GLdouble m[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    glPopMatrix();
+
+    model->Include(model, m);
+
+    cout << m[0] << " " << m[1] << " " << m[2] << " " << m[3] << endl;
+    cout << m[4] << " " << m[5] << " " << m[6] << " " << m[7] << endl;
+    cout << m[8] << " " << m[9] << " " << m[10] << " " << m[11] << endl;
+    cout << m[12] << " " << m[13] << " " << m[14] << " " << m[15] << endl;
 }
 
 void setFaceVertex(int index) {
@@ -324,7 +338,8 @@ void keys(unsigned char key, int x, int y) {
         if(key == 'v') {
             meshModel[0]->Clear();
             for (int i = 1; i <= meshCount; i++) {
-                meshModel[0]->Include(meshModel[i]);
+                IncludeMesh(meshModel[0], meshMaster[i]);
+                //meshModel[0]->Include(meshModel[i], meshMaster[i].viewer[0], meshMaster[i].viewer[1], meshMaster[i].viewer[2]);
             }
             meshViewMode = true;
             meshIndex = 0;
@@ -375,6 +390,7 @@ void keys(unsigned char key, int x, int y) {
             textureMasterNow = &textureMaster[textureIndex];
         }
         if(key >= '1' && key <= '9' && (key - 48 <= textureCount)) {
+            textureViewMode = false;
             textureIndex = key - 48;
             textureMasterNow = &textureMaster[textureIndex];
             display();
@@ -394,9 +410,15 @@ void mouse(int btn, int state, int x, int y) {
     cameraAxis = state == GLUT_DOWN ? btn : -1;
     if (state == GLUT_DOWN) {
         cameraMove = y;
-        oldViewer[0] = textureMasterNow->viewer[0];
-        oldViewer[1] = textureMasterNow->viewer[1];
-        oldViewer[2] = textureMasterNow->viewer[2];
+        if (calibration3DMode) {
+            oldViewer[0] = meshMasterNow->viewer[0];
+            oldViewer[1] = meshMasterNow->viewer[1];
+            oldViewer[2] = meshMasterNow->viewer[2];
+        } else {
+            oldViewer[0] = textureMasterNow->viewer[0];
+            oldViewer[1] = textureMasterNow->viewer[1];
+            oldViewer[2] = textureMasterNow->viewer[2];
+        }
     }
     if (state == GLUT_UP) {
         cameraMove = -1;
@@ -406,16 +428,25 @@ void mouse(int btn, int state, int x, int y) {
 }
 
 void mouseMove(int x, int y) {
-	if (cameraAxis != -1)
-	{
+	if (cameraAxis != -1) {
 		float deltaMove = (y - cameraMove) * 0.1f;
-        if (cameraAxis == GLUT_LEFT_BUTTON) {
-            textureMasterNow->viewer[0] = oldViewer[0] + deltaMove;
-        } else if (cameraAxis == GLUT_RIGHT_BUTTON) {
-            textureMasterNow->viewer[1] = oldViewer[1] + deltaMove;
-        } else if (cameraAxis == GLUT_MIDDLE_BUTTON) {
-            textureMasterNow->viewer[2] = oldViewer[2] + deltaMove;
-        }
+		if (calibration3DMode) {
+            if (cameraAxis == GLUT_LEFT_BUTTON) {
+                meshMasterNow->viewer[0] = oldViewer[0] + deltaMove;
+            } else if (cameraAxis == GLUT_RIGHT_BUTTON) {
+                meshMasterNow->viewer[1] = oldViewer[1] + deltaMove;
+            } else if (cameraAxis == GLUT_MIDDLE_BUTTON) {
+                meshMasterNow->viewer[2] = oldViewer[2] + deltaMove;
+            }
+		} else {
+            if (cameraAxis == GLUT_LEFT_BUTTON) {
+                textureMasterNow->viewer[0] = oldViewer[0] + deltaMove;
+            } else if (cameraAxis == GLUT_RIGHT_BUTTON) {
+                textureMasterNow->viewer[1] = oldViewer[1] + deltaMove;
+            } else if (cameraAxis == GLUT_MIDDLE_BUTTON) {
+                textureMasterNow->viewer[2] = oldViewer[2] + deltaMove;
+            }
+		}
 		display();
 	}
 }
@@ -572,7 +603,16 @@ int main(int argc, char **argv) {
     meshFiles.push_back("mesh/3DMesh2.xyz");
     meshFiles.push_back("mesh/3DMesh3.xyz");
     for (int i = 0; i < meshCount; i++) {
-        meshModel[i+1]->Load(meshFiles[i].c_str());
+        if (i == 0) {
+            meshModel[i+1]->Load(meshFiles[i].c_str(), 0, 0);
+        } else {
+            meshModel[i+1]->Load(meshFiles[i].c_str(), meshModel[1]->MinCoord, meshModel[1]->MaxCoord);
+        }
+    }
+    meshModel[0]->Clear();
+    for (int i = 1; i <= meshCount; i++) {
+        IncludeMesh(meshModel[0], meshMaster[i]);
+        //meshModel[0]->Include(meshModel[i], meshMaster[i].viewer[0], meshMaster[i].viewer[1], meshMaster[i].viewer[2]);
     }
     meshIndex = 0;
     meshMasterNow = &meshMaster[0];
