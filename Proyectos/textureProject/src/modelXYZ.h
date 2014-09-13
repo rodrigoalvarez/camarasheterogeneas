@@ -12,7 +12,7 @@ class Model_XYZ
 {
 	public:
 		Model_XYZ();
-		int Load(string fileName, float minCoord, float maxCoord);
+		int Load(string fileName, float alfa);
 		int Include(Model_XYZ* model, GLdouble* m);
 		int Clear();
 

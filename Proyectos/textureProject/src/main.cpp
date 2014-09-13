@@ -71,7 +71,7 @@ GLdouble oldViewer[3];
 
 
 void writeText() {
-    //system("cls");
+    /*system("cls");
     if(calibration3DMode) {
         cout << "3D CALIBRATION" << endl;
         cout << "Mode: " << (meshViewMode ? "View" : "Calibration") << endl << endl;
@@ -99,26 +99,7 @@ void writeText() {
             cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
             cout << endl;
         }
-    }
-}
-
-void IncludeMesh (Model_XYZ* model, MasterMesh master) {
-    glPushMatrix();
-    glLoadIdentity();
-    glTranslatef(master.viewer[0], master.viewer[1], master.viewer[2]);
-    glRotatef(master.rotate[0], -1.0f,0.0f,0.0f);
-    glRotatef(master.rotate[1], 0.0f,-1.0f,0.0f);
-    glRotatef(master.rotate[2], 0.0f,0.0f,-1.0f);
-    GLdouble m[16];
-    glGetDoublev(GL_MODELVIEW_MATRIX, m);
-    glPopMatrix();
-
-    model->Include(model, m);
-
-    cout << m[0] << " " << m[1] << " " << m[2] << " " << m[3] << endl;
-    cout << m[4] << " " << m[5] << " " << m[6] << " " << m[7] << endl;
-    cout << m[8] << " " << m[9] << " " << m[10] << " " << m[11] << endl;
-    cout << m[12] << " " << m[13] << " " << m[14] << " " << m[15] << endl;
+    }*/
 }
 
 void setFaceVertex(int index) {
@@ -149,8 +130,9 @@ void draw2DElement(int index) {
 }
 
 void draw3D() {
+    glPointSize(0.2);
     glColor3fv(colors[meshIndex]);
-    for (int i = 0; i < meshModel[meshIndex]->TotalPoints; i++) {
+    for (int i = 0; i < meshModel[meshIndex]->TotalPoints; i += 10) {
         glBegin(GL_POINTS);
             setPointVertex(i);
         glEnd();
@@ -266,17 +248,61 @@ void stepClearTexture() {
     }
 }
 
+void IncludeMesh (Model_XYZ* model, Model_XYZ* newModel, MasterMesh master) {
+    glPushMatrix();
+    glLoadIdentity();
+    glTranslatef(master.viewer[0], master.viewer[1], master.viewer[2]);
+    glRotatef(master.rotate[2], 0.0f,0.0f,1.0f);
+    glRotatef(master.rotate[1], 0.0f,1.0f,0.0f);
+    glRotatef(master.rotate[0], 1.0f,0.0f,0.0f);
+    GLdouble m[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    cout << "Include" << endl;
+    cout << m[0] << " " <<  m[1] << " " <<  m[2] << " " <<  m[3] << endl;
+    cout << m[4] << " " <<  m[5] << " " <<  m[6] << " " <<  m[7] << endl;
+    cout << m[8] << " " <<  m[9] << " " <<  m[10] << " " <<  m[11] << endl;
+    cout << m[12] << " " <<  m[13] << " " <<  m[14] << " " <<  m[15] << endl;
+    glPopMatrix();
+    model->Include(newModel, m);
+}
+
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     if (calibration3DMode) {
 
         glLoadIdentity();
-        glTranslatef(meshMasterNow->viewer[0], meshMasterNow->viewer[1], meshMasterNow->viewer[2] - 20);
+        glTranslatef(meshMasterNow->viewer[0], meshMasterNow->viewer[1], meshMasterNow->viewer[2] - 10);
         glRotatef(meshMasterNow->rotate[0], -1.0f,0.0f,0.0f);
         glRotatef(meshMasterNow->rotate[1], 0.0f,-1.0f,0.0f);
         glRotatef(meshMasterNow->rotate[2], 0.0f,0.0f,-1.0f);
         draw3D();
+
+        GLdouble m[16];
+        glGetDoublev(GL_MODELVIEW_MATRIX, m);
+        cout << "View" << endl;
+        cout << m[0] << " " <<  m[1] << " " <<  m[2] << " " <<  m[3] << endl;
+        cout << m[4] << " " <<  m[5] << " " <<  m[6] << " " <<  m[7] << endl;
+        cout << m[8] << " " <<  m[9] << " " <<  m[10] << " " <<  m[11] << endl;
+        cout << m[12] << " " <<  m[13] << " " <<  m[14] << " " <<  m[15] << endl;
+
+        if (meshIndex != 0) {
+            int meshIndexOld = meshIndex;
+            meshIndex = 0;
+            meshMasterNow = &meshMaster[meshIndex];
+
+            //glPushMatrix();
+            glLoadIdentity();
+            glTranslatef(meshMasterNow->viewer[0], meshMasterNow->viewer[1], meshMasterNow->viewer[2] - 10);
+            glRotatef(meshMasterNow->rotate[0], -1.0f,0.0f,0.0f);
+            glRotatef(meshMasterNow->rotate[1], 0.0f,-1.0f,0.0f);
+            glRotatef(meshMasterNow->rotate[2], 0.0f,0.0f,-1.0f);
+            draw3D();
+            //glPopMatrix();
+
+            meshIndex = meshIndexOld;
+            meshMasterNow = &meshMaster[meshIndex];
+        }/**/
 
     } else {
 
@@ -336,26 +362,50 @@ void keys(unsigned char key, int x, int y) {
             meshMasterNow->rotate[2] = 0;
         }
         if(key == 'v') {
-            meshModel[0]->Clear();
-            for (int i = 1; i <= meshCount; i++) {
-                IncludeMesh(meshModel[0], meshMaster[i]);
-                //meshModel[0]->Include(meshModel[i], meshMaster[i].viewer[0], meshMaster[i].viewer[1], meshMaster[i].viewer[2]);
-            }
             meshViewMode = true;
             meshIndex = 0;
             meshMasterNow = &meshMaster[meshIndex];
+            meshMaster[0].viewer[0] = 0;
+            meshMaster[0].viewer[1] = 0;
+            meshMaster[0].viewer[2] = 0;
+            meshMaster[0].rotate[0] = 0;
+            meshMaster[0].rotate[1] = 0;
+            meshMaster[0].rotate[2] = 0;
+            meshModel[0]->Clear();
+            for (int i = 1; i <= meshCount; i++) {
+                IncludeMesh(meshModel[0], meshModel[i], meshMaster[i]);
+            }
         }
         if(key >= '1' && key <= '9' && (key - 48 <= meshCount)) {
             meshIndex = key - 48;
             meshMasterNow = &meshMaster[meshIndex];
-            display();
+            meshMaster[0].viewer[0] = 0;
+            meshMaster[0].viewer[1] = 0;
+            meshMaster[0].viewer[2] = 0;
+            meshMaster[0].rotate[0] = 0;
+            meshMaster[0].rotate[1] = 0;
+            meshMaster[0].rotate[2] = 0;
+            meshModel[0]->Clear();
+            for (int i = 1; i <= meshCount; i++) {
+                if (i != meshIndex) {
+                    IncludeMesh(meshModel[0], meshModel[i], meshMaster[i]);
+                }
+            }
         }
-        if(key == 'w') meshMasterNow->rotate[0] += 2.0;
-        if(key == 's') meshMasterNow->rotate[0] -= 2.0;
-        if(key == 'a') meshMasterNow->rotate[1] += 2.0;
-        if(key == 'd') meshMasterNow->rotate[1] -= 2.0;
-        if(key == 'e') meshMasterNow->rotate[2] += 2.0;
-        if(key == 'q') meshMasterNow->rotate[2] -= 2.0;
+
+        if(key == 'w' ||key == 'W') meshMasterNow->rotate[0] += 2.0;
+        if(key == 's' ||key == 'S') meshMasterNow->rotate[0] -= 2.0;
+        if(key == 'a' ||key == 'A') meshMasterNow->rotate[1] += 2.0;
+        if(key == 'd' ||key == 'D') meshMasterNow->rotate[1] -= 2.0;
+        if(key == 'e' ||key == 'E') meshMasterNow->rotate[2] += 2.0;
+        if(key == 'q' ||key == 'Q') meshMasterNow->rotate[2] -= 2.0;
+
+        if(key == 'W') meshMaster[0].rotate[0] += 2.0;
+        if(key == 'S') meshMaster[0].rotate[0] -= 2.0;
+        if(key == 'A') meshMaster[0].rotate[1] += 2.0;
+        if(key == 'D') meshMaster[0].rotate[1] -= 2.0;
+        if(key == 'E') meshMaster[0].rotate[2] += 2.0;
+        if(key == 'Q') meshMaster[0].rotate[2] -= 2.0;
 
     } else {
 
@@ -456,10 +506,11 @@ void myReshape(int w, int h) {
 	glViewport(0,0,w,h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	if(w<=h)
-        glFrustum(-2.0,2.0,-2.0*(GLfloat)h/(GLfloat)w,2.0*(GLfloat)h/(GLfloat)w, 2.0,20.0);
-	else
-        glFrustum(-2.0,2.0,-2.0*(GLfloat)w/(GLfloat)h,2.0*(GLfloat)w/(GLfloat)h, 2.0,20.0);
+    if (w <= h) {
+        glFrustum(-2.0, 2.0, -2.0*(GLfloat)h/(GLfloat)w,2.0*(GLfloat)h/(GLfloat)w, 2.0, 20.0);
+    } else {
+        glFrustum(-2.0*(GLfloat)w/(GLfloat)h, 2.0*(GLfloat)w/(GLfloat)h, -2.0, 2.0, 2.0, 20.0);
+    }
 	glMatrixMode(GL_MODELVIEW);
 }
 
@@ -604,15 +655,14 @@ int main(int argc, char **argv) {
     meshFiles.push_back("mesh/3DMesh3.xyz");
     for (int i = 0; i < meshCount; i++) {
         if (i == 0) {
-            meshModel[i+1]->Load(meshFiles[i].c_str(), 0, 0);
+            meshModel[i+1]->Load(meshFiles[i].c_str(), 0);
         } else {
-            meshModel[i+1]->Load(meshFiles[i].c_str(), meshModel[1]->MinCoord, meshModel[1]->MaxCoord);
+            meshModel[i+1]->Load(meshFiles[i].c_str(), meshModel[1]->AlfaCoord);
         }
     }
     meshModel[0]->Clear();
     for (int i = 1; i <= meshCount; i++) {
-        IncludeMesh(meshModel[0], meshMaster[i]);
-        //meshModel[0]->Include(meshModel[i], meshMaster[i].viewer[0], meshMaster[i].viewer[1], meshMaster[i].viewer[2]);
+        IncludeMesh(meshModel[0], meshModel[i], meshMaster[i]);
     }
     meshIndex = 0;
     meshMasterNow = &meshMaster[0];
