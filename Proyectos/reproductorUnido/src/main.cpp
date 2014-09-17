@@ -586,7 +586,8 @@ int main(int argc, char **argv) {
     settings = new MasterSettings(textureCount, textureMaster, meshCount, meshMaster);
 
     textureModel = new Model_PLY();
-    textureModel->Load("mesh/antMesh.ply");
+    textureModel->MemoryLoad(0);
+    //textureModel->Load("mesh/antMesh.ply");
 
     vector<string> textureFiles;
     textureFiles.push_back("img/texture1.bmp");
