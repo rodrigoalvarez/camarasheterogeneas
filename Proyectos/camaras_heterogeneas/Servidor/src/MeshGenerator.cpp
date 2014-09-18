@@ -27,8 +27,27 @@ void MeshGenerator::processFrame() {
         ofLogVerbose() << " [MeshGenerator::processFrame] - Obtuve un frame mergeado con nube de puntos largo: " << ((ThreadData *) frame.first)->nubeLength;
         ThreadData* td = ((ThreadData *) frame.first);
         MasterPly* mply = new MasterPly();
+
+
+
+        char nombre2[50];
+        sprintf(nombre2, "frame%d.xyz", i);
+        //char* fileName      = "frameeee_i.xyz";
+
+        //Creo el archivo b,n de la nube unida
+        FILE * pFile;
+        pFile = fopen (nombre2,"w");
+        //Recorro los frames de cada camara y me quedo solo con los 3D
+        for(int i=0; i < td->nubeLength; i ++) {
+            fprintf (pFile, "%f %f %f\n", td->xpix[i], td->ypix[i], td->zpix[i]);
+        }
+
+        fclose (pFile);
+
+        /**/
+
         mply->loadMesh(td->xpix,td->ypix,td->zpix,td->nubeLength);
-        ofLogVerbose() << " [MeshGenerator::processFrame] - Nube cargada ";
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Nube cargada nubeLength " << td->nubeLength;
         mply->poissonDiskSampling(td->nubeLength/4);
         ofLogVerbose() << " [MeshGenerator::processFrame] - Poisson disk sampling aplicado, cantidad de vertices: " <<  mply->totalVertex();
         mply->calculateNormalsVertex();

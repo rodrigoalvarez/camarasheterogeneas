@@ -34,20 +34,54 @@ class FrameUtils {
 
         gettimeofday(&tData[0].curTime, NULL);
 
-        tData[0].img.loadImage("foto0.jpg");
+        tData[0].img.loadImage("foto0.png");
 
         ofxCvShortImage img;
-        img.allocate(300, 200);
+        img.allocate(100, 100);
         tData[0].spix       = img.getShortPixelsRef();
-
+        tData[0].nubeW      = img.getWidth();
+        tData[0].nubeH      = img.getHeight();
+        tData[0].nubeLength = img.getWidth() * img.getHeight();
+        tData[0].xpix       = (float*) malloc (sizeof(float) *tData[0].nubeLength);
+        tData[0].ypix       = (float*) malloc (sizeof(float) *tData[0].nubeLength);
+        tData[0].zpix       = (float*) malloc (sizeof(float) *tData[0].nubeLength);
         tData[0].state      = 3; //0-No inited, 1-Only Image, 2-Only Point Cloud, 3-Ambas
+        tData[0].abc.set(1, 1, 1);
+        tData[0].xyz.set(1, 1, 1);
 
         tData[1].cliId      = 1; // ID que identificará a esta instalación de cliente en el servidor.
         tData[1].camId      = 3; // ID que identifica esta cámara dentro de la instalación cliente.
         gettimeofday(&tData[1].curTime, NULL);
         //tData[1].timestamp  = ofGetUnixTime();
-        tData[1].img.loadImage("foto1.jpg");
-        tData[1].state      = 1; //0-No inited, 1-Only Image, 2-Only Point Cloud, 3-Ambas
+        ofxCvShortImage img2;
+        img2.allocate(100, 200);
+
+        tData[1].img.loadImage("foto1.png");
+
+        tData[1].spix       = img2.getShortPixelsRef();
+        tData[1].nubeW      = img2.getWidth();
+        tData[1].nubeH      = img2.getHeight();
+        tData[1].nubeLength = img2.getWidth() * img2.getHeight();
+        tData[1].xpix       = (float*) malloc (sizeof(float) *tData[1].nubeLength);
+        tData[1].ypix       = (float*) malloc (sizeof(float) *tData[1].nubeLength);
+        tData[1].zpix       = (float*) malloc (sizeof(float) *tData[1].nubeLength);
+        tData[1].state      = 3; //0-No inited, 1-Only Image, 2-Only Point Cloud, 3-Ambas
+        tData[1].abc.set(1, 1, 1);
+        tData[1].xyz.set(1, 1, 1);
+
+        int w;
+        for(w=0; w<tData[1].nubeLength; w++) {
+            tData[1].xpix[w] = 0.0f;
+            tData[1].ypix[w] = 0.0f;
+            tData[1].zpix[w] = 0.0f;
+            //cout << tData[1].xpix[w] << " " << tData[1].ypix[w] << " " << tData[1].zpix[w] << endl;
+        }
+        for(w=0; w<tData[0].nubeLength; w++) {
+            tData[0].xpix[w] = 1.0f;
+            tData[0].ypix[w] = 1.0f;
+            tData[0].zpix[w] = 1.0f;
+            //cout << tData[0].xpix[w] << " " << tData[0].ypix[w] << " " << tData[0].zpix[w] << endl;
+        }
 
         return tData;
     }
@@ -87,6 +121,7 @@ class FrameUtils {
                     if((tData[i].state == 1) || (tData[i].state == 3)) {
                         totSize += sizeof(int);     //(int) camWidth
                         totSize += sizeof(int);     //(int) camHeight
+                        totSize += sizeof(float)*6; //(int) camHeight
                         //Reservo lugar para la imágen.
 
                         ofPixels p = tData[i].img.getPixelsRef();
@@ -138,6 +173,7 @@ class FrameUtils {
                 char* off_curTime;
                 char* off_imgWidth;
                 char* off_imgHeight;
+                char* off_imgXYZ;
                 char* off_imagebytearray;
                 char* off_pcWidth;
                 char* off_pcHeight;
@@ -186,7 +222,8 @@ class FrameUtils {
                             //Reservo lugar para la imágen.
                             off_imgWidth         = start;
                             off_imgHeight        = off_imgWidth  + sizeof(int);
-                            off_imagebytearray   = off_imgHeight + sizeof(int);
+                            off_imgXYZ           = off_imgHeight + sizeof(int);
+                            off_imagebytearray   = off_imgXYZ    + sizeof(float)*6;
 
                             int w;
                             int h;
@@ -194,7 +231,18 @@ class FrameUtils {
                             memcpy(&(w),     (off_imgWidth),     sizeof(int));
                             memcpy(&(h),     (off_imgHeight),    sizeof(int));
 
+                            memcpy(&(tData[i].xyz.x),   (off_imgXYZ),                       sizeof(float));
+                            memcpy(&(tData[i].xyz.y),   (off_imgXYZ + sizeof(float)),       sizeof(float));
+                            memcpy(&(tData[i].xyz.z),   (off_imgXYZ + sizeof(float) * 2),   sizeof(float));
+
+                            memcpy(&(tData[i].abc.x),   (off_imgXYZ + sizeof(float) * 3),   sizeof(float));
+                            memcpy(&(tData[i].abc.y),   (off_imgXYZ + sizeof(float) * 4),   sizeof(float));
+                            memcpy(&(tData[i].abc.z),   (off_imgXYZ + sizeof(float) * 5),   sizeof(float));
+
                             ofLogVerbose() << "w || h - " << w << " || " << h;
+
+                            ofLogVerbose() << " xyz - " << tData[i].xyz.x << " , " << tData[i].xyz.y << " , " << tData[i].xyz.z ;
+                            ofLogVerbose() << " abc - " << tData[i].abc.x << " , " << tData[i].abc.y << " , " << tData[i].abc.z ;
 
                             ofImage imgDest3;
                             //imgDest3.loadImage("foto0.jpg");
@@ -204,8 +252,8 @@ class FrameUtils {
 
                             ofLogVerbose() << "imgDest3.setFromPixels";
                             char dig = (char)(((int)'0')+i);
-
-                            imgDest3.saveImage("imgDest" + ofToString(i) + ".jpg");
+                            tData[i].img.setFromPixels((unsigned char *) off_imagebytearray, w, h, OF_IMAGE_COLOR, true);
+                            //imgDest3.saveImage("imgDest" + ofToString(i) + ".jpg");
 
                             start = off_imagebytearray + w * h * 3;
                         }
@@ -300,6 +348,7 @@ class FrameUtils {
             char* off_curTime;
             char* off_imgWidth;
             char* off_imgHeight;
+            char* off_imgXYZ;
             char* off_imagebytearray;
             char* off_pcWidth;
             char* off_pcHeight;
@@ -332,7 +381,8 @@ class FrameUtils {
                         //Reservo lugar para la imágen.
                         off_imgWidth         = start;//off_curTime + sizeof(timeval);;
                         off_imgHeight        = off_imgWidth  + sizeof(int);
-                        off_imagebytearray   = off_imgHeight + sizeof(int);
+                        off_imgXYZ           = off_imgHeight + sizeof(int);
+                        off_imagebytearray   = off_imgXYZ    + sizeof(float)*6;
 
                         int w = tData[i].img.getWidth();
                         int h = tData[i].img.getHeight();
@@ -342,6 +392,14 @@ class FrameUtils {
 
                         memcpy(off_imgWidth,       &w,    sizeof(int));
                         memcpy(off_imgHeight,      &h,    sizeof(int));
+
+                        memcpy(off_imgXYZ,                   &tData[i].xyz.x,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float),   &tData[i].xyz.y,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*2, &tData[i].xyz.z,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*3, &tData[i].abc.x,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*4, &tData[i].abc.y,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*5, &tData[i].abc.z,    sizeof(float));
+
                         memcpy(off_imagebytearray, tData[i].img.getPixels(), tData[i].img.getPixelsRef().size());
 
                         start    = off_imagebytearray + (w*h*3);

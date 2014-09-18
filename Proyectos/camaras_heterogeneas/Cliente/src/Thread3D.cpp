@@ -70,9 +70,11 @@ void Thread3D::updateData() {
                 //@TODO: El grayscale no está funcionando. Queda todo negro.
                 img.setFromPixels(ipixels.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_GRAYSCALE, true);
             }
+            //img.saveImage("desde_kinect.jpg");
             if(context->resolutionDownSample < 1) {
                 img.resize(img.width * context->resolutionDownSample, img.height * context->resolutionDownSample);
             }
+            //img.saveImage("desde_kinect_res.jpg");
         }
         if(context->use3D) {
             //openNIRecorder->

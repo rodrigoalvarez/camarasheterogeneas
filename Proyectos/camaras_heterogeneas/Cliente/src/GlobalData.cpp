@@ -77,22 +77,22 @@ void GlobalData::loadCalibData(char * xml) {
                         settings.popTag();
                     }
                     if(settings.pushTag("matrix")) {
-                        currCam->matrix.set(settings.getValue("m000", 1),
-                                           settings.getValue("m001", 0),
-                                           settings.getValue("m002", 0),
-                                           settings.getValue("m003", 0),
-                                           settings.getValue("m100", 0),
-                                           settings.getValue("m101", 1),
-                                           settings.getValue("m102", 0),
-                                           settings.getValue("m103", 0),
-                                           settings.getValue("m200", 0),
-                                           settings.getValue("m201", 0),
-                                           settings.getValue("m202", 1),
-                                           settings.getValue("m203", 0),
-                                           settings.getValue("m300", 0),
-                                           settings.getValue("m301", 0),
-                                           settings.getValue("m302", 0),
-                                           settings.getValue("m303", 1)
+                        currCam->matrix.set(settings.getValue("m000", 1.0f),
+                                           settings.getValue("m001", 0.0f),
+                                           settings.getValue("m002", 0.0f),
+                                           settings.getValue("m003", 0.0f),
+                                           settings.getValue("m100", 0.0f),
+                                           settings.getValue("m101", 1.0f),
+                                           settings.getValue("m102", 0.0f),
+                                           settings.getValue("m103", 0.0f),
+                                           settings.getValue("m200", 0.0f),
+                                           settings.getValue("m201", 0.0f),
+                                           settings.getValue("m202", 1.0f),
+                                           settings.getValue("m203", 0.0f),
+                                           settings.getValue("m300", 0.0f),
+                                           settings.getValue("m301", 0.0f),
+                                           settings.getValue("m302", 0.0f),
+                                           settings.getValue("m303", 1.0f)
                                            );
                         settings.popTag();
                     }

@@ -64,22 +64,24 @@ void Model_PLY::MemoryLoad(int numberFacesActual)
 
         ofLog() << "Fin faces.";
 
-        float* allFaces = new float[numberFacesActual*9];
+        Faces_Triangles = new float[numberFacesActual*9];
         for (int i = 0; i< numberFacesActual; i++){
-            allFaces[i*9] = facesAux[i].p1[0];
-            allFaces[i*9+1] = facesAux[i].p1[1];
-            allFaces[i*9+2] = facesAux[i].p1[2];
-            allFaces[i*9+3] = facesAux[i].p2[0];
-            allFaces[i*9+4] = facesAux[i].p2[1];
-            allFaces[i*9+5] = facesAux[i].p2[2];
-            allFaces[i*9+6] = facesAux[i].p3[0];
-            allFaces[i*9+7] = facesAux[i].p3[1];
-            allFaces[i*9+8] = facesAux[i].p3[2];
+            Faces_Triangles[i*9] = facesAux[i].p1[0];
+            Faces_Triangles[i*9+1] = facesAux[i].p1[1];
+            Faces_Triangles[i*9+2] = facesAux[i].p1[2];
+            Faces_Triangles[i*9+3] = facesAux[i].p2[0];
+            Faces_Triangles[i*9+4] = facesAux[i].p2[1];
+            Faces_Triangles[i*9+5] = facesAux[i].p2[2];
+            Faces_Triangles[i*9+6] = facesAux[i].p3[0];
+            Faces_Triangles[i*9+7] = facesAux[i].p3[1];
+            Faces_Triangles[i*9+8] = facesAux[i].p3[2];
         }
-        Faces_Triangles = allFaces;
+        TotalConnectedTriangles = numberFacesActual*3;
+		TotalPoints = numberFacesActual/3;
+		TotalFaces = numberFacesActual;
         MinCoord = std::numeric_limits<float>::max();
         MaxCoord = std::numeric_limits<float>::min();
-        for (int i = 0; i < TotalConnectedTriangles * 3; i++) {
+        for (int i = 0; i < numberFacesActual*9; i++) {
             if (Faces_Triangles[i] < MinCoord) {
                 MinCoord = Faces_Triangles[i];
             }
@@ -88,7 +90,7 @@ void Model_PLY::MemoryLoad(int numberFacesActual)
             }
         }
         AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
-        for (int i = 0; i < TotalConnectedTriangles * 3; i++) {
+        for (int i = 0; i < numberFacesActual*9; i++) {
             Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
         }
     }

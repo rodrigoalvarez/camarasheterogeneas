@@ -4,15 +4,6 @@ void Thread2D::threadedFunction() {
     ofSetFrameRate(1);
     isAllocated = false;
 
-    /*ofFile file( "camara2d.txt", ofFile::WriteOnly );
-
-    file << "context-id: " << context->id << " \n";
-    file << "context-resolutionX: " << context->resolutionX << " \n";
-    file << "context-resolutionY: " << context->resolutionY << " \n";
-    file << "context-colorRGB: " << context->colorRGB << " \n";
-
-    file.close();*/
-
     bool first = true;
     float mTimestamp;
     int snapCounter = 1;
@@ -41,14 +32,7 @@ void Thread2D::threadedFunction() {
         if (vidGrabber.isFrameNew()) {
             lock();
             isAllocated = false;
-
-            if(context->colorRGB == 1) {
-                img.setFromPixels(vidGrabber.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_COLOR, true);
-            } else {
-                //@TODO: El grayscale no está funcionando. Queda todo negro.
-                img.setFromPixels(vidGrabber.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_GRAYSCALE, true);
-            }
-            //img.saveImage("cameras/2D/" + ofToString(context->id) + "/img-"+ofToString(snapCounter)+".png");
+            img.setFromPixels(vidGrabber.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_COLOR, true);
 
             //nuevo QT
             float time  = ofGetElapsedTimef() - mTimestamp;

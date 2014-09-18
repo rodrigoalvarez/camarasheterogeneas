@@ -2,10 +2,13 @@
 #include <sys/time.h>
 
 FieldManager::FieldManager() {
+}
+
+void FieldManager::startBuffer() {
     gettimeofday(&curIndex, NULL);
     gettimeofday(&maxIndex, NULL);
-    minUnit   = floor((1000/SERVER_BUFF_FPS));
-    topeUnit  = minUnit * SERVER_BUFF_FPS;
+    minUnit   = floor((1000/sys_data->syncFactorValue));
+    topeUnit  = minUnit * sys_data->syncFactorValue;
     curIndex.tv_usec = 0;
 }
 
@@ -21,7 +24,7 @@ FieldManager::~FieldManager() {
 */
 void FieldManager::calcSyncTime(ThreadData * frame) {
     ofLogVerbose() << "[FieldManager::calcSyncTime] " << frame->curTime.tv_usec << " " << frame->curTime.tv_sec;
-    float minUnit   = (1000/SERVER_BUFF_FPS);
+    float minUnit   = (1000/sys_data->syncFactorValue);
     int milli       = frame->curTime.tv_usec / 1000;
     int step        = (milli / minUnit);
 
@@ -128,6 +131,9 @@ Field * FieldManager::getNextFilledField() {
         } else {
             curIndex.tv_usec += minUnit;
         }
+    }
+    if(!encontro) {
+        ofLogVerbose() << "[FieldManager::getNextFilledField] - NO ENCONTRO nada para procesar";
     }
     return fi;
 }

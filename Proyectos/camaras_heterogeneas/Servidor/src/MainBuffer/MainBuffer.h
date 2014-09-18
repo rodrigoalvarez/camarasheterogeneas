@@ -14,6 +14,9 @@ class MainBuffer {
         MainBuffer();
 		~MainBuffer();
 
+        void startBuffer();
+        t_data      * sys_data;
+
 		/**
 		* Agrega un Frame al buffer principal.
 		* Un frame está compuesto por información de una sola cámara de un cliente dado.

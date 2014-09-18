@@ -17,7 +17,7 @@ void Grabber::setup() {
     if((gdata->total2D + gdata->total3D) > 0) {
         tData = new ThreadData[gdata->total2D + gdata->total3D];
         for(int w = 0; w < (gdata->total2D + gdata->total3D); w++) {
-            tData[w].cliId = 1;
+            tData[w].cliId = gdata->sys_data->cliId;
         }
     } else {
         tData = NULL;
@@ -118,11 +118,9 @@ void Grabber::updateThreadData() {
         tData[di].state    = 0;
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
-            if(t2D[i].context->colorRGB == 1) {
-                tData[di].img.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.width, t2D[i].img.height, OF_IMAGE_COLOR, true); //Clono la imágen
-            } else {
-                tData[di].img.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.width, t2D[i].img.height, OF_IMAGE_GRAYSCALE, true); //Clono la imágen
-            }
+            tData[di].img.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.getWidth(), t2D[i].img.getHeight(), OF_IMAGE_COLOR, true);
+            tData[di].abc.set(t2D[i].context->abc.x, t2D[i].context->abc.y, t2D[i].context->abc.z);
+            tData[di].xyz.set(t2D[i].context->xyz.x, t2D[i].context->xyz.y, t2D[i].context->xyz.z);
         }
         gettimeofday(&tData[di].curTime, NULL);
         t2D[i].unlock();
@@ -142,12 +140,18 @@ void Grabber::updateThreadData() {
             if(t3D[i].context->use2D == 1) {
                 tData[di].state    = DEVICE_2D;
                 //Clono la imágen
-                if(t3D[i].context->colorRGB == 1) {
-                    tData[di].img.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.width, t3D[i].img.height, OF_IMAGE_COLOR, true);
-                } else {
-                    tData[di].img.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.width, t3D[i].img.height, OF_IMAGE_GRAYSCALE, true);
-                }
+                cout << " Seteo la imágen " << endl;
+//                if(t3D[i].context->colorRGB == 1) {
+//                    tData[di].img.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.width, t3D[i].img.height, OF_IMAGE_COLOR, true);
+//                } else {
+//                    tData[di].img.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.width, t3D[i].img.height, OF_IMAGE_GRAYSCALE, true);
+//                }
+                //tData[di].img.clone(t3D[i].img);
+                tData[di].img.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.getWidth(), t3D[i].img.getHeight(), OF_IMAGE_COLOR, true);
+                //tData[di].img.saveImage("desde_grabber.jpg");
             }
+
+            //tData[di].img.draw(0, 0);
 
             if(t3D[i].context->use3D == 1) {
                 ((t3D[i].context->use2D == 1) ? tData[di].state = DEVICE_2D_3D : tData[di].state = DEVICE_3D);
@@ -161,10 +165,6 @@ void Grabber::updateThreadData() {
 
                 int downsampling = 2;
                 XnPoint3D Point2D, Point3D;
-
-                /*tData[di].xpix = new float[tData[di].nubeW * tData[di].nubeH];
-                tData[di].ypix = new float[tData[di].nubeW * tData[di].nubeH];
-                tData[di].zpix = new float[tData[di].nubeW * tData[di].nubeH];*/
 
                 int y   = 0;
                 int x   = 0;
@@ -184,6 +184,7 @@ void Grabber::updateThreadData() {
                     tmpZ = new float[tData[di].nubeW * tData[di].nubeH];
                 }
 
+                ofLogVerbose() << t3D[i].context->matrix << endl;
                 for(y=0; y < tData[di].nubeH; y += downsampling) {
                     if(y < tData[di].nubeH) {
                         for(x=0; x < tData[di].nubeW; x += downsampling) {
@@ -196,14 +197,12 @@ void Grabber::updateThreadData() {
                                     try {
                                         Xn_depth.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
                                         v1.set(Point3D.X, Point3D.Y, Point3D.Z);
+
                                         vt = transformPoint(v1, t3D[i].context->matrix);
-                                        //if(! ((roundf(vt->x) == 0.0) && (roundf(vt->y) == 0.0) && (round(vt->z) == 0.0)) ) {
-                                            ofLogVerbose() << "[Grabber::updateThreadData] " << "vt->x: " << vt->x  << "vt->y: " << vt->y << "vt->z: " << vt->z;
-                                            tmpX[tData[di].nubeLength] = vt->x;
-                                            tmpY[tData[di].nubeLength] = vt->y;
-                                            tmpZ[tData[di].nubeLength] = vt->z;
-                                            tData[di].nubeLength ++;
-                                        //}
+                                        tmpX[tData[di].nubeLength] = vt->x;
+                                        tmpY[tData[di].nubeLength] = vt->y;
+                                        tmpZ[tData[di].nubeLength] = vt->z;
+                                        tData[di].nubeLength ++;
 
                                         delete vt;
 

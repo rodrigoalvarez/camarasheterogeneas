@@ -8,6 +8,9 @@ struct t_data {
     int      serverPort;
     int      fps;
     int      maxPackageSize;
+    int      syncFactorValue;
+    int      maxThreadedServers;
+    int      maxReceiveFrameBuffer;
 };
 
 class ServerGlobalData {
