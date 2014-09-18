@@ -23,6 +23,9 @@ class ThreadData {
         float *         ypix;
         float *         zpix;
 
+        ofVec3f xyz;
+        ofVec3f abc;
+
         ofFloatPixels  sXpix;
         ofFloatPixels  sYpix;
         ofFloatPixels  sZpix;
@@ -38,31 +41,49 @@ class ThreadData {
         }
 
         void mergePointClouds(ThreadData * td) {
-            if(td->nubeLength <= 0) {
+            if(td->nubeLength > 0) {
+                ofLogVerbose() << "[ThreadData::mergePointClouds] - Mergeando 2 Frames - " << nubeLength << " - " << td->nubeLength;
+
                 int curLength   = nubeLength;
 
-                float * tmpxPix = new float[curLength + td->nubeLength];
-                float * tmpyPix = new float[curLength + td->nubeLength];
-                float * tmpzPix = new float[curLength + td->nubeLength];
+                char * tmpzPix = (char*) malloc ( sizeof(float) * (curLength + td->nubeLength) );
+                char * tmpyPix = (char*) malloc ( sizeof(float) * (curLength + td->nubeLength) );
+                char * tmpxPix = (char*) malloc ( sizeof(float) * (curLength + td->nubeLength) );
+                char * offx    = tmpxPix + curLength * sizeof(float);
+                char * offy    = tmpyPix + curLength * sizeof(float);
+                char * offz    = tmpzPix + curLength * sizeof(float);
 
-                memcpy(tmpxPix,     &xpix,     curLength);
-                memcpy(tmpxPix + sizeof(float) * curLength,  &td->xpix,  td->nubeLength);
+                memcpy(tmpxPix,  xpix,      sizeof(float) * curLength);
+                memcpy(offx,     td->xpix,  sizeof(float) * td->nubeLength);
 
-                memcpy(tmpyPix,     &ypix,     curLength);
-                memcpy(tmpyPix + sizeof(float) * curLength,  &td->ypix,  td->nubeLength);
+                memcpy(tmpyPix,  ypix,      sizeof(float) * curLength);
+                memcpy(offy,     td->ypix,  sizeof(float) * td->nubeLength);
 
-                memcpy(tmpzPix,     &zpix,     curLength);
-                memcpy(tmpzPix + sizeof(float) * curLength,  &td->zpix,  td->nubeLength);
+                memcpy(tmpzPix,  zpix,      sizeof(float) * curLength);
+                memcpy(offz,     td->zpix,  sizeof(float) * td->nubeLength);
 
-                delete xpix;
-                delete ypix;
-                delete zpix;
+                int w;
+//                for(w=0; w<nubeLength; w++) {
+//                    cout << xpix[w] << " " << ypix[w] << " " << zpix[w] << endl;
+//                }
+//                for(w=0; w<td->nubeLength; w++) {
+//                    cout << td->xpix[w] << " " << td->ypix[w] << " " << td->zpix[w] << endl;
+//                }
 
-                xpix = tmpxPix;
-                ypix = tmpyPix;
-                zpix = tmpzPix;
+                free(xpix);
+                free(ypix);
+                free(zpix);
 
-                nubeLength += td->nubeLength;
+                xpix = (float *) tmpxPix;
+                ypix = (float *) tmpyPix;
+                zpix = (float *) tmpzPix;
+
+                nubeLength = curLength + td->nubeLength;
+
+//                for(w=0; w<nubeLength; w++) {
+//                    //cout << xpix[w] << " " << ypix[w] << " " /*<< zpix[w] */<< endl;
+//                    cout << xpix[w] << " " << ypix[w] << " " << zpix[w]<< endl;
+//                }
             }
         }
 };

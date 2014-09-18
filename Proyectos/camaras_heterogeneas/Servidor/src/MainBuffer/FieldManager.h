@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include "../ServerGlobalData.h"
 
 class FieldManager {
 	public:
@@ -22,6 +23,10 @@ class FieldManager {
         timeval maxIndex;
         float minUnit;
         float topeUnit;
+
+        void startBuffer();
+        t_data      * sys_data;
+
         /**
         * Dado el timestamp del frame, retorna el tiempo correspondiente al field más cercano.
         */

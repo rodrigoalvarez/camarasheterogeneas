@@ -6,7 +6,7 @@
 		<Option makefile="makefile" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="addons\;src\;addons\ofxNetwork\src\;addons\ofxOpenCv\libs\opencv\include\opencv2\calib3d\;addons\ofxOpenCv\libs\opencv\include\opencv2\contrib\;addons\ofxOpenCv\libs\opencv\include\opencv2\core\;addons\ofxOpenCv\libs\opencv\include\opencv2\features2d\;addons\ofxOpenCv\libs\opencv\include\opencv2\flann\;addons\ofxOpenCv\libs\opencv\include\opencv2\gpu\;addons\ofxOpenCv\libs\opencv\include\opencv2\highgui\;addons\ofxOpenCv\libs\opencv\include\opencv2\imgproc\;addons\ofxOpenCv\libs\opencv\include\opencv2\legacy\;addons\ofxOpenCv\libs\opencv\include\opencv2\ml\;addons\ofxOpenCv\libs\opencv\include\opencv2\objdetect\;addons\ofxOpenCv\libs\opencv\include\opencv2\;addons\ofxOpenCv\libs\opencv\include\opencv2\ts\;addons\ofxOpenCv\libs\opencv\include\opencv2\video\;addons\ofxOpenCv\libs\opencv\include\opencv\;addons\ofxOpenCv\src\;addons\ofxXmlSettings\libs\;addons\ofxXmlSettings\src\;src\Data\;Threads\;src\Data\MainBuffer\;addons\ofxOpenNI\;" />
+		<Option virtualFolders="addons\;src\;addons\ofxNetwork\src\;addons\ofxOpenCv\libs\opencv\include\opencv2\calib3d\;addons\ofxOpenCv\libs\opencv\include\opencv2\contrib\;addons\ofxOpenCv\libs\opencv\include\opencv2\core\;addons\ofxOpenCv\libs\opencv\include\opencv2\features2d\;addons\ofxOpenCv\libs\opencv\include\opencv2\flann\;addons\ofxOpenCv\libs\opencv\include\opencv2\gpu\;addons\ofxOpenCv\libs\opencv\include\opencv2\highgui\;addons\ofxOpenCv\libs\opencv\include\opencv2\imgproc\;addons\ofxOpenCv\libs\opencv\include\opencv2\legacy\;addons\ofxOpenCv\libs\opencv\include\opencv2\ml\;addons\ofxOpenCv\libs\opencv\include\opencv2\objdetect\;addons\ofxOpenCv\libs\opencv\include\opencv2\;addons\ofxOpenCv\libs\opencv\include\opencv2\ts\;addons\ofxOpenCv\libs\opencv\include\opencv2\video\;addons\ofxOpenCv\libs\opencv\include\opencv\;addons\ofxOpenCv\src\;addons\ofxXmlSettings\libs\;addons\ofxXmlSettings\src\;src\Data\;Threads\;src\Data\MainBuffer\;addons\ofxOpenNI\;addons\ofxMSAInteractiveObj\;addons\ofxSimpleGuiToo\;addons\ofxSimpleGuiToo\Controls\;" />
 		<Build>
 			<Target title="release">
 				<Option output="bin\$(PROJECT_NAME)" prefix_auto="1" extension_auto="1" />
@@ -98,6 +98,10 @@
 			<Add directory="..\..\..\..\addons\ofxOpenNI\include\nite" />
 			<Add directory="..\..\..\..\addons\ofxOpenNI\include\libusb" />
 			<Add directory="..\..\..\..\addons\ofxOpenNI\src" />
+			<Add directory="..\addons\vcglib" />
+			<Add directory="..\..\..\..\addons\ofxSimpleGuiToo" />
+			<Add directory="..\..\..\..\addons\ofxSimpleGuiToo\Controls" />
+			<Add directory="..\..\..\..\addons\ofxMSAInteractiveObject" />
 		</Compiler>
 		<Linker>
 			<Add library="..\..\..\..\libs\FreeImage\lib\win_cb\FreeImage.lib" />
@@ -160,6 +164,12 @@
 			<Add after='cmd /c if not exist &quot;$(PROJECT_DIR)bin/data&quot; mkdir &quot;$(PROJECT_DIR)bin/data&quot;' />
 			<Mode after="always" />
 		</ExtraCommands>
+		<Unit filename="..\..\..\..\addons\ofxMSAInteractiveObject\ofxMSAInteractiveObject.cpp">
+			<Option virtualFolder="addons\ofxMSAInteractiveObj\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxMSAInteractiveObject\ofxMSAInteractiveObject.h">
+			<Option virtualFolder="addons\ofxMSAInteractiveObj\" />
+		</Unit>
 		<Unit filename="..\..\..\..\addons\ofxNetwork\src\ofxNetwork.h">
 			<Option virtualFolder="addons\ofxNetwork\src" />
 		</Unit>
@@ -505,6 +515,108 @@
 		<Unit filename="..\..\..\..\addons\ofxOpenNI\src\ofxOpenNIUtils.h">
 			<Option virtualFolder="addons\ofxOpenNI\" />
 		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiButton.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiButton.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiColorPicker.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiColorPicker.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiComboBox.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiComboBox.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiContent.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiContent.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiFPSCounter.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiFPSCounter.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiMovieSlider.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiMovieSlider.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiQuadWarp.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiQuadWarp.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiSlider2d.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiSlider2d.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiSliderBase.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiSliderFloat.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiSliderInt.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiTitle.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiTitle.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiToggle.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\Controls\ofxSimpleGuiToggle.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\Controls\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiConfig.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiConfig.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiControl.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiControl.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiIncludes.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiPage.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiPage.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiToo.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiToo.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiValueControl.cpp">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
+		<Unit filename="..\..\..\..\addons\ofxSimpleGuiToo\ofxSimpleGuiValueControl.h">
+			<Option virtualFolder="addons\ofxSimpleGuiToo\" />
+		</Unit>
 		<Unit filename="..\..\..\..\addons\ofxXmlSettings\libs\tinyxml.cpp">
 			<Option virtualFolder="addons\ofxXmlSettings\libs" />
 		</Unit>
@@ -565,6 +677,12 @@
 		<Unit filename="src\Server.h">
 			<Option virtualFolder="src\" />
 		</Unit>
+		<Unit filename="src\ServerGlobalData.cpp">
+			<Option virtualFolder="src\Data\" />
+		</Unit>
+		<Unit filename="src\ServerGlobalData.h">
+			<Option virtualFolder="src\Data\" />
+		</Unit>
 		<Unit filename="src\ThreadData.h">
 			<Option virtualFolder="src\Data\" />
 		</Unit>
@@ -576,6 +694,21 @@
 		</Unit>
 		<Unit filename="src\main.cpp">
 			<Option virtualFolder="src" />
+		</Unit>
+		<Unit filename="src\masterPly.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\masterPly.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\plylib.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\plylib.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\plystuff.h">
+			<Option virtualFolder="src\" />
 		</Unit>
 		<Extensions>
 			<code_completion />

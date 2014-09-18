@@ -1,7 +1,12 @@
 #include "MainBuffer.h"
 
 MainBuffer::MainBuffer() {
+}
+
+void MainBuffer::startBuffer() {
     fm = new FieldManager();
+    fm->sys_data = sys_data;
+    fm->startBuffer();
 }
 
 MainBuffer::~MainBuffer() {
@@ -62,16 +67,21 @@ std::pair <ThreadData *, ThreadData *> MainBuffer::getNextFrame() {
     }
 
     for (map< long int, ThreadData * >::iterator it = fi->frame_map.begin(); it != fi->frame_map.end(); ++it) {
+        //ofLogVerbose() << "[MainBuffer::getNextFrame] for.";
         if( (((ThreadData *) it->second)->state == 2 ) || (((ThreadData *) it->second)->state == 3 )) {
+            //ofLogVerbose() << "[MainBuffer::getNextFrame] if.";
             if(((ThreadData *) it->second)->nubeLength > 0) {
+                //ofLogVerbose() << "[MainBuffer::getNextFrame] nubeLength > 0.";
                 if(ret.first == NULL) {
+                    ofLogVerbose() << "[MainBuffer::getNextFrame] first==NULL.";
                     ret.first = (ThreadData *) it->second;
                 } else {
+                    ofLogVerbose() << "[MainBuffer::getNextFrame] Mergeando puntos.";
                     ret.first->mergePointClouds((ThreadData *) it->second);
                 }
             }
         }
     }
-
+    ofLogVerbose() << "[MainBuffer::getNextFrame] Luego de mergear";
     return ret;
 }

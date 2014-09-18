@@ -57,6 +57,8 @@ class Server : public ofBaseApp {
 		void gotMessage(ofMessage msg);
         void computeFrames();
         void generarMalla(ThreadData);
+        void setupGui(string ip);
+        void setVideoPreview(int cli, int cam, ofImage img);
 
 		ofxUDPManager udpConnection;
 		ofxTCPServer TCP;
@@ -72,4 +74,5 @@ class Server : public ofBaseApp {
         int buffCurrIndex;
         MainBuffer * mb;
         ServerGlobalData * gdata;
+        map< string, ofTexture > texture_map;
 };

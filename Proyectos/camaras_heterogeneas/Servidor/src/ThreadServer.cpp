@@ -54,7 +54,8 @@ void ThreadServer::receiveFrame() {
                 //int cams    = FrameUtils::getTotalCamerasFromByteArray( currBytearray );
                 std::pair <int, ThreadData *>  tPair = FrameUtils::getThreadDataFromByteArray( currBytearray );
                 //tData       = FrameUtils::getThreadDataFromByteArray( currBytearray );
-
+                ThreadData * td = tPair.second;
+                //td->img.saveImage("desde_thread_server.jpg");
                 ofLogVerbose() << "[ThreadServer::receiveFrame] Por agregar frame a buffer con " << tPair.first;
                 fb.addFrame(tPair.second, tPair.first);
                 //std::pair <int, ThreadData *> head = fb.getHeadFrame();
