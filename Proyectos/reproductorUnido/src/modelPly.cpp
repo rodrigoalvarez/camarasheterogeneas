@@ -64,7 +64,7 @@ void Model_PLY::MemoryLoad(int numberFacesActual)
 
         ofLog() << "Fin faces.";
 
-        float* Faces_Triangles = new float[numberFacesActual*9];
+        Faces_Triangles = new float[numberFacesActual*9];
         for (int i = 0; i< numberFacesActual; i++){
             Faces_Triangles[i*9] = facesAux[i].p1[0];
             Faces_Triangles[i*9+1] = facesAux[i].p1[1];
@@ -81,7 +81,7 @@ void Model_PLY::MemoryLoad(int numberFacesActual)
 		TotalFaces = numberFacesActual;
         MinCoord = std::numeric_limits<float>::max();
         MaxCoord = std::numeric_limits<float>::min();
-        for (int i = 0; i < numberFacesActual*3; i++) {
+        for (int i = 0; i < numberFacesActual*9; i++) {
             if (Faces_Triangles[i] < MinCoord) {
                 MinCoord = Faces_Triangles[i];
             }
@@ -90,7 +90,7 @@ void Model_PLY::MemoryLoad(int numberFacesActual)
             }
         }
         AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
-        for (int i = 0; i < numberFacesActual*3; i++) {
+        for (int i = 0; i < numberFacesActual*9; i++) {
             Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
         }
     }
