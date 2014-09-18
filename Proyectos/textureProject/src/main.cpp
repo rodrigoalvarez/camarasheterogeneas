@@ -34,7 +34,7 @@ GLfloat colors[][3] = { {1.0,1.0,1.0},
                         {1.0,0.0,1.0},
                         {0.0,1.0,1.0} };
 
-bool calibration3DMode = true;
+bool calibration3DMode = false;
 MasterSettings* settings = NULL;
 
 /* Mesh */
@@ -50,6 +50,7 @@ int meshIndex = 0;
 Model_PLY* textureModel = NULL;
 MasterTexture* textureMaster = NULL;
 bool textureViewMode = false;
+bool flagCalculate = false;
 
 int textureCount = 3;
 int textureIndex = 0;
@@ -57,7 +58,8 @@ bool textureWire = true;
 int* textureH;
 int* textureW;
 
-int facesCount = 2000;
+int facesCount = 200000;
+int reDrawRate = 200;
 int** faces;
 
 /* Camera */
@@ -149,32 +151,38 @@ void draw2DView() {
 }
 
 void draw2DCalibration() {
-    GLuint queries[textureModel->TotalFaces];
-    GLuint sampleCount;
-    glGenQueriesARB(textureModel->TotalFaces, queries);
-    glDisable(GL_BLEND);
-    glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
-    for (int i = 0; i < textureModel->TotalFaces; i++) {
-        glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
-        draw2DElement(i);
-        glEndQueryARB(GL_SAMPLES_PASSED_ARB);
-    }
-    glEnable(GL_BLEND);
-    glDepthFunc(GL_EQUAL);
-    glDepthMask(GL_FALSE);
-    for (int i = 0; i < textureModel->TotalFaces; i++) {
-        glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
-        if (sampleCount > 0) {
-            if (textureIndex > 0) {
-                faces[textureIndex][i] = sampleCount;
+    if (flagCalculate) {
+        GLuint queries[textureModel->TotalFaces];
+        GLuint sampleCount;
+        glGenQueriesARB(textureModel->TotalFaces, queries);
+        glDisable(GL_BLEND);
+        glDepthFunc(GL_LESS);
+        glDepthMask(GL_TRUE);
+        for (int i = 0; i < textureModel->TotalFaces; i++) {
+            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
+            draw2DElement(i);
+            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+        }
+        glEnable(GL_BLEND);
+        glDepthFunc(GL_EQUAL);
+        glDepthMask(GL_FALSE);
+        for (int i = 0; i < textureModel->TotalFaces; i++) {
+            glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
+            if (sampleCount > 0) {
+                if (textureIndex > 0) {
+                    faces[textureIndex][i] = sampleCount;
+                }
+                draw2DElement(i);
             }
+        }
+        glDisable(GL_BLEND);
+        glDepthFunc(GL_LESS);
+        glDepthMask(GL_TRUE);
+    } else {
+        for (int i = 0; i < textureModel->TotalFaces; i++) {
             draw2DElement(i);
         }
     }
-    glDisable(GL_BLEND);
-    glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
 }
 
 void textureProjection(Matrix4x4f &mv) {
@@ -192,8 +200,8 @@ void textureProjection(Matrix4x4f &mv) {
         glScalef((1.f*hImg)/wImg,1.0f,1.0f);//Scale
 	}
 
-	glFrustum(-0.035,0.035,-0.035,0.035,0.1,1.9);//MV for light map
-	glTranslatef(0.0f,0.0f,-1.0f);
+	glFrustum(-0.035,0.035,-0.035,0.035,0.02,2.0);//MV for light map
+	//glTranslatef(0.0f,0.0f,-1.0f);
 	glMultMatrixf(inverseMV.getMatrix());//Inverse ModelView
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -368,6 +376,8 @@ void keys(unsigned char key, int x, int y) {
 
     } else {
 
+        flagCalculate = false;
+
         if (key == 'l') {
             settings->loadTextureCalibration();
             for (int i = 1; i <= textureCount; i++) {
@@ -389,10 +399,12 @@ void keys(unsigned char key, int x, int y) {
         if(key == 'v') {
             textureViewMode = true;
             textureIndex = 0;
+            flagCalculate = true;
         }
         if(key >= '1' && key <= '9' && (key - 48 <= textureCount)) {
             textureViewMode = false;
             textureIndex = key - 48;
+            flagCalculate = true;
             display();
         }
         if(key == 'w') textureMaster[textureIndex].rotate[0] += 2.0;
@@ -407,6 +419,7 @@ void keys(unsigned char key, int x, int y) {
 }
 
 void mouse(int btn, int state, int x, int y) {
+    flagCalculate = false;
     cameraAxis = state == GLUT_DOWN ? btn : -1;
     if (state == GLUT_DOWN) {
         cameraMove = y;
@@ -418,6 +431,7 @@ void mouse(int btn, int state, int x, int y) {
 }
 
 void mouseMove(int x, int y) {
+    flagCalculate = false;
 	if (cameraAxis != -1) {
 		float deltaMove = (y - cameraMove) * 0.1f;
 		cameraMove = y;
@@ -463,6 +477,12 @@ void myReshape(int w, int h) {
         glFrustum(-2.0*(GLfloat)w/(GLfloat)h, 2.0*(GLfloat)w/(GLfloat)h, -2.0, 2.0, 2.0, 20.0);
     }
 	glMatrixMode(GL_MODELVIEW);
+}
+
+void timerFunction(int arg)
+{
+    glutTimerFunc(reDrawRate,timerFunction,0);
+    display();
 }
 
 void loadLightMapTexture(const char *name) {
@@ -557,6 +577,7 @@ int main(int argc, char **argv) {
 	glutInitWindowSize(500,500);
     glutInitWindowPosition(300, 300);
 	glutCreateWindow("Calibration project");
+    glutTimerFunc(reDrawRate, timerFunction, 0);
 	glutReshapeFunc(myReshape);
 	glutDisplayFunc(display);
 	glutMouseFunc(mouse);
