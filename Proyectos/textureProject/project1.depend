@@ -64,7 +64,7 @@
 	<algorithm>
 	"plylib.h"
 
-1410127353 source:c:\users\rodrigo\downloads\openglloadply\src\main.cpp
+1410723133 source:c:\users\rodrigo\downloads\openglloadply\src\main.cpp
 	<GL/glew.h>
 	<stdlib.h>
 	<windows.h>
@@ -85,17 +85,20 @@
 	<wchar.h>
 	<inttypes.h>
 
-1410116891 source:c:\users\rodrigo\downloads\openglloadply\src\mastersettings.cpp
+1410722948 source:c:\users\rodrigo\downloads\openglloadply\src\mastersettings.cpp
 	"masterSettings.h"
 	<stdlib.h>
 	<string>
 	<fstream>
 	<sstream>
 
-1410116786 c:\users\rodrigo\downloads\openglloadply\src\mastersettings.h
+1410722850 c:\users\rodrigo\downloads\openglloadply\src\mastersettings.h
+	<GL/glew.h>
+	<GL/glut.h>
+	<GL/glext.h>
 	"matrix4x4.h"
 
-1410120484 source:c:\users\rodrigo\downloads\openglloadply\src\modelxyz.cpp
+1410629189 source:c:\users\rodrigo\downloads\openglloadply\src\modelxyz.cpp
 	"modelXYZ.h"
 	<stdlib.h>
 	<string>
@@ -105,10 +108,12 @@
 	<limits>
 	<cmath>
 
-1410118686 c:\users\rodrigo\downloads\openglloadply\src\modelxyz.h
+1410565022 c:\users\rodrigo\downloads\openglloadply\src\modelxyz.h
 	<windows.h>
 	<stdio.h>
 	<string.h>
 	<string>
 	<vector>
+	<iostream>
+	<GL/glut.h>
 

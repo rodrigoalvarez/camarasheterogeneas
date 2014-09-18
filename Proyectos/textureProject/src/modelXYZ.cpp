@@ -12,9 +12,9 @@ Model_XYZ::Model_XYZ() {
 
 }
 
-int Model_XYZ::Load(string fileName) {
+int Model_XYZ::Load(string fileName, float alfa) {
 
-	this->TotalPoints = 0;
+	TotalPoints = 0;
     std::ifstream in(fileName.c_str());
     std::stringstream buffer;
     buffer << in.rdbuf();
@@ -31,6 +31,13 @@ int Model_XYZ::Load(string fileName) {
     }
     in.close();
 
+    float minX = std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float minZ = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::min();
+    float maxY = std::numeric_limits<float>::min();
+    float maxZ = std::numeric_limits<float>::min();
+
     MinCoord = std::numeric_limits<float>::max();
     MaxCoord = std::numeric_limits<float>::min();
     for (int i = 0; i < TotalPoints * 3; i++) {
@@ -40,11 +47,75 @@ int Model_XYZ::Load(string fileName) {
         if (Points[i] > MaxCoord) {
             MaxCoord = Points[i];
         }
+        if (i % 3 == 0) {
+            if (Points[i] < minX) {
+                minX = Points[i];
+            }
+            if (Points[i] > maxX) {
+                maxX = Points[i];
+            }
+        }
+        if (i % 3 == 1) {
+            if (Points[i] < minY) {
+                minY = Points[i];
+            }
+            if (Points[i] > maxY) {
+                maxY = Points[i];
+            }
+        }
+        if (i % 3 == 2) {
+            if (Points[i] < minZ) {
+                minZ = Points[i];
+            }
+            if (Points[i] > maxZ) {
+                maxZ = Points[i];
+            }
+        }
     }
-    AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
+
+    if (alfa == 0) {
+        AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
+    } else {
+        AlfaCoord = alfa;
+    }
+
+    float deltaX = (maxX + minX) / 2;
+    float deltaY = (maxY + minY) / 2;
+    float deltaZ = (maxZ + minZ) / 2;
     for (int i = 0; i < TotalPoints * 3; i++) {
+        if (i % 3 == 0) {
+            Points[i] = Points[i] - deltaX;
+        }
+        if (i % 3 == 1) {
+            Points[i] = Points[i] - deltaY;
+        }
+        if (i % 3 == 2) {
+            Points[i] = Points[i] - deltaZ;
+        }
         Points[i] = (Points[i] / AlfaCoord) * 10;
     }
 
 	return TotalPoints;
+}
+
+int Model_XYZ::Include(Model_XYZ* model, GLdouble* m) {
+
+    for (int i = 0; i < model->TotalPoints * 3; i += 3) {
+        float x = model->Points[i];
+        float y = model->Points[i+1];
+        float z = model->Points[i+2];
+        float w = 1;
+        Points.push_back(m[0]*x + m[1]*y + m[2]*z + m[12]);
+        Points.push_back(m[4]*x + m[5]*y + m[6]*z + m[13]);
+        Points.push_back(m[8]*x + m[9]*y + m[10]*z + m[14]);
+    }
+    TotalPoints += model->TotalPoints;
+	return TotalPoints;
+}
+
+int Model_XYZ::Clear() {
+
+    TotalPoints = 0;
+    Points.clear();
+	return 0;
 }
