@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="release" />
+	<File name="src\main.cpp" open="1" top="1" tabpos="1">
+		<Cursor position="19029" topLine="530" />
+	</File>
+	<File name="src\masterPly.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="4933" topLine="157" />
+	</File>
+	<File name="src\masterSettings.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="3575" topLine="71" />
+	</File>
+	<File name="src\modelImg.cpp" open="1" top="0" tabpos="2">
+		<Cursor position="1600" topLine="46" />
+	</File>
+	<File name="src\modelImg.h" open="0" top="0" tabpos="0">
+		<Cursor position="688" topLine="0" />
+	</File>
+	<File name="src\modelPly.cpp" open="0" top="0" tabpos="2">
+		<Cursor position="341" topLine="33" />
+	</File>
+	<File name="src\modelPly.h" open="0" top="0" tabpos="1">
+		<Cursor position="442" topLine="5" />
+	</File>
+</CodeBlocks_layout_file>
