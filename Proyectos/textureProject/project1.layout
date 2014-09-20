@@ -1,19 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="src\modelXYZ.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
-		</Cursor>
+	<File name="src\main.cpp" open="1" top="1" tabpos="0">
+		<Cursor position="4731" topLine="123" />
 	</File>
-	<File name="src\modelXYZ.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
-		</Cursor>
+	<File name="src\masterPly.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="2185" topLine="20" />
 	</File>
-	<File name="src\main.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
-		</Cursor>
+	<File name="src\masterSettings.cpp" open="0" top="0" tabpos="3">
+		<Cursor position="587" topLine="6" />
+	</File>
+	<File name="src\masterSettings.h" open="0" top="0" tabpos="0">
+		<Cursor position="388" topLine="0" />
+	</File>
+	<File name="src\matrix4x4.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="337" topLine="0" />
+	</File>
+	<File name="src\modelPly.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="955" topLine="32" />
+	</File>
+	<File name="src\modelPly.h" open="0" top="0" tabpos="0">
+		<Cursor position="189" topLine="0" />
+	</File>
+	<File name="src\modelXYZ.cpp" open="0" top="0" tabpos="2">
+		<Cursor position="248" topLine="61" />
+	</File>
+	<File name="src\modelXYZ.h" open="0" top="0" tabpos="2">
+		<Cursor position="222" topLine="0" />
+	</File>
+	<File name="src\plylib.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="82258" topLine="3642" />
 	</File>
 </CodeBlocks_layout_file>
