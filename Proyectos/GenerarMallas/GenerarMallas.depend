@@ -1,0 +1,50 @@
+# depslib dependency file v1.0
+1411232501 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\generarmallas\main.cpp
+	"main.h"
+
+1411232253 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\generarmallas\main.h
+	<windows.h>
+	"masterPly.h"
+
+1411237212 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\generarmallas\masterply.cpp
+	"masterPly.h"
+
+1410715644 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\generarmallas\masterply.h
+	<time.h>
+	<vcg/complex/complex.h>
+	<vcg/complex/algorithms/point_sampling.h>
+	<vcg/complex/algorithms/create/ball_pivoting.h>
+	<wrap/ply/plylib.h>
+	<vcg/complex/algorithms/update/topology.h>
+	<vcg/complex/algorithms/update/flag.h>
+	<vcg/complex/algorithms/update/normal.h>
+	<vcg/complex/algorithms/refine.h>
+	<wrap/io_trimesh/import_ply.h>
+	<wrap/io_trimesh/export_ply.h>
+	<wrap/io_trimesh/export_stl.h>
+	<wrap/io_trimesh/export_obj.h>
+	<vcg/complex/algorithms/smooth.h>
+	<vector>
+
+1409514110 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\generarmallas\plylib.cpp
+	<assert.h>
+	<direct.h>
+	<fcntl.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+	<assert.h>
+	<vector>
+	<algorithm>
+	"plylib.h"
+
+1409514110 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\generarmallas\plylib.h
+	<memory.h>
+	<vector>
+	<string>
+	<assert.h>
+
