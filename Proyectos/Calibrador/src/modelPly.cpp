@@ -39,6 +39,41 @@ float* Model_PLY::calculateNormal( float *coord1, float *coord2, float *coord3 )
 	return norm;
 }
 
+void Model_PLY::MemoryLoadCalibrator(FaceStruct* faces, int numberFaces)
+{
+    Id++;
+    TotalConnectedTriangles = numberFaces * 3;
+    TotalPoints = numberFaces / 3;
+    TotalFaces = numberFaces;
+    Faces_Triangles = new float[TotalFaces * 9];
+    for (int i = 0; i< TotalFaces; i++){
+        Faces_Triangles[i*9] = faces[i].p1[0];
+        Faces_Triangles[i*9+1] = faces[i].p1[1];
+        Faces_Triangles[i*9+2] = faces[i].p1[2];
+        Faces_Triangles[i*9+3] = faces[i].p2[0];
+        Faces_Triangles[i*9+4] = faces[i].p2[1];
+        Faces_Triangles[i*9+5] = faces[i].p2[2];
+        Faces_Triangles[i*9+6] = faces[i].p3[0];
+        Faces_Triangles[i*9+7] = faces[i].p3[1];
+        Faces_Triangles[i*9+8] = faces[i].p3[2];
+    }
+    MinCoord = std::numeric_limits<float>::max();
+    MaxCoord = std::numeric_limits<float>::min();
+    for (int i = 0; i < TotalFaces * 9; i++) {
+        if (Faces_Triangles[i] < MinCoord) {
+            MinCoord = Faces_Triangles[i];
+        }
+        if (Faces_Triangles[i] > MaxCoord) {
+            MaxCoord = Faces_Triangles[i];
+        }
+    }
+    AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
+    for (int i = 0; i < TotalFaces * 9; i++) {
+        Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
+    }
+
+}
+
 void Model_PLY::MemoryLoad()
 {
     memoryMappedMeshId.setup("MeshId", sizeof(int), false);

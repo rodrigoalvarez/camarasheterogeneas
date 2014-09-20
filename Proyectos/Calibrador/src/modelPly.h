@@ -21,6 +21,7 @@ class Model_PLY
         bool isConnectedNFaces;
 
 		Model_PLY();
+		void MemoryLoadCalibrator(FaceStruct* faces, int numberFaces);
 		void MemoryLoad();
 		void Load(char *filename);
 		float* calculateNormal( float *coord1, float *coord2, float *coord3 );

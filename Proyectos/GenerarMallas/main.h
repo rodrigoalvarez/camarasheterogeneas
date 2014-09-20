@@ -29,6 +29,7 @@ struct NubePuntos{
 
 void DLL_EXPORT SomeFunction(const char* sometext, int* number, char** salida);
 void DLL_EXPORT generarMalla(NubePuntos* nbIN, FaceStruct** faces, int* numberFaces, int nroFrame);
+void DLL_EXPORT generarMallaCalibrador(NubePuntos* nbIN, FaceStruct** faces, int* numberFaces);
 #ifdef __cplusplus
 }
 #endif

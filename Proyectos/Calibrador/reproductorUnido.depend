@@ -1279,3 +1279,134 @@
 	<tchar.h>
 	<sys/shm.h>
 
+1410909682 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\masterply.cpp
+	"masterPly.h"
+
+1410909682 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\masterply.h
+	<time.h>
+	<vcg/complex/complex.h>
+	<vcg/complex/algorithms/point_sampling.h>
+	<vcg/complex/algorithms/create/ball_pivoting.h>
+	<wrap/ply/plylib.h>
+	<vcg/complex/algorithms/update/topology.h>
+	<vcg/complex/algorithms/update/flag.h>
+	<vcg/complex/algorithms/update/normal.h>
+	<vcg/complex/algorithms/refine.h>
+	<wrap/io_trimesh/import_ply.h>
+	<wrap/io_trimesh/export_ply.h>
+	<wrap/io_trimesh/export_stl.h>
+	<wrap/io_trimesh/export_obj.h>
+	<vcg/complex/algorithms/smooth.h>
+	<vector>
+
+1410909682 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.cpp
+	"masterSettings.h"
+	<stdlib.h>
+	<string>
+	<fstream>
+	<sstream>
+
+1410909682 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.h
+	<GL/glew.h>
+	<GL/glut.h>
+	<GL/glext.h>
+	"matrix4x4.h"
+
+1410909682 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\matrix4x4.h
+	<memory>
+	<cmath>
+	<iostream>
+	<string.h>
+
+1410909682 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\matrix4x4.cpp
+	"matrix4x4.h"
+
+1411243342 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelimg.cpp
+	"modelImg.h"
+	"FreeImage.h"
+	<vector>
+	<limits>
+	<cmath>
+
+1411240444 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelimg.h
+	"ofxSharedMemory.h"
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<cmath>
+	<string>
+
+1410909682 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\freeimage.h
+	<wchar.h>
+	<inttypes.h>
+
+1411245516 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelply.cpp
+	"modelPly.h"
+	<vector>
+	<limits>
+	<cmath>
+
+1411253650 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelply.h
+	"ofxSharedMemory.h"
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<cmath>
+	<string>
+	"masterPly.h"
+
+1410909682 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelxyz.cpp
+	"modelXYZ.h"
+	<stdlib.h>
+	<string>
+	<fstream>
+	<sstream>
+	<vector>
+	<limits>
+	<cmath>
+
+1410909682 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelxyz.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<string>
+	<vector>
+	<iostream>
+	<GL/glut.h>
+
+1410909682 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\plylib.cpp
+	<assert.h>
+	<direct.h>
+	<fcntl.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+	<assert.h>
+	<vector>
+	<algorithm>
+	"plylib.h"
+
+1410909682 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\plylib.h
+	<memory.h>
+	<vector>
+	<string>
+	<assert.h>
+
+1411253798 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
+	"modelPly.h"
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"modelXYZ.h"
+	"masterSettings.h"
+	<vector>
+	<fstream>
+	<sstream>
+	<iostream>
+	"FreeImage.h"
+	"matrix4x4.h"
+

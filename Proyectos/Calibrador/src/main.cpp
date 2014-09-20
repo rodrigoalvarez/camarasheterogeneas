@@ -3,7 +3,6 @@
 #include <windows.h>
 #include <GL/glut.h>
 #include "modelXYZ.h"
-#include "masterPly.h"
 #include "masterSettings.h"
 #include <vector>
 #include <fstream>
@@ -14,6 +13,15 @@
 #include "matrix4x4.h"
 
 using namespace std;
+
+struct NubePuntos{
+    float* x;
+    float* y;
+    float* z;
+    int largo;
+};
+
+typedef void (*f_funci)(NubePuntos* nbIN, FaceStruct** faces, int* numberFaces, int nroFrame);
 
 GLfloat colors[][3] = { {1.0,1.0,1.0},
                         {1.0,0.0,0.0},
@@ -27,8 +35,8 @@ MasterSettings* settings = NULL;
 
 /* Mesh */
 
-Model_XYZ** meshModel = NULL;
-MasterMesh* meshMaster = NULL;
+Model_XYZ** meshModel = NULL;//tienen la nube y ubicacion cuando fueron cargados
+MasterMesh* meshMaster = NULL;//tienen la informacion de transformacion y ubicacion
 
 int meshCount = 3;
 int meshIndex = 0;
@@ -41,7 +49,7 @@ bool cameraAll = false;
 
 
 void writeText() {
-    system("cls");
+    /*system("cls");
     cout << "3D CALIBRATION" << endl;
     cout << "Mode: " << (meshIndex == 0 ? "View" : "Calibration") << endl << endl;
     for (int i = 0; i <= meshCount; i++) {
@@ -51,7 +59,46 @@ void writeText() {
         cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
         cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
         cout << endl;
+    }*/
+}
+
+
+void generarMalla(NubePuntos* nube){
+    char* dllName = "C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\GenerarMallas\\bin\\Release\\GenerarMallas.dll";
+    HINSTANCE hGetProcIDDLL =  LoadLibraryA(dllName);
+    if (!hGetProcIDDLL) {
+        std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
     }
+    f_funci funci = (f_funci)GetProcAddress(hGetProcIDDLL, "generarMallaCalibrador");
+
+    FaceStruct* faces = new FaceStruct;
+    int* numberFaces = new int;
+
+    cout << "Generando la nube..." << endl;
+    (funci) (nube, &faces, numberFaces, 0);
+    cout << "Fin de a generacion..." << endl;
+    Model_PLY* mply = new Model_PLY();
+    mply->MemoryLoadCalibrator(faces, *numberFaces);
+}
+
+void generarNubeUnida(){
+    NubePuntos* nube = new NubePuntos;
+    nube->largo = meshModel[0]->TotalPoints;
+    nube->x = new float[meshModel[0]->TotalPoints];
+    nube->y = new float[meshModel[0]->TotalPoints];
+    nube->z = new float[meshModel[0]->TotalPoints];
+    cout << "Antes, puntos: " << meshModel[0]->TotalPoints <<endl;
+    for (int i = 0; i < meshModel[0]->TotalPoints; i++){
+
+    /*cout << meshModel[0]->Points[i*3] << " "
+    << meshModel[0]->Points[i*3+1] << " "
+    << meshModel[0]->Points[i*3+2] <<endl;*/
+        nube->x[i] = meshModel[0]->Points[i*3];
+        nube->y[i] = meshModel[0]->Points[i*3+1];
+        nube->z[i] = meshModel[0]->Points[i*3+2];
+    }
+    cout << "Despues" << endl;
+    generarMalla(nube);
 }
 
 void setPointVertex(int index) {
@@ -127,6 +174,7 @@ void keys(unsigned char key, int x, int y) {
         for (int i = 1; i <= meshCount; i++) {
             IncludeMesh(meshModel[0], meshModel[i], meshMaster[i]);
         }
+        generarNubeUnida();
     }
     if(key >= '1' && key <= '9' && (key - 48 <= meshCount)) {
         meshIndex = key - 48;

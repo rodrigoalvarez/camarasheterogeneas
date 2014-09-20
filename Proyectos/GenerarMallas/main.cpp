@@ -27,6 +27,20 @@ void DLL_EXPORT generarMalla(NubePuntos* nbIN, FaceStruct** faces, int* numberFa
         mply->savePLY(nombre,true);*/
 }
 
+void DLL_EXPORT generarMallaCalibrador(NubePuntos* nbIN, FaceStruct** faces, int* numberFaces)
+{
+        MasterPly* mply = new MasterPly();
+
+        mply->loadMesh(nbIN->x,nbIN->y,nbIN->z,nbIN->largo);
+        mply->poissonDiskSampling(nbIN->largo/2);
+        mply->calculateNormalsVertex();
+        mply->buildMeshBallPivoting();
+        mply->laplacianSmooth(3);
+        *numberFaces = mply->totalFaces();
+        *faces = mply->getFaces();
+
+        mply->savePLY("mallaUnida.ply",true);
+}
 extern "C" DLL_EXPORT BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     switch (fdwReason)
