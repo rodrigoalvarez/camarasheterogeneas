@@ -60,6 +60,7 @@ int* textureH;
 int* textureW;
 
 int facesCount = 200000;
+int reDrawRate = 200;
 int** faces;
 
 /* Camera */
@@ -67,6 +68,7 @@ int** faces;
 int cameraAxis = -1;
 int cameraMove = -1;
 bool cameraAll = false;
+int numberFacesActual;
 
 
 void writeText() {
@@ -480,6 +482,12 @@ void myReshape(int w, int h) {
 	glMatrixMode(GL_MODELVIEW);
 }
 
+void timerFunction(int arg){
+    glutTimerFunc(reDrawRate,timerFunction,0);
+    numberFacesActual = textureModel->MemoryLoad(numberFacesActual);
+    display();
+}
+
 void loadLightMapTexture(const char *name) {
 	GLfloat eyePlaneS[] =  {1.0f, 0.0f, 0.0f, 0.0f};
 	GLfloat eyePlaneT[] =  {0.0f, 1.0f, 0.0f, 0.0f};
@@ -572,6 +580,7 @@ int main(int argc, char **argv) {
 	glutInitWindowSize(500,500);
     glutInitWindowPosition(300, 300);
 	glutCreateWindow("Calibration project");
+    glutTimerFunc(reDrawRate,timerFunction,0);
 	glutReshapeFunc(myReshape);
 	glutDisplayFunc(display);
 	glutMouseFunc(mouse);
@@ -600,7 +609,7 @@ int main(int argc, char **argv) {
     settings = new MasterSettings(textureCount, textureMaster, meshCount, meshMaster);
 
     textureModel = new Model_PLY();
-    textureModel->MemoryLoad(0);
+    numberFacesActual = textureModel->MemoryLoad(0);
     //textureModel->Load("mesh/antMesh.ply");
 
     vector<string> textureFiles;

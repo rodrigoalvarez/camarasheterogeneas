@@ -23,7 +23,7 @@ class Model_PLY
         bool isConnected;
 
 		Model_PLY();
-		void MemoryLoad(int numberFacesActual);
+		int MemoryLoad(int numberFacesActual);
 		int Load(char *filename);
 		float* calculateNormal( float *coord1, float *coord2, float *coord3 );
 
