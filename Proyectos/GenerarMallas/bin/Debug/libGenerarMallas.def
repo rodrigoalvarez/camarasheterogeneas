@@ -1,0 +1,4 @@
+EXPORTS
+    DllMain@12 @1
+    SomeFunction @2
+    generarMalla @3
