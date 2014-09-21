@@ -19,8 +19,9 @@ class Model_PLY
         string facesMemoryKey = "Faces";
         int facesMemorySize;
 
-
         bool isConnected;
+
+        HINSTANCE shareMeshLibrary;
 
 		Model_PLY();
 		int MemoryLoad(int numberFacesActual);

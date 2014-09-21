@@ -1,0 +1,5 @@
+EXPORTS
+    DllMain@12 @1
+    SomeFunction @2
+    compartirMemoria @3
+    leerMemoria @4

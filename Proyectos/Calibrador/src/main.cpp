@@ -8,11 +8,16 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "ofxXmlSettings.h"
 
 #include "FreeImage.h"
 #include "matrix4x4.h"
 
 using namespace std;
+
+bool REAL_TIME = true;
+int REAL_TIME_FPS = 10;
+int REAL_TIME_PORT = 3232;
 
 struct NubePuntos{
     float* x;
@@ -101,6 +106,64 @@ void generarNubeUnida(){
     generarMalla(nube);
 }
 
+void saveXmlFile() {
+	ofxXmlSettings settings;
+
+	settings.addTag("settings");
+	settings.pushTag("settings");
+
+	settings.setValue("realTime", REAL_TIME);
+	settings.setValue("realTimeFPS", REAL_TIME_FPS);
+	settings.setValue("realTimePort", REAL_TIME_PORT);
+
+	settings.addTag("cameras");
+	settings.pushTag("cameras");
+
+	for(int i = 0; i < meshCount; i++) {
+		settings.addTag("camera");
+		settings.pushTag("camera", i);
+
+		settings.addValue("id", i);
+		settings.addValue("resolutionX", 800);//800
+		settings.addValue("resolutionY", 600);//600
+		settings.addValue("resolutionDownSample", 1);
+		settings.addValue("FPS", 30);// camera i fps
+		settings.addValue("colorRGB", true);// camera i color rgb
+		settings.addValue("use2D", true);// camera i use2d
+		settings.addValue("use3D", true);// camera i use 3d
+		settings.addValue("dataContext", "");// data context
+
+		settings.addTag("depthSettings");
+		settings.pushTag("depthSettings");
+		settings.addValue("near", 10);
+		settings.addValue("far", 100);
+		settings.addValue("pointsDownSample", 1);
+
+		settings.popTag();
+
+		settings.addTag("matrix");
+		settings.pushTag("matrix");
+
+
+        GLdouble m[16];
+        MasterSettings::CalculateMatrix(meshMaster[i], m);
+
+		for(int j = 0; j < 16; j++) {
+            std::stringstream cellM;
+            cellM << "r" << j / 4 << j % 4;
+            settings.addValue(cellM.str(), m[j]);
+		}
+
+		settings.popTag();
+		settings.popTag();
+	}
+
+	settings.popTag();
+	settings.popTag();
+
+	settings.saveFile("settings.xml");
+}
+
 void setPointVertex(int index) {
     GLfloat vert[3] = { meshModel[meshIndex]->Points[index * 3], meshModel[meshIndex]->Points[index * 3 + 1], meshModel[meshIndex]->Points[index * 3 + 2] };
     glVertex3fv(vert);
@@ -175,6 +238,7 @@ void keys(unsigned char key, int x, int y) {
             IncludeMesh(meshModel[0], meshModel[i], meshMaster[i]);
         }
         generarNubeUnida();
+        saveXmlFile();
     }
     if(key >= '1' && key <= '9' && (key - 48 <= meshCount)) {
         meshIndex = key - 48;
