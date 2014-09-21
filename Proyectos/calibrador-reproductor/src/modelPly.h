@@ -22,7 +22,7 @@ class Model_PLY
 
 		Model_PLY();
 		void MemoryLoad();
-		void Load(char *filename);
+		void Load(string filename);
 		float* calculateNormal( float *coord1, float *coord2, float *coord3 );
 
 		float* Faces_Quads;

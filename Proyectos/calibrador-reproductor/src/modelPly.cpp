@@ -96,16 +96,16 @@ void Model_PLY::MemoryLoad()
     }
 }
 
-void Model_PLY::Load(char* filename)
+void Model_PLY::Load(string filename)
 {
 	TotalConnectedTriangles = 0;
 	TotalPoints = 0;
 
-	char* pch = strstr(filename,".ply");
+	char* pch = strstr(filename.c_str(),".ply");
 
 	if (pch != NULL)
 	{
-		FILE* file = fopen(filename,"r");
+		FILE* file = fopen(filename.c_str(),"r");
 
 		fseek(file,0,SEEK_END);
 		long fileSize = ftell(file);

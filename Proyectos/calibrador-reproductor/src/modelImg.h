@@ -24,7 +24,7 @@ class Model_IMG
 
 		Model_IMG();
 		void MemoryLoad();
-		void Load(char *filename);
+		void Load(string filename);
 
         int Id;
 		char* Pixels;

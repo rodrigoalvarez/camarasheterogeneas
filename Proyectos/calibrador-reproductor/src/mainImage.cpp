@@ -22,21 +22,19 @@ MasterSettings* settings = NULL;
 
 /* Texture */
 
+Model_IMG* textureImage = NULL;
 Model_PLY* textureModel = NULL;
 MasterTexture* textureMaster = NULL;
 bool textureViewMode = false;
 bool drawFast = true;
+bool textureWire = true;
 
 int textureCount = 1;
 int textureIndex = 0;
-bool textureWire = true;
-bool flagCalculate = false;
-int* textureH;
-int* textureW;
 
-int reDrawRate = 200;
 int facesCount = 200000;
 int** faces;
+float frustum[6][4];
 
 /* Camera */
 
@@ -96,8 +94,6 @@ void draw2DView() {
         }
     }
 }
-
-float frustum[6][4];
 
 void ExtractFrustum() {
     float   proj[16];
@@ -270,19 +266,16 @@ void textureProjection(Matrix4x4f &mv) {
     Matrix4x4f inverseMV = Matrix4x4f::invertMatrix(mv);
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
-    glTranslatef(0.5f,0.5f,0.0f);//Bias
-
-    float wImg = textureW[textureIndex-1];
-    float hImg = textureH[textureIndex-1];
+    glTranslatef(0.5f,0.5f,0.0f);
+    float wImg = textureImage[textureIndex-1].Width;
+    float hImg = textureImage[textureIndex-1].Height;
     if (wImg < hImg) {
-        glScalef(1.0f,(1.f*wImg)/hImg,1.0f);//Scale
+        glScalef(1.0f,(1.f*wImg)/hImg,1.0f);
     } else {
-        glScalef((1.f*hImg)/wImg,1.0f,1.0f);//Scale
+        glScalef((1.f*hImg)/wImg,1.0f,1.0f);
     }
-
-    glFrustum(-0.035,0.035,-0.035,0.035,0.02,2.0);//MV for light map
-    //glTranslatef(0.0f,0.0f,-1.0f);
-    glMultMatrixf(inverseMV.getMatrix());//Inverse ModelView
+    glFrustum(-0.035,0.035,-0.035,0.035,0.02,2.0);
+    glMultMatrixf(inverseMV.getMatrix());
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -463,13 +456,8 @@ void myReshape(int w, int h) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-void timerFunction(int arg){
-    glutTimerFunc(reDrawRate,timerFunction,0);
-    textureModel->MemoryLoad();
-    display();
-}
+void loadLightMapTexture(Model_IMG* model, string file) {
 
-void loadLightMapTexture(const char *name) {
     GLfloat eyePlaneS[] =  {1.0f, 0.0f, 0.0f, 0.0f};
     GLfloat eyePlaneT[] =  {0.0f, 1.0f, 0.0f, 0.0f};
     GLfloat eyePlaneR[] =  {0.0f, 0.0f, 1.0f, 0.0f};
@@ -494,66 +482,7 @@ void loadLightMapTexture(const char *name) {
     glEnable(GL_TEXTURE_GEN_R);
     glEnable(GL_TEXTURE_GEN_Q);
 
-    FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
-    FIBITMAP *dib(0);
-    BYTE* bits(0);
-    unsigned int width(0), height(0);
-    GLuint gl_texID;
-
-    fif = FreeImage_GetFileType(name, 0);
-    if(fif == FIF_UNKNOWN)
-        fif = FreeImage_GetFIFFromFilename(name);
-    if(fif == FIF_UNKNOWN)
-        printf("Formato de imagen no reconocido.");
-
-    if(FreeImage_FIFSupportsReading(fif))
-        dib = FreeImage_Load(fif, name);
-    if(!dib)
-        printf("Error al cargar la imagen.");
-
-    bits = FreeImage_GetBits(dib);
-    width = FreeImage_GetWidth(dib);
-    height = FreeImage_GetHeight(dib);
-    if((bits == 0) || (width == 0) || (height == 0))
-        printf("Error en la imagen.");
-
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812D);
-    glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderColor);
-    gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,width,height,GL_RGB,GL_UNSIGNED_BYTE,bits);
-
-    textureW[textureIndex-1] = width;
-    textureH[textureIndex-1] = height;
-
-    FreeImage_Unload(dib);
-}
-
-void loadLightMapTexture(Model_IMG* model) {
-    GLfloat eyePlaneS[] =  {1.0f, 0.0f, 0.0f, 0.0f};
-    GLfloat eyePlaneT[] =  {0.0f, 1.0f, 0.0f, 0.0f};
-    GLfloat eyePlaneR[] =  {0.0f, 0.0f, 1.0f, 0.0f};
-    GLfloat eyePlaneQ[] =  {0.0f, 0.0f, 0.0f, 1.0f};
-    GLfloat borderColor[] = {1.f, 1.f, 1.f, 1.0f};
-
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
-    glTexEnvi(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_MODULATE);
-
-    glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-    glTexGenfv(GL_S,GL_EYE_PLANE,eyePlaneS);
-    glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-    glTexGenfv(GL_T,GL_EYE_PLANE,eyePlaneT);
-    glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-    glTexGenfv(GL_R,GL_EYE_PLANE,eyePlaneR);
-    glTexGeni(GL_Q,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-    glTexGenfv(GL_Q,GL_EYE_PLANE,eyePlaneQ);
-
-    glEnable(GL_TEXTURE_GEN_S);
-    glEnable(GL_TEXTURE_GEN_T);
-    glEnable(GL_TEXTURE_GEN_R);
-    glEnable(GL_TEXTURE_GEN_Q);
+    model->Load(file);
 
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -561,14 +490,54 @@ void loadLightMapTexture(Model_IMG* model) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812D);
     glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderColor);
     gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_RGB,GL_UNSIGNED_BYTE,model->Pixels);
+}
 
-    textureW[textureIndex-1] = model->Width;
-    textureH[textureIndex-1] = model->Height;
+vector<string> getImageFiles() {
+    vector<string> files;
+    ofDirectory directory("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\img");
+    directory.allowExt("png");
+    directory.allowExt("bmp");
+    directory.allowExt("jpg");
+    directory.listDir();
+    for(int i = 0; i < directory.numFiles(); i++) {
+        files.push_back(directory.getPath(i));
+    }
+    return files;
+}
+
+vector<string> getMeshFiles() {
+    vector<string> files;
+    ofDirectory directory("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\mesh");
+    directory.allowExt("ply");
+    directory.listDir();
+    for(int i = 0; i < directory.numFiles(); i++) {
+        files.push_back(directory.getPath(i));
+    }
+    return files;
 }
 
 int main(int argc, char **argv) {
 
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
+    glutInitWindowSize(500,500);
+    glutInitWindowPosition(300, 300);
+    glutCreateWindow("Calibration project");
+    glutReshapeFunc(myReshape);
+    glutDisplayFunc(display);
+    glutMouseFunc(mouse);
+    glutMotionFunc(mouseMove);
+    glutKeyboardFunc(keys);
+    glEnable(GL_DEPTH_TEST);
+
+    /* Mesh */
+    textureModel = new Model_PLY();
+    vector<string> files3D = getMeshFiles();
+    textureModel->Load(files3D[0]);
+
     /* Texture */
+    vector<string> files2D = getImageFiles();
+    textureCount = files2D.size();
     textureMaster = new MasterTexture[textureCount + 1];
     faces = new int*[textureCount + 1];
     for (int i = 0; i <= textureCount; i++) {
@@ -578,24 +547,12 @@ int main(int argc, char **argv) {
         }
         faces[i] = new int[facesCount];
     }
-    textureW = new int[textureCount];
-    textureH = new int[textureCount];
 
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
-    glutInitWindowSize(500,500);
-    glutInitWindowPosition(300, 300);
-    glutCreateWindow("Calibration project");
-    glutTimerFunc(reDrawRate,timerFunction,0);
-    glutReshapeFunc(myReshape);
-    glutDisplayFunc(display);
-    glutMouseFunc(mouse);
-    glutMotionFunc(mouseMove);
-    glutKeyboardFunc(keys);
-    glEnable(GL_DEPTH_TEST);
+    /* Settings and files */
+    settings = new MasterSettings(textureCount, textureMaster, 0, NULL);
 
-    glGenTextures(3, textures);
-
+    /* Texture config */
+    glGenTextures(textureCount, textures);
     glActiveTextureARB       = (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
     glMultiTexCoord2fARB     = (PFNGLMULTITEXCOORD2FARBPROC)wglGetProcAddress("glMultiTexCoord2fARB");
     glClientActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
@@ -603,39 +560,23 @@ int main(int argc, char **argv) {
     glGenQueriesARB = (PFNGLGENQUERIESARBPROC)wglGetProcAddress("glGenQueriesARB");
     glEndQueryARB = (PFNGLENDQUERYARBPROC)wglGetProcAddress("glEndQueryARB");
     glGetQueryObjectuivARB = (PFNGLGETQUERYOBJECTUIVPROC)wglGetProcAddress("glGetQueryObjectuivARB");
-
-    if( !glActiveTextureARB || !glMultiTexCoord2fARB || !glClientActiveTextureARB )
-    {
-        MessageBox(NULL,"One or more GL_ARB_multitexture functions were not found",
-            "ERROR",MB_OK|MB_ICONEXCLAMATION);
+    if( !glActiveTextureARB || !glMultiTexCoord2fARB || !glClientActiveTextureARB ) {
+        MessageBox(NULL,"One or more GL_ARB_multitexture functions were not found", "ERROR",MB_OK|MB_ICONEXCLAMATION);
         return -1;
     }
 
-    /* Settings and files */
-    settings = new MasterSettings(textureCount, textureMaster, 0, NULL);
-
-    textureModel = new Model_PLY();
-    //textureModel->MemoryLoad();
-    textureModel->Load("mesh/antMesh.ply");
-
-    Model_IMG* imageModel = new Model_IMG();
-    imageModel->MemoryLoad();
-    loadLightMapTexture(imageModel);
-
-    /*vector<string> textureFiles;
-    textureFiles.push_back("img/texture1.bmp");
-    textureFiles.push_back("img/texture2.jpg");
-    textureFiles.push_back("img/texture3.jpg");
+    /* LoadImages */
+    textureImage = new Model_IMG[textureCount];
     for (int i = 0; i < textureCount; i++) {
         glActiveTextureARB(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, textures[i]);
         glDisable(GL_TEXTURE_2D);
         textureIndex = i + 1;
-        loadLightMapTexture(textureFiles[i].c_str());
-    }*/
-
+        loadLightMapTexture(&textureImage[i], files2D[i]);
+    }
     textureIndex = 0;
 
+    /* Start windows */
     writeText();
     glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
     glutMainLoop();

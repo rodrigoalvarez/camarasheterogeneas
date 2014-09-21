@@ -46,40 +46,26 @@ void Model_IMG::MemoryLoad() {
     }
 }
 
-void Model_IMG::Load(char* filename) {
+void Model_IMG::Load(string filename) {
 
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
     FIBITMAP *dib(0);
-    BYTE* bits(0);
-    unsigned int width(0), height(0);
     GLuint gl_texID;
 
-    fif = FreeImage_GetFileType(filename, 0);
+    fif = FreeImage_GetFileType(filename.c_str(), 0);
     if(fif == FIF_UNKNOWN)
-        fif = FreeImage_GetFIFFromFilename(filename);
+        fif = FreeImage_GetFIFFromFilename(filename.c_str());
     if(fif == FIF_UNKNOWN)
         cout << "Formato de imagen no reconocido." << endl;
     if(FreeImage_FIFSupportsReading(fif))
-        dib = FreeImage_Load(fif, filename);
+        dib = FreeImage_Load(fif, filename.c_str());
     if(!dib)
         cout << "Error al cargar la imagen." << endl;
 
-    bits = FreeImage_GetBits(dib);
-    width = FreeImage_GetWidth(dib);
-    height = FreeImage_GetHeight(dib);
-    if((bits == 0) || (width == 0) || (height == 0))
+    Pixels = (char*)FreeImage_GetBits(dib);
+    Width = FreeImage_GetWidth(dib);
+    Height = FreeImage_GetHeight(dib);
+    if((Pixels == 0) || (Width == 0) || (Height == 0))
         cout << "Error en la imagen." << endl;
-
-
-    // esto esta mal falta un x 3
-
-    pixels = new char[width * height];
-    for (int i = 0; i < width * height; i++) {
-        pixels[i] = bits[i];
-    }
-    FreeImage_Unload(dib);
-    width = width;
-    Height = height;
-    Pixels = pixels;
     Id++;
 }
