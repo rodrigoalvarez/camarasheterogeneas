@@ -1340,7 +1340,7 @@
 	<wchar.h>
 	<inttypes.h>
 
-1411245516 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelply.cpp
+1411253989 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelply.cpp
 	"modelPly.h"
 	<vector>
 	<limits>
@@ -1396,7 +1396,7 @@
 	<string>
 	<assert.h>
 
-1411253798 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
+1411313450 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
 	"modelPly.h"
 	<stdlib.h>
 	<windows.h>
@@ -1407,6 +1407,44 @@
 	<fstream>
 	<sstream>
 	<iostream>
+	"ofxXmlSettings.h"
 	"FreeImage.h"
 	"matrix4x4.h"
+
+1361272880 source:c:\openframeworks\addons\ofxxmlsettings\libs\tinyxml.cpp
+	<ctype.h>
+	<sstream>
+	<iostream>
+	"tinyxml.h"
+
+1361272880 c:\openframeworks\addons\ofxxmlsettings\libs\tinyxml.h
+	<ctype.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<assert.h>
+	<string>
+	<iostream>
+	<sstream>
+	"tinystr.h"
+
+1361272880 source:c:\openframeworks\addons\ofxxmlsettings\libs\tinyxmlerror.cpp
+	"tinyxml.h"
+
+1361272880 source:c:\openframeworks\addons\ofxxmlsettings\libs\tinyxmlparser.cpp
+	<ctype.h>
+	<stddef.h>
+	"tinyxml.h"
+	<windows.h>
+
+1361272880 source:c:\openframeworks\addons\ofxxmlsettings\src\ofxxmlsettings.cpp
+	"ofxXmlSettings.h"
+	<vector>
+	<string>
+	<iostream>
+
+1361272880 c:\openframeworks\addons\ofxxmlsettings\src\ofxxmlsettings.h
+	"ofMain.h"
+	<string.h>
+	"tinyxml.h"
 
