@@ -77,7 +77,7 @@ void MasterSettings::loadTextureCalibration () {
 
 void MasterSettings::saveTextureCalibration () {
 
-    for (int i = 1; i < textureCount; i++) {
+    for (int i = 1; i <= textureCount; i++) {
         MasterTexture* masterNow = &textureMaster[i];
         std::stringstream fileName;
         fileName << "texture" << i << ".txt";
