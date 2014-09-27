@@ -1,3 +1,6 @@
+#ifndef MODELXYZ_H
+#define MODELXYZ_H
+
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,3 +28,4 @@ class Model_XYZ
 		float AlfaCoord;
 };
 
+#endif

@@ -1,3 +1,6 @@
+#ifndef MODELPLY_H
+#define MODELPLY_H
+
 #include "ofxSharedMemory.h"
 #include <windows.h>
 #include <stdio.h>
@@ -23,7 +26,7 @@ class Model_PLY
 		Model_PLY();
 		void MemoryLoadCalibrator(FaceStruct* faces, int numberFaces);
 		void MemoryLoad();
-		void Load(char *filename);
+		void Load(string filename);
 		float* calculateNormal( float *coord1, float *coord2, float *coord3 );
 
 		float* Faces_Quads;
@@ -41,4 +44,6 @@ class Model_PLY
 		float MaxCoord;
 		float AlfaCoord;
 };
+
+#endif
 

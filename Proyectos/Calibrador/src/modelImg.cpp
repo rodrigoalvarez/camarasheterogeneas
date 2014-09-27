@@ -12,7 +12,7 @@ Model_IMG::Model_IMG() {
     Id = 0;
 }
 
-void Model_IMG::MemoryLoad(int nowId) {
+void Model_IMG::MemoryLoad() {
 
     memoryMappedImageId.setup("ImageId", sizeof(int), false);
     isConnectedId = memoryMappedImageId.connect();
@@ -29,54 +29,43 @@ void Model_IMG::MemoryLoad(int nowId) {
     if (isConnectedHPixels) {
         hPixels = memoryMappedImageSizeH.getData();
     }
-    memoryMappedImage.setup("ImagePixels", sizeof(char) * (*wPixels) * (*hPixels), false);
+    memoryMappedImage.setup("ImagePixels", sizeof(char) * (*wPixels) * (*hPixels) * 3, false);
     isConnectedPixels = memoryMappedImage.connect();
     if (isConnectedPixels) {
         pixels = memoryMappedImage.getData();
     }
 
     if (isConnectedId && isConnectedWPixels && isConnectedHPixels && isConnectedPixels &&
-        *id > 0 && *id != nowId) {
+        *id > 0 && *id != Id) {
 
         Id = *id;
         Width = *wPixels;
         Height = *hPixels;
-        Pixels = new char[Width * Height];
-        memcpy(Pixels, pixels, sizeof(char) * Width * Height);
+        Pixels = new char[Width * Height * 3];
+        memcpy(Pixels, pixels, sizeof(char) * Width * Height * 3);
     }
 }
 
-void Model_IMG::Load(char* filename) {
+void Model_IMG::Load(string filename) {
 
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
     FIBITMAP *dib(0);
-    BYTE* bits(0);
-    unsigned int width(0), height(0);
     GLuint gl_texID;
 
-    fif = FreeImage_GetFileType(filename, 0);
+    fif = FreeImage_GetFileType(filename.c_str(), 0);
     if(fif == FIF_UNKNOWN)
-        fif = FreeImage_GetFIFFromFilename(filename);
+        fif = FreeImage_GetFIFFromFilename(filename.c_str());
     if(fif == FIF_UNKNOWN)
         cout << "Formato de imagen no reconocido." << endl;
     if(FreeImage_FIFSupportsReading(fif))
-        dib = FreeImage_Load(fif, filename);
+        dib = FreeImage_Load(fif, filename.c_str());
     if(!dib)
         cout << "Error al cargar la imagen." << endl;
 
-    bits = FreeImage_GetBits(dib);
-    width = FreeImage_GetWidth(dib);
-    height = FreeImage_GetHeight(dib);
-    if((bits == 0) || (width == 0) || (height == 0))
+    Pixels = (char*)FreeImage_GetBits(dib);
+    Width = FreeImage_GetWidth(dib);
+    Height = FreeImage_GetHeight(dib);
+    if((Pixels == 0) || (Width == 0) || (Height == 0))
         cout << "Error en la imagen." << endl;
-
-    pixels = new char[width * height];
-    for (int i = 0; i < width * height; i++) {
-        pixels[i] = bits[i];
-    }
-    FreeImage_Unload(dib);
-    width = width;
-    Height = height;
-    Pixels = pixels;
     Id++;
 }

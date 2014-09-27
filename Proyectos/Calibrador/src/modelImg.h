@@ -23,8 +23,8 @@ class Model_IMG
         bool isConnectedHPixels;
 
 		Model_IMG();
-		void MemoryLoad(int id);
-		void Load(char *filename);
+		void MemoryLoad();
+		void Load(string filename);
 
         int Id;
 		char* Pixels;

@@ -2,11 +2,11 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="reproductorUnido" />
+		<Option title="Calibrador" />
 		<Option makefile="makefile" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="addons\;src\;addons\ofxSharedMemory\src\;" />
+		<Option virtualFolders="addons\;addons\ofxXmlSettings\;addons\ofxSharedMemory\src\;src\;addons\ofxXmlSettings\src\;addons\ofxXmlSettings\lib\;" />
 		<Build>
 			<Target title="release">
 				<Option output="bin/$(PROJECT_NAME)" prefix_auto="1" extension_auto="1" />
@@ -75,6 +75,8 @@
 			<Add directory="../../../../../openframeworks/libs/cairo/include/cairo" />
 			<Add directory="../../../../../openframeworks/addons/ofxSharedMemory/libs" />
 			<Add directory="../../../../../openframeworks/addons/ofxSharedMemory/src" />
+			<Add directory="../../../../../openframeworks/addons/ofxXmlSettings/src" />
+			<Add directory="../../../../../openframeworks/addons/ofxXmlSettings/libs" />
 		</Compiler>
 		<Linker>
 			<Add library="..\..\..\..\..\openframeworks\libs\FreeImage\lib\win_cb\FreeImage.lib" />
@@ -120,11 +122,47 @@
 		<Unit filename="../../../../../openframeworks/addons/ofxSharedMemory/src/ofxSharedMemory.h">
 			<Option virtualFolder="addons/ofxSharedMemory/src" />
 		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/libs/tinyxml.cpp">
+			<Option virtualFolder="addons/ofxXmlSettings/lib/" />
+		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/libs/tinyxml.h">
+			<Option virtualFolder="addons/ofxXmlSettings/lib/" />
+		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/libs/tinyxmlerror.cpp">
+			<Option virtualFolder="addons/ofxXmlSettings/lib/" />
+		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/libs/tinyxmlparser.cpp">
+			<Option virtualFolder="addons/ofxXmlSettings/lib/" />
+		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/src/ofxXmlSettings.cpp">
+			<Option virtualFolder="addons/ofxXmlSettings/src/" />
+		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/src/ofxXmlSettings.h">
+			<Option virtualFolder="addons/ofxXmlSettings/src/" />
+		</Unit>
 		<Unit filename="src/FreeImage.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="src/MeshMain.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="src/MeshMain.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="src/TextureMain.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="src/TextureMain.h">
 			<Option virtualFolder="src/" />
 		</Unit>
 		<Unit filename="src/main.cpp">
 			<Option virtualFolder="src" />
+		</Unit>
+		<Unit filename="src/mainImage.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="src/mainMesh.h">
+			<Option virtualFolder="src/" />
 		</Unit>
 		<Unit filename="src/masterPly.cpp">
 			<Option virtualFolder="src/" />
@@ -142,6 +180,12 @@
 			<Option virtualFolder="src/" />
 		</Unit>
 		<Unit filename="src/matrix4x4.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="src/modelImg.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="src/modelImg.h">
 			<Option virtualFolder="src/" />
 		</Unit>
 		<Unit filename="src/modelPly.cpp">

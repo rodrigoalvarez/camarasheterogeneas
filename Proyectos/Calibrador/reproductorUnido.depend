@@ -1299,7 +1299,7 @@
 	<vcg/complex/algorithms/smooth.h>
 	<vector>
 
-1410909682 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.cpp
+1411774374 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.cpp
 	"masterSettings.h"
 	<stdlib.h>
 	<string>
@@ -1321,14 +1321,14 @@
 1410909682 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\matrix4x4.cpp
 	"matrix4x4.h"
 
-1411243342 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelimg.cpp
+1411333125 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelimg.cpp
 	"modelImg.h"
 	"FreeImage.h"
 	<vector>
 	<limits>
 	<cmath>
 
-1411240444 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelimg.h
+1411333125 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelimg.h
 	"ofxSharedMemory.h"
 	<windows.h>
 	<stdio.h>
@@ -1340,13 +1340,13 @@
 	<wchar.h>
 	<inttypes.h>
 
-1411253989 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelply.cpp
+1411335217 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelply.cpp
 	"modelPly.h"
 	<vector>
 	<limits>
 	<cmath>
 
-1411253650 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelply.h
+1411693180 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelply.h
 	"ofxSharedMemory.h"
 	<windows.h>
 	<stdio.h>
@@ -1365,7 +1365,7 @@
 	<limits>
 	<cmath>
 
-1410909682 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelxyz.h
+1411693302 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelxyz.h
 	<windows.h>
 	<stdio.h>
 	<string.h>
@@ -1396,19 +1396,16 @@
 	<string>
 	<assert.h>
 
-1411313450 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
-	"modelPly.h"
-	<stdlib.h>
-	<windows.h>
+1411774448 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
+	"MeshMain.h"
+	"TextureMain.h"
 	<GL/glut.h>
-	"modelXYZ.h"
+	"masterPly.h"
 	"masterSettings.h"
 	<vector>
 	<fstream>
 	<sstream>
 	<iostream>
-	"ofxXmlSettings.h"
-	"FreeImage.h"
 	"matrix4x4.h"
 
 1361272880 source:c:\openframeworks\addons\ofxxmlsettings\libs\tinyxml.cpp
@@ -1447,4 +1444,74 @@
 	"ofMain.h"
 	<string.h>
 	"tinyxml.h"
+
+1411437150 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mainmesh.cpp
+	"modelPly.h"
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"modelXYZ.h"
+	"masterPly.h"
+	"masterSettings.h"
+	<vector>
+	<fstream>
+	<sstream>
+	<iostream>
+	"ofxXmlSettings.h"
+	"matrix4x4.h"
+
+1411436855 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mainmesh.cpp
+	"modelPly.h"
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"modelXYZ.h"
+	"masterPly.h"
+	"masterSettings.h"
+	<vector>
+	<fstream>
+	<sstream>
+	<iostream>
+	"ofxXmlSettings.h"
+	"matrix4x4.h"
+
+1411439703 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mainmesh.h
+	"modelPly.h"
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"modelXYZ.h"
+	"masterPly.h"
+	"masterSettings.h"
+	<vector>
+	<fstream>
+	<sstream>
+	<iostream>
+	"ofxXmlSettings.h"
+	"matrix4x4.h"
+
+1411693461 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mainimage.cpp
+
+1411774468 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\meshmain.cpp
+	"MeshMain.h"
+
+1411772462 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\meshmain.h
+	"modelPly.h"
+	<stdlib.h>
+	<windows.h>
+	"masterSettings.h"
+	"modelXYZ.h"
+	"ofxXmlSettings.h"
+
+1411772104 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\texturemain.h
+	"modelPly.h"
+	"modelImg.h"
+	<stdlib.h>
+	<windows.h>
+	"masterSettings.h"
+	"modelXYZ.h"
+	"ofxXmlSettings.h"
+
+1411698012 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\texturemain.cpp
+	"TextureMain.h"
 
