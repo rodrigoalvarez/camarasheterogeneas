@@ -4,6 +4,7 @@
 #include <string.h>
 #include <cmath>
 #include <string>
+#include "FreeImage.h"
 
 class Model_IMG
 {
@@ -27,7 +28,7 @@ class Model_IMG
 		void Load(string filename);
 
         int Id;
-		char* Pixels;
+		unsigned char* Pixels;
 		int Width;
 		int Height;
 };
