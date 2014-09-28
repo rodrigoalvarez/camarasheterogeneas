@@ -5,60 +5,51 @@
 
 
 using namespace std;
+int masterMeshIndex = 0;
 
 
 Model_PLY::Model_PLY() {
-    Id == 0;
+    masterMeshIndex += 100000;
+    Id = masterMeshIndex;
 }
 
-float* Model_PLY::calculateNormal( float *coord1, float *coord2, float *coord3 )
-{
-	/* calculate Vector1 and Vector2 */
-	float va[3], vb[3], vr[3], val;
-	va[0] = coord1[0] - coord2[0];
-	va[1] = coord1[1] - coord2[1];
-	va[2] = coord1[2] - coord2[2];
+void Model_PLY::MemoryLoad() {
 
-	vb[0] = coord1[0] - coord3[0];
-	vb[1] = coord1[1] - coord3[1];
-	vb[2] = coord1[2] - coord3[2];
-
-	/* cross product */
-	vr[0] = va[1] * vb[2] - vb[1] * va[2];
-	vr[1] = vb[0] * va[2] - va[0] * vb[2];
-	vr[2] = va[0] * vb[1] - vb[0] * va[1];
-
-	/* normalization factor */
-	val = sqrt( vr[0]*vr[0] + vr[1]*vr[1] + vr[2]*vr[2] );
-
-	float* norm = new float[3];
-	norm[0] = vr[0]/val;
-	norm[1] = vr[1]/val;
-	norm[2] = vr[2]/val;
-
-	return norm;
-}
-
-void Model_PLY::MemoryLoad()
-{
-    memoryMappedMeshId.setup("MeshId", sizeof(int), false);
+    cout << "test1" << endl;
+    std::stringstream key1;
+    key1 << "MeshId" << Id / 100000;
+    cout << key1.str() << endl;
+    memoryMappedMeshId.setup(key1.str(), sizeof(int), false);
     isConnectedId = memoryMappedMeshId.connect();
     if (isConnectedId) {
         id = memoryMappedMeshId.getData();
+        cout << Id << "c1" << endl;
     }
-    memoryMappedMeshSize.setup("MeshNumberFaces", sizeof(int), false);
+
+    std::stringstream key2;
+    key2 << "MeshNumberFaces" << Id / 100000;
+    cout << key2.str() << endl;
+    memoryMappedMeshSize.setup(key2.str(), sizeof(int), false);
     isConnectedNFaces = memoryMappedMeshSize.connect();
     if (isConnectedNFaces) {
         numberFaces = memoryMappedMeshSize.getData();
+        cout << Id << "c2" << endl;
     }
-    memoryMappedMesh.setup("MeshFaces", sizeof(FaceStruct) * (*numberFaces), false);
+
+    std::stringstream key3;
+    key3 << "MeshFaces" << Id / 100000;
+    cout << key3.str() << endl;
+    memoryMappedMesh.setup(key3.str(), sizeof(FaceStruct) * (*numberFaces), false);
     isConnectedFaces = memoryMappedMesh.connect();
     if (isConnectedFaces) {
         faces = memoryMappedMesh.getData();
+        cout << Id << "c3" << endl;
     }
 
-    if (isConnectedId && isConnectedNFaces && isConnectedFaces && *id != Id && *numberFaces > 0) {
+    if (isConnectedId && isConnectedNFaces && isConnectedFaces &&
+        *id > Id && *numberFaces > 0) {
 
+        cout << Id << "x1" << endl;
         Id = *id;
         TotalConnectedTriangles = (*numberFaces) * 3;
         TotalPoints = (*numberFaces) / 3;
@@ -93,29 +84,55 @@ void Model_PLY::MemoryLoad()
         for (int i = 0; i < TotalFaces * 9; i++) {
             Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
         }
+        cout << Id << "x2" << endl;
     }
 }
 
-void Model_PLY::Load(string filename)
-{
+float* calculateNormal( float *coord1, float *coord2, float *coord3 ) {
+
+	/* calculate Vector1 and Vector2 */
+	float va[3], vb[3], vr[3], val;
+	va[0] = coord1[0] - coord2[0];
+	va[1] = coord1[1] - coord2[1];
+	va[2] = coord1[2] - coord2[2];
+
+	vb[0] = coord1[0] - coord3[0];
+	vb[1] = coord1[1] - coord3[1];
+	vb[2] = coord1[2] - coord3[2];
+
+	/* cross product */
+	vr[0] = va[1] * vb[2] - vb[1] * va[2];
+	vr[1] = vb[0] * va[2] - va[0] * vb[2];
+	vr[2] = va[0] * vb[1] - vb[0] * va[1];
+
+	/* normalization factor */
+	val = sqrt( vr[0]*vr[0] + vr[1]*vr[1] + vr[2]*vr[2] );
+
+	float* norm = new float[3];
+	norm[0] = vr[0]/val;
+	norm[1] = vr[1]/val;
+	norm[2] = vr[2]/val;
+
+	return norm;
+}
+
+void Model_PLY::Load(string filename) {
+
 	TotalConnectedTriangles = 0;
 	TotalPoints = 0;
 
 	char* pch = strstr(filename.c_str(),".ply");
 
-	if (pch != NULL)
-	{
+	if (pch != NULL) {
 		FILE* file = fopen(filename.c_str(),"r");
 
 		fseek(file,0,SEEK_END);
 		long fileSize = ftell(file);
 
-		try
-		{
+		try {
 			Vertex_Buffer = (float*) malloc (ftell(file));
 		}
-		catch (char* )
-		{
+		catch (char* ) {
 			return;
 		}
 		if (Vertex_Buffer == NULL) return;
@@ -124,19 +141,17 @@ void Model_PLY::Load(string filename)
 		Faces_Triangles = (float*) malloc(fileSize*sizeof(float));
 		Normals  = (float*) malloc(fileSize*sizeof(float));
 
-		if (file)
-		{
+		if (file) {
 			int i = 0;
 			int triangle_index = 0;
 			int normal_index = 0;
 			char buffer[1000];
 
-			fgets(buffer,300,file);			// ply
+			fgets(buffer,300,file);
 
 			// READ HEADER
 			// Find number of vertexes
-			while (  strncmp( "element vertex", buffer,strlen("element vertex")) != 0  )
-			{
+			while (  strncmp( "element vertex", buffer,strlen("element vertex")) != 0  ) {
 				fgets(buffer,300,file);			// format
 			}
 			strcpy(buffer, buffer+strlen("element vertex"));
@@ -144,23 +159,20 @@ void Model_PLY::Load(string filename)
 
 			// Find number of vertexes
 			fseek(file,0,SEEK_SET);
-			while (  strncmp( "element face", buffer,strlen("element face")) != 0  )
-			{
+			while (  strncmp( "element face", buffer,strlen("element face")) != 0  ) {
 				fgets(buffer,300,file);			// format
 			}
 			strcpy(buffer, buffer+strlen("element face"));
 			sscanf(buffer,"%i", &TotalFaces);
 
 			// go to end_header
-			while (  strncmp( "end_header", buffer,strlen("end_header")) != 0  )
-			{
+			while (  strncmp( "end_header", buffer,strlen("end_header")) != 0  ) {
 				fgets(buffer,300,file);			// format
 			}
 
 			// read verteces
-			i =0;
-			for (int iterator = 0; iterator < TotalPoints; iterator++)
-			{
+			i = 0;
+			for (int iterator = 0; iterator < TotalPoints; iterator++) {
 				fgets(buffer,300,file);
 
 				sscanf(buffer,"%f %f %f", &Vertex_Buffer[i], &Vertex_Buffer[i+1], &Vertex_Buffer[i+2]);
@@ -169,19 +181,15 @@ void Model_PLY::Load(string filename)
 
 			i = 0;
 			int count = 0;
-			for (int iterator = 0; iterator < TotalFaces; iterator++)
-			{
+			for (int iterator = 0; iterator < TotalFaces; iterator++) {
 				fgets(buffer,300,file);
 
-				if (buffer[0] == '3')
-				{
+				if (buffer[0] == '3') {
 					count++;
 					int vertex1 = 0, vertex2 = 0, vertex3 = 0;
 
 					buffer[0] = ' ';
 					sscanf(buffer,"%i%i%i", &vertex1,&vertex2,&vertex3 );
-
-					//printf("%f %f %f ", Vertex_Buffer[3*vertex1], Vertex_Buffer[3*vertex1+1], Vertex_Buffer[3*vertex1+2]);
 
 					Faces_Triangles[triangle_index] = Vertex_Buffer[3*vertex1];
 					Faces_Triangles[triangle_index+1] = Vertex_Buffer[3*vertex1+1];
@@ -206,7 +214,7 @@ void Model_PLY::Load(string filename)
 					Normals[normal_index+5] = norm[2];
 					Normals[normal_index+6] = norm[0];
 					Normals[normal_index+7] = norm[1];
-					Normals[normal_index+8] = norm[2];/**/
+					Normals[normal_index+8] = norm[2];
 
 					normal_index += 9;
 					triangle_index += 9;

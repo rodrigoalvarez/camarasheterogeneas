@@ -8,7 +8,7 @@
 
 class Model_IMG
 {
-	public:
+	private:
 	    ofxSharedMemory<int*> memoryMappedImageId;
         int* id;
         ofxSharedMemory<char*> memoryMappedImage;
@@ -23,6 +23,7 @@ class Model_IMG
         bool isConnectedWPixels;
         bool isConnectedHPixels;
 
+	public:
 		Model_IMG();
 		void MemoryLoad();
 		void Load(string filename);

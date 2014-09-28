@@ -84,13 +84,7 @@ void draw2DElement(int index) {
 
 void draw2DView() {
     for (int i = 0; i < textureModel->TotalFaces; i++) {
-        int hits = 0;
-        for (int k = 1; k <= textureCount; k++) {
-            hits = max(hits, faces[k][i]);
-        }
-        if (hits > 0 && faces[textureIndex][i] == hits) {
-            draw2DElement(i);
-        }
+        draw2DElement(i);
     }
 }
 

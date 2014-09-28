@@ -8,26 +8,26 @@
 
 class Model_PLY
 {
-	public:
+	private:
 	    ofxSharedMemory<int*> memoryMappedMeshId;
         int* id;
-        ofxSharedMemory<FaceStruct*> memoryMappedMesh;
-        FaceStruct* faces;
 	    ofxSharedMemory<int*> memoryMappedMeshSize;
         int* numberFaces;
+        ofxSharedMemory<FaceStruct*> memoryMappedMesh;
+        FaceStruct* faces;
 
         bool isConnectedId;
-        bool isConnectedFaces;
         bool isConnectedNFaces;
-
-		Model_PLY();
-		void MemoryLoad();
-		void Load(string filename);
-		float* calculateNormal( float *coord1, float *coord2, float *coord3 );
+        bool isConnectedFaces;
 
 		float* Faces_Quads;
 		float* Vertex_Buffer;
 		float* Normals;
+
+	public:
+		Model_PLY();
+		void MemoryLoad();
+		void Load(string filename);
 
 		float* Faces_Triangles;
 

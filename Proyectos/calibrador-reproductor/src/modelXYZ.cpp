@@ -74,7 +74,7 @@ int Model_XYZ::Load(string fileName, float alfa) {
         }
     }
 
-    /*if (alfa == 0) {
+    if (alfa == 0) {
         AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
     } else {
         AlfaCoord = alfa;
@@ -94,7 +94,7 @@ int Model_XYZ::Load(string fileName, float alfa) {
             Points[i] = Points[i] - deltaZ;
         }
         Points[i] = (Points[i] / AlfaCoord) * 10;
-    }*/
+    }
 
 	return TotalPoints;
 }
@@ -117,9 +117,6 @@ int Model_XYZ::Include(Model_XYZ* model, GLdouble* m) {
 void Model_XYZ::ToImage() {
 
     tt->start();
-    float minX = std::numeric_limits<float>::max();
-    float maxX = std::numeric_limits<float>::min();
-    //cout << minX << " | " << maxX << endl;
 
     for (int i = 0; i < TotalPoints * 3; i += 3) {
         int x = 1000000.f + Points[i] * 10.f;
@@ -129,7 +126,6 @@ void Model_XYZ::ToImage() {
         PixelsX.push_back(xA);
         PixelsX.push_back(xB);
         PixelsX.push_back(xC);
-        //cout << x << " | " << (int)xA << " | " << (int)xB << " | " << (int)xC << endl;
 
         int y = 1000000.f + Points[i+1] * 10.f;
         unsigned char yA = y / (256*256);
@@ -186,9 +182,7 @@ void Model_XYZ::Diff() {
     for (int i = 0; i < TotalPoints * 3; i++) {
         float fOld = Points[i];
         float fNew = NewPoints[i];
-        //cout << fOld << " | " << fNew << endl;
     }
-    cout << "x" << endl;
 }
 
 int Model_XYZ::Clear() {
