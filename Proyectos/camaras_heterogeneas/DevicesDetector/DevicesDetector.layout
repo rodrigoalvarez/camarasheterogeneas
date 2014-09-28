@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="release" />
+	<File name="..\..\..\..\addons\ofxOpenNI\src\ofxOpenNIUtils.h" open="0" top="0" tabpos="0">
+		<Cursor position="1291" topLine="16" />
+	</File>
+	<File name="src\main.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="220" topLine="0" />
+	</File>
+	<File name="src\testApp.cpp" open="0" top="0" tabpos="2">
+		<Cursor position="1826" topLine="45" />
+	</File>
+	<File name="src\testApp.h" open="0" top="0" tabpos="1">
+		<Cursor position="687" topLine="4" />
+	</File>
+</CodeBlocks_layout_file>
