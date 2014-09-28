@@ -19,11 +19,12 @@ class Model_PLY
         string facesMemoryKey = "Faces";
         int facesMemorySize;
 
-
         bool isConnected;
 
+        HINSTANCE shareMeshLibrary;
+
 		Model_PLY();
-		void MemoryLoad(int numberFacesActual);
+		int MemoryLoad(int numberFacesActual);
 		int Load(char *filename);
 		float* calculateNormal( float *coord1, float *coord2, float *coord3 );
 

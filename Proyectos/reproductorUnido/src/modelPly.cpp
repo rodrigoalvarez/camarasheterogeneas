@@ -9,7 +9,11 @@ using namespace std;
 
 Model_PLY::Model_PLY()
 {
-
+    char* dllName = "C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\MemoriaCompartida\\bin\\MemoriaCompartida.dll";
+    shareMeshLibrary =  LoadLibraryA(dllName);
+    if (!shareMeshLibrary) {
+        std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
+    }
 }
 
 
@@ -41,28 +45,21 @@ float* Model_PLY::calculateNormal( float *coord1, float *coord2, float *coord3 )
 	return norm;
 }
 
-void Model_PLY::MemoryLoad(int numberFacesActual)
+typedef void (*f_leerMalla)(int* numberFaces, FaceStruct** faces);
+
+int Model_PLY::MemoryLoad(int numberFacesActual)
 {
-    nFacesMemoryMappedFile.setup(nFacesMemoryKey, nFacesMemorySize, false);
-    isConnected = nFacesMemoryMappedFile.connect();
-    if(isConnected)
-	numberFaces = nFacesMemoryMappedFile.getData();
+
+    f_leerMalla leerMalla = (f_leerMalla)GetProcAddress(shareMeshLibrary, "leerMemoria");
+    numberFaces =  new int;
+    *numberFaces = 0;
+    leerMalla(numberFaces, &faces);
 
     if (*numberFaces > 0 && *numberFaces != numberFacesActual){
-        ofLog() << "Caras: " << *numberFaces;
-        facesMemorySize = sizeof(FaceStruct)* (*numberFaces);
-
-        facesMemoryMappedFile.setup(facesMemoryKey, facesMemorySize, false);
-        isConnected = facesMemoryMappedFile.connect();
-
-        if(isConnected)
-        faces = facesMemoryMappedFile.getData();
 
         FaceStruct* facesAux = new FaceStruct[*numberFaces];
         memcpy(facesAux, faces, sizeof(FaceStruct) * (*numberFaces));
         numberFacesActual = *numberFaces;
-
-        ofLog() << "Fin faces.";
 
         Faces_Triangles = new float[numberFacesActual*9];
         for (int i = 0; i< numberFacesActual; i++){
@@ -77,8 +74,8 @@ void Model_PLY::MemoryLoad(int numberFacesActual)
             Faces_Triangles[i*9+8] = facesAux[i].p3[2];
         }
         TotalConnectedTriangles = numberFacesActual*3;
-		TotalPoints = numberFacesActual/3;
-		TotalFaces = numberFacesActual;
+        TotalPoints = numberFacesActual/3;
+        TotalFaces = numberFacesActual;
         MinCoord = std::numeric_limits<float>::max();
         MaxCoord = std::numeric_limits<float>::min();
         for (int i = 0; i < numberFacesActual*9; i++) {
@@ -93,7 +90,72 @@ void Model_PLY::MemoryLoad(int numberFacesActual)
         for (int i = 0; i < numberFacesActual*9; i++) {
             Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
         }
+
     }
+    delete numberFaces;
+    return numberFacesActual;
+
+
+
+    /*nFacesMemoryMappedFile.setup(nFacesMemoryKey, nFacesMemorySize, false);
+    isConnected = nFacesMemoryMappedFile.connect();
+    if(isConnected)
+	numberFaces = nFacesMemoryMappedFile.getData();
+
+    if (*numberFaces > 0 && *numberFaces != numberFacesActual){
+        ofLog() << "Caras: " << *numberFaces;
+
+        ofLog() << "Paso1";
+        facesMemorySize = sizeof(FaceStruct)* (*numberFaces);
+
+        facesMemoryMappedFile.setup(facesMemoryKey, facesMemorySize, false);
+        isConnected = facesMemoryMappedFile.connect();
+
+        ofLog() << "Paso2";
+        if(isConnected){
+            faces = facesMemoryMappedFile.getData();
+
+            ofLog() << "Paso3" << faces;
+            FaceStruct* facesAux = new FaceStruct[*numberFaces];
+            ofLog() << "Paso4";
+            memcpy(facesAux, faces, sizeof(FaceStruct) * (*numberFaces));
+            ofLog() << "Paso5";
+            numberFacesActual = *numberFaces;
+
+            ofLog() << "Fin faces.";
+
+            Faces_Triangles = new float[numberFacesActual*9];
+            for (int i = 0; i< numberFacesActual; i++){
+                Faces_Triangles[i*9] = facesAux[i].p1[0];
+                Faces_Triangles[i*9+1] = facesAux[i].p1[1];
+                Faces_Triangles[i*9+2] = facesAux[i].p1[2];
+                Faces_Triangles[i*9+3] = facesAux[i].p2[0];
+                Faces_Triangles[i*9+4] = facesAux[i].p2[1];
+                Faces_Triangles[i*9+5] = facesAux[i].p2[2];
+                Faces_Triangles[i*9+6] = facesAux[i].p3[0];
+                Faces_Triangles[i*9+7] = facesAux[i].p3[1];
+                Faces_Triangles[i*9+8] = facesAux[i].p3[2];
+            }
+            TotalConnectedTriangles = numberFacesActual*3;
+            TotalPoints = numberFacesActual/3;
+            TotalFaces = numberFacesActual;
+            MinCoord = std::numeric_limits<float>::max();
+            MaxCoord = std::numeric_limits<float>::min();
+            for (int i = 0; i < numberFacesActual*9; i++) {
+                if (Faces_Triangles[i] < MinCoord) {
+                    MinCoord = Faces_Triangles[i];
+                }
+                if (Faces_Triangles[i] > MaxCoord) {
+                    MaxCoord = Faces_Triangles[i];
+                }
+            }
+            AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
+            for (int i = 0; i < numberFacesActual*9; i++) {
+                Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
+            }
+        }
+    }
+    return numberFacesActual;*/
 
 }
 

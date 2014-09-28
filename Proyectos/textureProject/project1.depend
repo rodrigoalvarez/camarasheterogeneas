@@ -64,7 +64,7 @@
 	<algorithm>
 	"plylib.h"
 
-1410723133 source:c:\users\rodrigo\downloads\openglloadply\src\main.cpp
+1410997651 source:c:\users\rodrigo\downloads\openglloadply\src\main.cpp
 	<GL/glew.h>
 	<stdlib.h>
 	<windows.h>
@@ -116,4 +116,122 @@
 	<vector>
 	<iostream>
 	<GL/glut.h>
+
+1410111111 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\masterply.cpp
+	"masterPly.h"
+	<time.h>
+	<vcg/complex/complex.h>
+	<vcg/complex/algorithms/point_sampling.h>
+	<vcg/complex/algorithms/create/ball_pivoting.h>
+	"plylib.h"
+	<vcg/complex/algorithms/update/topology.h>
+	<vcg/complex/algorithms/update/flag.h>
+	<vcg/complex/algorithms/update/normal.h>
+	<vcg/complex/algorithms/refine.h>
+	<vcg/complex/algorithms/textcoord_optimization.h>
+	<wrap/io_trimesh/import_ply.h>
+	<wrap/io_trimesh/export_ply.h>
+	<wrap/io_trimesh/export_stl.h>
+	<vector>
+
+1410111111 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\masterply.h
+
+1410111111 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\plylib.h
+	<memory.h>
+	<vector>
+	<string>
+	<assert.h>
+
+1410727577 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\mastersettings.cpp
+	"masterSettings.h"
+	<stdlib.h>
+	<string>
+	<fstream>
+	<sstream>
+
+1410727577 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\mastersettings.h
+	<GL/glew.h>
+	<GL/glut.h>
+	<GL/glext.h>
+	"matrix4x4.h"
+
+1410111111 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\matrix4x4.h
+	<memory>
+	<cmath>
+	<iostream>
+	<string.h>
+
+1410111111 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\matrix4x4.cpp
+	"matrix4x4.h"
+
+1410905597 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\modelply.cpp
+	"modelPly.h"
+	<vector>
+	<limits>
+	<cmath>
+
+1410905597 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\modelply.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<cmath>
+	<string>
+
+1410111111 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\plylib.cpp
+	<assert.h>
+	<direct.h>
+	<fcntl.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+	<assert.h>
+	<vector>
+	<algorithm>
+	"plylib.h"
+
+1410905597 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\main.cpp
+	<GL/glew.h>
+	<stdlib.h>
+	<windows.h>
+	<GL/glut.h>
+	"modelPly.h"
+	"modelXYZ.h"
+	"masterPly.h"
+	"masterSettings.h"
+	<vector>
+	<fstream>
+	<sstream>
+	<iostream>
+	<GL/glext.h>
+	"FreeImage.h"
+	"matrix4x4.h"
+
+1410727577 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\modelxyz.h
+	<windows.h>
+	<stdio.h>
+	<string.h>
+	<string>
+	<vector>
+	<iostream>
+	<GL/glut.h>
+
+1410111111 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\freeimage.h
+	<wchar.h>
+	<inttypes.h>
+
+1410727577 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\textureproject\src\modelxyz.cpp
+	"modelXYZ.h"
+	<stdlib.h>
+	<string>
+	<fstream>
+	<sstream>
+	<vector>
+	<limits>
+	<cmath>
 
