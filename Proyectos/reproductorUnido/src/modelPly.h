@@ -1,4 +1,4 @@
-#include "ofxSharedMemory.h"
+//#include "ofxSharedMemory.h"
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,12 +9,10 @@
 class Model_PLY
 {
 	public:
-	    ofxSharedMemory<int*> nFacesMemoryMappedFile;
         int* numberFaces;
         string nFacesMemoryKey = "NumberFaces";
         int nFacesMemorySize = sizeof(int);
 
-        ofxSharedMemory<FaceStruct*> facesMemoryMappedFile;
         FaceStruct* faces;
         string facesMemoryKey = "Faces";
         int facesMemorySize;

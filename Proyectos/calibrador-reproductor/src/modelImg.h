@@ -1,4 +1,5 @@
-#include "ofxSharedMemory.h"
+//#include "ofxSharedMemory.h"
+#include "ofMain.h"
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,19 +10,16 @@
 class Model_IMG
 {
 	private:
-	    ofxSharedMemory<int*> memoryMappedImageId;
-        int* id;
-        ofxSharedMemory<char*> memoryMappedImage;
-        char* pixels;
-	    ofxSharedMemory<int*> memoryMappedImageSizeW;
+        unsigned char* pixels;
         int* wPixels;
-	    ofxSharedMemory<int*> memoryMappedImageSizeH;
         int* hPixels;
 
         bool isConnectedId;
         bool isConnectedPixels;
         bool isConnectedWPixels;
         bool isConnectedHPixels;
+
+        HINSTANCE shareImageLibrary;
 
 	public:
 		Model_IMG();

@@ -1,6 +1,6 @@
 
 #include "modelPly.h"
-//#include <GL/glew.h>
+#include <GL/glew.h>
 #include <stdlib.h>
 #include <windows.h>
 #include <GL/glut.h>
@@ -19,13 +19,13 @@
 using namespace std;
 
 GLuint *textures = new GLuint[2];
-/*PFNGLACTIVETEXTUREARBPROC       glActiveTextureARB       = NULL;
+PFNGLACTIVETEXTUREARBPROC       glActiveTextureARB       = NULL;
 PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2fARB     = NULL;
 PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTextureARB = NULL;
 PFNGLBEGINQUERYARBPROC glBeginQueryARB = NULL;
 PFNGLGENQUERIESARBPROC glGenQueriesARB = NULL;
 PFNGLENDQUERYARBPROC glEndQueryARB = NULL;
-PFNGLGETQUERYOBJECTUIVPROC glGetQueryObjectuivARB = NULL;*/
+PFNGLGETQUERYOBJECTUIVPROC glGetQueryObjectuivARB = NULL;
 
 GLfloat colors[][3] = { {1.0,1.0,1.0},
                         {1.0,0.0,0.0},

@@ -32,10 +32,15 @@ void DLL_EXPORT generarMallaCalibrador(NubePuntos* nbIN, FaceStruct** faces, int
         MasterPly* mply = new MasterPly();
 
         mply->loadMesh(nbIN->x,nbIN->y,nbIN->z,nbIN->largo);
-        mply->poissonDiskSampling(nbIN->largo/2);
+        cout << "Cargo malla."<< endl;
+        mply->poissonDiskSampling(100000);
+        cout << "Aplico poisson sampling, cant. puntos: "<< mply->totalFaces() << endl;
         mply->calculateNormalsVertex();
+        cout << "Calculo normales."<< endl;
         mply->buildMeshBallPivoting();
+        cout << "Genero malla." << endl;
         mply->laplacianSmooth(3);
+        cout << "Aplico laplacian smooth." << endl;
         *numberFaces = mply->totalFaces();
         *faces = mply->getFaces();
 

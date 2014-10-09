@@ -7,50 +7,30 @@
 using namespace std;
 int masterMeshIndex = 0;
 
+typedef void (*f_ReadSharedMesh)(int* id, int* numberFaces, FaceStruct** faces);
 
 Model_PLY::Model_PLY() {
     masterMeshIndex += 100000;
     Id = masterMeshIndex;
+
+    char* dllName = "C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\MemoriaCompartida\\bin\\MemoriaCompartida.dll";
+    shareMeshLibrary =  LoadLibraryA(dllName);
+    if (!shareMeshLibrary) {
+        std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
+    }
 }
 
 void Model_PLY::MemoryLoad() {
 
+
     cout << "test1" << endl;
-    std::stringstream key1;
-    key1 << "MeshId" << Id / 100000;
-    cout << key1.str() << endl;
-    memoryMappedMeshId.setup(key1.str(), sizeof(int), false);
-    isConnectedId = memoryMappedMeshId.connect();
-    if (isConnectedId) {
-        id = memoryMappedMeshId.getData();
-        cout << Id << "c1" << endl;
-    }
 
-    std::stringstream key2;
-    key2 << "MeshNumberFaces" << Id / 100000;
-    cout << key2.str() << endl;
-    memoryMappedMeshSize.setup(key2.str(), sizeof(int), false);
-    isConnectedNFaces = memoryMappedMeshSize.connect();
-    if (isConnectedNFaces) {
-        numberFaces = memoryMappedMeshSize.getData();
-        cout << Id << "c2" << endl;
-    }
+    f_ReadSharedMesh readMesh = (f_ReadSharedMesh)GetProcAddress(shareMeshLibrary, "ReadSharedMesh");
+    numberFaces =  new int;
+    *numberFaces = 0;
+    readMesh(&Id, numberFaces, &faces);
 
-    std::stringstream key3;
-    key3 << "MeshFaces" << Id / 100000;
-    cout << key3.str() << endl;
-    memoryMappedMesh.setup(key3.str(), sizeof(FaceStruct) * (*numberFaces), false);
-    isConnectedFaces = memoryMappedMesh.connect();
-    if (isConnectedFaces) {
-        faces = memoryMappedMesh.getData();
-        cout << Id << "c3" << endl;
-    }
-
-    if (isConnectedId && isConnectedNFaces && isConnectedFaces &&
-        *id > Id && *numberFaces > 0) {
-
-        cout << Id << "x1" << endl;
-        Id = *id;
+    if (*numberFaces > 0) {
         TotalConnectedTriangles = (*numberFaces) * 3;
         TotalPoints = (*numberFaces) / 3;
         TotalFaces = *numberFaces;

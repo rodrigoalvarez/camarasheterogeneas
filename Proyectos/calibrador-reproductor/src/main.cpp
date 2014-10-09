@@ -1,9 +1,10 @@
+#include "modelImg.h"
 #include "modelPly.h"
+//#include <GL/glew.h>
 #include <stdlib.h>
 #include <windows.h>
 #include <GL/glut.h>
 #include "modelXYZ.h"
-#include "modelImg.h"
 #include "masterPly.h"
 #include "masterSettings.h"
 #include <vector>

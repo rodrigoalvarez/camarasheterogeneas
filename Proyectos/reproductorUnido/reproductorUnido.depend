@@ -1,6 +1,7 @@
 # depslib dependency file v1.0
-1410908784 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\main.cpp
+1411940558 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\main.cpp
 	"modelPly.h"
+	<GL/glew.h>
 	<stdlib.h>
 	<windows.h>
 	<GL/glut.h>
@@ -99,7 +100,7 @@
 	<algorithm>
 	<cfloat>
 
-1361272888 c:\openframeworks\libs\glew\include\gl\glew.h
+1361276488 c:\openframeworks\libs\glew\include\gl\glew.h
 	<stddef.h>
 	<inttypes.h>
 	<stdint.h>
@@ -1158,8 +1159,7 @@
 1361272894 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\testapp.cpp
 	"testApp.h"
 
-1410907929 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\modelply.h
-	"ofxSharedMemory.h"
+1411940515 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\modelply.h
 	<windows.h>
 	<stdio.h>
 	<string.h>
@@ -1167,7 +1167,7 @@
 	<string>
 	"masterPly.h"
 
-1410727577 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\modelxyz.h
+1410731177 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\modelxyz.h
 	<windows.h>
 	<stdio.h>
 	<string.h>
@@ -1176,7 +1176,7 @@
 	<iostream>
 	<GL/glut.h>
 
-1410715644 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\masterply.h
+1410719244 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\masterply.h
 	<time.h>
 	<vcg/complex/complex.h>
 	<vcg/complex/algorithms/point_sampling.h>
@@ -1193,48 +1193,48 @@
 	<vcg/complex/algorithms/smooth.h>
 	<vector>
 
-1410727577 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\mastersettings.h
+1410731177 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\mastersettings.h
 	<GL/glew.h>
 	<GL/glut.h>
 	<GL/glext.h>
 	"matrix4x4.h"
 
-1410111111 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\matrix4x4.h
+1410114711 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\matrix4x4.h
 	<memory>
 	<cmath>
 	<iostream>
 	<string.h>
 
-1410111111 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\freeimage.h
+1410114711 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\freeimage.h
 	<wchar.h>
 	<inttypes.h>
 
-1410715695 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\masterply.cpp
+1410719295 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\masterply.cpp
 	"masterPly.h"
 
-1410111111 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\plylib.h
+1410114711 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\plylib.h
 	<memory.h>
 	<vector>
 	<string>
 	<assert.h>
 
-1410727577 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\mastersettings.cpp
+1410731177 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\mastersettings.cpp
 	"masterSettings.h"
 	<stdlib.h>
 	<string>
 	<fstream>
 	<sstream>
 
-1410111111 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\matrix4x4.cpp
+1410114711 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\matrix4x4.cpp
 	"matrix4x4.h"
 
-1410907907 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\modelply.cpp
+1411332674 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\modelply.cpp
 	"modelPly.h"
 	<vector>
 	<limits>
 	<cmath>
 
-1410727577 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\modelxyz.cpp
+1410731177 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\modelxyz.cpp
 	"modelXYZ.h"
 	<stdlib.h>
 	<string>
@@ -1244,7 +1244,7 @@
 	<limits>
 	<cmath>
 
-1410111111 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\plylib.cpp
+1410114711 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\reproductorunido\src\plylib.cpp
 	<assert.h>
 	<direct.h>
 	<fcntl.h>

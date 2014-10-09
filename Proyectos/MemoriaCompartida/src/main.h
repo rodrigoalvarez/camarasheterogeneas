@@ -34,6 +34,14 @@ void DLL_EXPORT compartirMemoria(int numberFaces, FaceStruct* faces);
 
 void DLL_EXPORT leerMemoria(int* numberFaces, FaceStruct** faces);
 
+void DLL_EXPORT ReadSharedImage(int* Id, unsigned char** Pixels, int* Width, int* Height);
+
+void DLL_EXPORT ShareImage(int* imageId, unsigned char** pixels, int* wPixels, int* hPixels);
+
+void DLL_EXPORT ShareMesh(int meshId, int numberFaces, FaceStruct* faces);
+
+void DLL_EXPORT ReadSharedMesh(int* Id, int* numberFaces, FaceStruct** faces);
+
 #ifdef __cplusplus
 }
 #endif

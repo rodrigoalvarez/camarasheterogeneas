@@ -1,4 +1,4 @@
-#include "ofxSharedMemory.h"
+//#include "ofxSharedMemory.h"
 #include <windows.h>
 #include <stdio.h>
 #include <string.h>
@@ -9,16 +9,10 @@
 class Model_PLY
 {
 	private:
-	    ofxSharedMemory<int*> memoryMappedMeshId;
-        int* id;
-	    ofxSharedMemory<int*> memoryMappedMeshSize;
         int* numberFaces;
-        ofxSharedMemory<FaceStruct*> memoryMappedMesh;
         FaceStruct* faces;
 
-        bool isConnectedId;
-        bool isConnectedNFaces;
-        bool isConnectedFaces;
+        HINSTANCE shareMeshLibrary;
 
 		float* Faces_Quads;
 		float* Vertex_Buffer;

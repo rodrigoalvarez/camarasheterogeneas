@@ -150,7 +150,7 @@ void MeshMain::setPointVertex(int index) {
 void MeshMain::draw3D() {
     glPointSize(0.2);
     glColor3fv(colors[meshIndex]);
-    for (int i = 0; i < cloudModel[meshIndex]->TotalPoints; i += 10) {
+    for (int i = 0; i < cloudModel[meshIndex]->TotalPoints; i += 4) {
         glBegin(GL_POINTS);
             setPointVertex(i);
         glEnd();
