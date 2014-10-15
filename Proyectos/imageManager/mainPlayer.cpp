@@ -4,6 +4,7 @@
 #include <GL/glut.h>
 #include "modelXYZ.h"
 #include "modelImg.h"
+#include "modelSetting.h"
 #include "masterPly.h"
 #include "masterSettings.h"
 #include <vector>
@@ -22,10 +23,11 @@ MasterSettings* settings = NULL;
 
 /* Texture */
 
+Model_SET* textureSetting = NULL;
 Model_IMG* textureImage = NULL;
 Model_PLY* textureModel = NULL;
 MasterTexture* textureMaster = NULL;
-bool drawFast = true;
+bool drawFast = false;
 bool textureWire = true;
 
 int textureCount = 1;
@@ -57,7 +59,7 @@ void writeText() {
         cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
         cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
         cout << endl;
-    }
+    }/**/
 }
 
 void setFaceVertex(int index) {
@@ -79,18 +81,6 @@ void draw2DElement(int index) {
             setFaceVertex(index * 3 + 1);
             setFaceVertex(index * 3 + 2);
         glEnd();
-    }
-}
-
-void draw2DView() {
-    for (int i = 0; i < textureModel->TotalFaces; i++) {
-        int hits = 0;
-        for (int k = 1; k <= textureCount; k++) {
-            hits = max(hits, faces[k][i]);
-        }
-        if (hits > 0 && faces[textureIndex][i] == hits) {
-            draw2DElement(i);
-        }
     }
 }
 
@@ -217,6 +207,61 @@ bool PointInFrustum(float x, float y, float z) {
 }
 
 
+void draw2DPlayerFull() {
+    ExtractFrustum();
+    GLuint queries[textureModel->TotalFaces];
+    GLuint sampleCount;
+    glGenQueriesARB(textureModel->TotalFaces, queries);
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        int index = i * 3;
+        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
+            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
+            draw2DElement(i);
+            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+        }
+    }
+    glEnable(GL_BLEND);
+    glDepthFunc(GL_EQUAL);
+    glDepthMask(GL_FALSE);
+
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        int index = i * 3;
+        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
+            glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
+            if (sampleCount > 0) {
+                if (textureIndex > 0) {
+                    faces[textureIndex][i] = sampleCount;
+                }
+                draw2DElement(i);
+            }
+        }
+    }
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+}
+
+void draw2DPlayerFast() {
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        int hits = 0;
+        for (int k = 1; k <= textureCount; k++) {
+            hits = max(hits, faces[k][i]);
+        }
+        if (hits > 0 && faces[textureIndex][i] == hits) {
+            draw2DElement(i);
+        }
+    }
+}
+
+/*void draw2DPlayerFast() {
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        draw2DElement(i);
+    }
+}*/
+
 void textureProjection(Matrix4x4f &mv) {
 
     Matrix4x4f inverseMV = Matrix4x4f::invertMatrix(mv);
@@ -287,7 +332,11 @@ void display(void) {
         glRotatef(textureMaster[0].rotate[0], -1.0f,0.0f,0.0f);
         glRotatef(textureMaster[0].rotate[1], 0.0f,-1.0f,0.0f);
         glRotatef(textureMaster[0].rotate[2], 0.0f,0.0f,-1.0f);
-        draw2DView();
+        if (drawFast) {
+            draw2DPlayerFast();
+        } else {
+            draw2DPlayerFull();
+        }
         stepClearTexture();
     }
     textureIndex = 0;
@@ -296,6 +345,7 @@ void display(void) {
     glutSwapBuffers();
 
     writeText();
+    drawFast = true;
 }
 
 void keys(unsigned char key, int x, int y) {
@@ -359,14 +409,12 @@ void myReshape(int w, int h) {
 
 void timerFunction(int arg) {
     glutTimerFunc(reDrawRate, timerFunction, 0);
-    int olldId = textureModel->Id;
-    textureModel->MemoryLoad();
-    if (olldId < textureModel->Id) {
-        drawFast = false;
-        display();
-        drawFast = true;
+    bool shouldRedraw = textureModel->MemoryLoad();
+    for (int i = 0; i < textureCount; i++) {
+        shouldRedraw = shouldRedraw || textureImage[i].MemoryLoad();
     }
-    else {
+    if (shouldRedraw) {
+        drawFast = false;
         display();
     }
 }
@@ -422,6 +470,11 @@ int main(int argc, char **argv) {
     glutKeyboardFunc(keys);
     glEnable(GL_DEPTH_TEST);
 
+    /* Settings */
+    textureSetting = new Model_SET();
+    textureSetting->MemoryLoad();
+    textureCount = textureSetting->NValues;
+
     /* Mesh */
     textureModel = new Model_PLY();
     textureModel->MemoryLoad();
@@ -429,10 +482,12 @@ int main(int argc, char **argv) {
     /* Texture */
     textureMaster = new MasterTexture[textureCount + 1];
     faces = new int*[textureCount + 1];
-    for (int i = 0; i <= textureCount; i++) {
+    for (int i = 1; i <= textureCount; i++) {
         for (int j = 0; j < 3; j++) {
-            textureMaster[i].viewer[j] = 0.0;
-            textureMaster[i].rotate[j] = 0.0;
+            textureMaster[0].viewer[j] = 0.0f;
+            textureMaster[0].rotate[j] = 0.0f;
+            textureMaster[i].viewer[j] = textureSetting->Values[(i-1) * 6 + j * 2];
+            textureMaster[i].rotate[j] = textureSetting->Values[(i-1) * 6 + j * 2 + 1];
         }
         faces[i] = new int[facesCount];
     }
