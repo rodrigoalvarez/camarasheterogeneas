@@ -107,10 +107,13 @@ void FieldManager::removeField(Field *) {
 */
 Field * FieldManager::getNextFilledField() {
     bool encontro = false;
-    //int milli;
     int step;
     std::pair <time_t, int> search;
     Field * fi = NULL;
+    //timeval index = curIndex;
+    if(sys_data->processMostRecent == 1) {
+        curIndex    = maxIndex;
+    }
     while((!encontro) && timevalMinorEqualThan(curIndex, maxIndex )) {
         //milli   = curIndex.tv_usec / 1000;
         step    = (curIndex.tv_usec / minUnit);

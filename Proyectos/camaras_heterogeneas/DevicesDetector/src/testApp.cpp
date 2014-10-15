@@ -72,7 +72,7 @@ void testApp::update() {
                     }
                     if(readyToSave) {
                         try {
-                            vidGabber.close();
+                            vidGrabber.close();
                         } catch(exception& e) {}
                     }
 

@@ -2,31 +2,11 @@
 
 #include <iostream>
 #include <fstream>
+#include "masterPly.h"
 #include <string>
 #include <ctime>
-#include <windows.h>
-#include <iostream>
-#include <sstream>
-
-#include <stdio.h>
 
 using namespace std;
-
-
-struct NubePuntos{
-    float* x;
-    float* y;
-    float* z;
-    int largo;
-};
-
-string facesMemoryKey = "Faces";
-string nFacesMemoryKey = "NumberFaces";
-int nFacesMemorySize = sizeof(int);
-int facesMemorySize;
-
-typedef void (*f_funci)(NubePuntos* nbIN, FaceStruct** faces, int* numberFaces, int nroFrame);
-
 int i = 0;
 void MeshGenerator::threadedFunction() {
     if(buffer == NULL) return;
@@ -38,51 +18,68 @@ void MeshGenerator::threadedFunction() {
 }
 
 void MeshGenerator::processFrame() {
-
     std::pair <ThreadData *, ThreadData *> frame = buffer->getNextFrame();
     if(frame.first != NULL) { // En first viene un ThreadData con la nube de puntos.
-        ThreadData* td = ((ThreadData *) frame.first);
+
         time_t now = time(0);
         tm *ltm = localtime(&now);
 
-        ///GENERAR MALLA
-        f_funci funci = (f_funci)GetProcAddress(hGetProcIDDLL, "generarMalla");
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Obtuve un frame mergeado con nube de puntos largo: " << ((ThreadData *) frame.first)->nubeLength;
+        ThreadData* td = ((ThreadData *) frame.first);
+        MasterPly* mply = new MasterPly();
 
-        NubePuntos* nbIN = new NubePuntos;
-        nbIN->largo = td->nubeLength;
-        nbIN->x = td->xpix;
-        nbIN->y = td->ypix;
-        nbIN->z = td->zpix;
-        faces = new FaceStruct;
-        numberFaces = new int;
-        (funci) (nbIN, &faces, numberFaces, i);
+/*
 
-        ///FIN GENERAR MALLA
+        char nombre2[50];
+        sprintf(nombre2, "frame%d.xyz", i);
+        //char* fileName      = "frameeee_i.xyz";
 
-        ///MEMORIA COMPARTIDA
-
-        nFacesMemoryMappedFile.setup(nFacesMemoryKey, nFacesMemorySize, true);
-        isConnected = nFacesMemoryMappedFile.connect();
-
-        if(isConnected){
-            nFacesMemoryMappedFile.setData(numberFaces);
-            facesMemorySize = sizeof(FaceStruct)* (*numberFaces);
-
-            facesMemoryMappedFile.setup(facesMemoryKey, facesMemorySize, true);
-            isConnected = facesMemoryMappedFile.connect();
-            if(isConnected){
-                facesMemoryMappedFile.setData(faces);
-            }
+        //Creo el archivo b,n de la nube unida
+        FILE * pFile;
+        pFile = fopen (nombre2,"w");
+        //Recorro los frames de cada camara y me quedo solo con los 3D
+        for(int i=0; i < td->nubeLength; i ++) {
+            fprintf (pFile, "%f %f %f\n", td->xpix[i], td->ypix[i], td->zpix[i]);
         }
-        ///FIN MEMORIA COMPARTIDA
 
-        delete nbIN;
-        delete numberFaces;
-        delete [] faces;
-        delete nbIN;
+        fclose (pFile);
+
+        */
+
+        mply->loadMesh(td->xpix,td->ypix,td->zpix,td->nubeLength);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Nube cargada nubeLength " << td->nubeLength;
+        mply->poissonDiskSampling(td->nubeLength/4);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Poisson disk sampling aplicado, cantidad de vertices: " <<  mply->totalVertex();
+        mply->calculateNormalsVertex();
+
+        now = time(0);
+        ltm = localtime(&now);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Calculadas normales de los vertices " << 1 + ltm->tm_min << ":" << 1 + ltm->tm_sec;
+        mply->buildMeshBallPivoting();
+
+        now = time(0);
+        ltm = localtime(&now);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Ball Pivoting terminado " << 1 + ltm->tm_min << ":" << 1 + ltm->tm_sec;
+
+        if(sys_data->persistToPly == 1) {
+            char nombre[50];
+            sprintf(nombre, "frame%d.ply", i);
+            mply->savePLY(nombre,true);
+        }
+
+        now = time(0);
+        ltm = localtime(&now);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Malla guardada " << 1 + ltm->tm_min << ":" << 1 + ltm->tm_sec;
+        i++;
     }
 
     if(frame.second != NULL) { // En first viene un array de ThreadData con las texturas.
-
+        int i=1;
+        ThreadData * iter = (ThreadData *) frame.second;
+        do {
+            iter->img.saveImage("enIter" + ofToString(i) + ".jpg");
+            iter = iter->sig;
+            i++;
+        } while(iter != NULL);
     }
 }

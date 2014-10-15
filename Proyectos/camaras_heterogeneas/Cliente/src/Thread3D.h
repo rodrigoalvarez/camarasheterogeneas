@@ -2,7 +2,6 @@
 
 #include "ofxOpenNI.h"
 #include "GlobalData.h"
-#include "Constants.h"
 #include "ofMain.h"
 
 class Thread3D : public ofThread {
@@ -15,7 +14,7 @@ class Thread3D : public ofThread {
 		void    updateData();
 		bool	isDeviceInitted();
         bool	isDataAllocated();
-
+        bool    deviceInited;
 		ofxOpenNI * openNIRecorder;
         bool    dataAllocated;
         ofImage         img;

@@ -1,3 +1,5 @@
+#pragma once
+
 #define MAX_RECEIVE_SIZE 60000
 #define MAX_THREADED_SERVERS 100
 

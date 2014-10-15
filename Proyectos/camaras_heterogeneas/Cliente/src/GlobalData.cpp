@@ -37,18 +37,15 @@ void GlobalData::loadCalibData(char * xml) {
 		sys_data->serverIp        = settings.getValue("serverIp",       "127.0.0.1");
 		sys_data->serverPort      = settings.getValue("serverPort",     11969);
 		sys_data->goLive          = settings.getValue("realTime",       0);
+		sys_data->persistence     = settings.getValue("persistence",    1);
+		sys_data->logLevel        = settings.getValue("logLevel",                 0);
 		sys_data->fps             = settings.getValue("fps",            10);
 		sys_data->maxPackageSize  = settings.getValue("maxPackageSize", 60000);
 
         if(settings.pushTag("cameras")) {
-            //int i = 0;
-            cout << " camara " << settings.getNumTags("camera") << endl;
-            //while(settings.pushTag("camera", i)) {
 
-		    //for (int i = 0; settings.pushTag("camera", i); i++) {
 		    int totCams = settings.getNumTags("camera");
 		    for (int i = 0; i < totCams; i++) {
-		        cout << " camara " << i << endl;
 		        settings.pushTag("camera", i);
 
                 if(camera == NULL) {
@@ -65,7 +62,6 @@ void GlobalData::loadCalibData(char * xml) {
 				currCam->resolutionY            = settings.getValue("resolutionY", 480);
 				currCam->resolutionDownSample   = settings.getValue("resolutionDownSample", 1);
 				currCam->fps                    = settings.getValue("FPS", 24);
-				currCam->colorRGB               = settings.getValue("colorRGB", true);
 				currCam->use2D                  = settings.getValue("use2D", true);
 				currCam->use3D                  = settings.getValue("use3D", true);
 

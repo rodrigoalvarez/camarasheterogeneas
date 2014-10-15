@@ -98,15 +98,9 @@ void Server::setVideoPreview(int cli, int cam, ofImage img) {
 
 void Server::setup() {
 
-    //setVideoPreview(int cli, int cam, ofImage img);
-
-
     gdata   = new ServerGlobalData();
     gdata->loadCalibData("settings.xml");
 
-
-
-    //
     string line;
     string ip;
     ifstream IPFile;
@@ -129,15 +123,25 @@ void Server::setup() {
     }
     //
     setupGui(ip);
+
+    switch(gdata->sys_data->logLevel) {
+        case 0: ofSetLogLevel(OF_LOG_VERBOSE); break;
+        case 1: ofSetLogLevel(OF_LOG_NOTICE); break;
+        case 2: ofSetLogLevel(OF_LOG_WARNING); break;
+        case 3: ofSetLogLevel(OF_LOG_ERROR); break;
+        case 4: ofSetLogLevel(OF_LOG_FATAL_ERROR); break;
+        case 5: ofSetLogLevel(OF_LOG_SILENT); break;
+        default:ofSetLogLevel(OF_LOG_VERBOSE); break;
+    }
+
     ofLogToFile("server_log.txt", false);
-    ofSetLogLevel(OF_LOG_VERBOSE);
 
     mb              = new MainBuffer();
     mb->sys_data    = gdata->sys_data;
     mb->startBuffer();
 
     ofShortPixels  spix;
-    ofSetFrameRate(gdata->sys_data->fps);
+    //ofSetFrameRate(gdata->sys_data->fps);
     TCP.setup(gdata->sys_data->serverPort);
 
 	tData2              = NULL;
@@ -154,17 +158,6 @@ void Server::setup() {
     generator.buffer    = mb;
     generator.startThread(true, false);
 
-
-    /*ofImage img;
-    img.loadImage("foto2.png");
-    ofImage img2;
-    img2.loadImage("foto1.png");
-    setVideoPreview(1, 1, img);
-    setVideoPreview(1, 2, img2);
-    setVideoPreview(1, 2, img);
-    setVideoPreview(1, 1, img2);
-    setVideoPreview(3, 1, img2);
-    */
 }
 
 //Dejo abierto el puerto PORT_0
@@ -174,6 +167,7 @@ void Server::setup() {
 
 //--------------------------------------------------------------
 void Server::update() {
+    ofSleepMillis(1000/gdata->sys_data->fps);
     vidGrabber.update();
     for(int i = 0; i < TCP.getLastID(); i++) { // getLastID is UID of all clients
         if( TCP.isClientConnected(i) ) { // check and see if it's still around
@@ -211,7 +205,6 @@ void Server::update() {
 }
 
 void Server::computeFrames() {
-    //ofSleepMillis(1000/gdata->sys_data->fps);
     ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totThreadedServers;
     for(int i = 0; i < totThreadedServers; i++) {
         int currCam = 1;

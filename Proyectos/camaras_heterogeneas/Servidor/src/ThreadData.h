@@ -1,10 +1,12 @@
 #pragma once
 #include <sys/time.h>
 
+#include "ofxOpenCv.h"
 //template <time_t, int> struct fm_key;
 
 class ThreadData {
 	public:
+        ThreadData * sig; //Usado en el MainBuffer para concatenar los ThreadData que contengan imágenes 2D.
         std::pair <time_t, int> key;
         //fm_key<time_t, int> * key;
         timeval curTime;
@@ -13,6 +15,8 @@ class ThreadData {
         int     cliId;   // ID de la configuración de Cliente. Puede haber N
         int     camId;   // ID de la cámara en la instalación.
         ofImage img;
+        void *  compImg;
+        int     compSize;
         int     state; //0-No inited, 1-Only Image, 2-Only Point Cloud, 3-Ambas
         //void    updateData();
         ofShortPixels  spix;
@@ -23,6 +27,11 @@ class ThreadData {
         float *         ypix;
         float *         zpix;
 
+        ofxCvGrayscaleImage	cvX;
+        ofxCvGrayscaleImage	cvY;
+        ofxCvGrayscaleImage	cvZ;
+        ofxCvColorImage encodedCloud;
+
         ofVec3f xyz;
         ofVec3f abc;
 
@@ -31,9 +40,10 @@ class ThreadData {
         ofFloatPixels  sZpix;
 
         ThreadData() {
-            xpix = NULL;
-            ypix = NULL;
-            zpix = NULL;
+            xpix    = NULL;
+            ypix    = NULL;
+            zpix    = NULL;
+            compImg = NULL;
         }
 
         ~ThreadData() {

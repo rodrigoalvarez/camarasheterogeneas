@@ -50,7 +50,7 @@ void Transmitter::threadedFunction() {
 }
 
 void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
-    cout << " al entrar a serdFrame " << tData[0].nubeH << endl;
+    //ofLogVerbose() << " al entrar a serdFrame " << tData[0].nubeH << endl;
     /*
     La idea es simular ahora el envío de un frame completo incluyendo sus imágenes y nubes de punto.
      1) - Formar gran bytearray // Pronto.
@@ -63,10 +63,14 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     int totalBytesSent      = 0;
     int messageSize         = 0;
 
+
+    ofLogVerbose()  << "[Transmitter::sendFrame] Por entrar a hacer compressImages " << totalCams;
+    FrameUtils::compressImages(tData, totalCams);
+    ofLogVerbose()  << "[Transmitter::sendFrame] Saliendo de hacer compressImages " << totalCams;
+
     int frameSize       = FrameUtils::getFrameSize(tData, totalCams);
 
-    cout << " al entrar a serdFrame2 " << tData[0].nubeH << endl;
-
+    //cout << " al entrar a serdFrame2 " << tData[0].nubeH << endl;
     char * bytearray    = FrameUtils::getFrameByteArray(tData, totalCams, frameSize);
 
     int val0  = floor(frameSize / sys_data->maxPackageSize);   //totMaxRecSize

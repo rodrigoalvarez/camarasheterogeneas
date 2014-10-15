@@ -81,6 +81,23 @@ std::pair <ThreadData *, ThreadData *> MainBuffer::getNextFrame() {
                 }
             }
         }
+
+        if( (((ThreadData *) it->second)->state == 1) || (((ThreadData *) it->second)->state == 3) ) {
+
+            ThreadData * td = new ThreadData();
+            ThreadData * re = ((ThreadData *) it->second);
+            td->img.setFromPixels(((ThreadData *) it->second)->img.getPixelsRef());
+            td->xyz     = re->xyz;
+            td->abc     = re->abc;
+            if(ret.second == NULL) {
+                ofLogVerbose() << "[MainBuffer::getNextFrame] primera imagen RGB.";
+                td->sig     = NULL;
+            } else {
+                ofLogVerbose() << "[MainBuffer::getNextFrame] agrego otra imagen imagen RGB.";
+                td->sig     = ret.second;
+            }
+            ret.second  = td;
+        }
     }
     ofLogVerbose() << "[MainBuffer::getNextFrame] Luego de mergear";
     return ret;

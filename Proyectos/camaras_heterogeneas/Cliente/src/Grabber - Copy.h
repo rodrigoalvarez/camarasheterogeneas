@@ -6,7 +6,6 @@
 #include "Transmitter.h"
 #include "ThreadData.h"
 #include "Constants.h"
-#include "ofxOpenCv.h"
 #include "GlobalData.h"
 #include "ofMatrix4x4.h"
 

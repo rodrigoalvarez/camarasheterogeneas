@@ -7,10 +7,13 @@ struct t_data {
     string   serverIp;
     int      serverPort;
     int      fps;
+    int      persistToPly;
+    int      logLevel;
     int      maxPackageSize;
     int      syncFactorValue;
     int      maxThreadedServers;
     int      maxReceiveFrameBuffer;
+    int      processMostRecent;
 };
 
 class ServerGlobalData {

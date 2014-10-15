@@ -29,7 +29,6 @@ void Grabber::setup() {
     if((gdata->total2D + gdata->total3D) > 0) {
         tData = new ThreadData[gdata->total2D + gdata->total3D];
         for(int w = 0; w < (gdata->total2D + gdata->total3D); w++) {
-            //cout << "gdata->sys_data->cliId" << gdata->sys_data->cliId << endl;
             tData[w].cliId = gdata->sys_data->cliId;
         }
     } else {
@@ -121,14 +120,12 @@ void Grabber::updateThreadData() {
     ofLogVerbose() << "[Grabber::updateThreadData] " << " entrando.";
     int di      = 0;
     int i       = 0;
-
     //tData[i].state = //0-No inited, 1-Only Image, 2-Only Point Cloud, 3-Ambas
     /**
     * ACTUALIZO LA INFO DE LAS CÁMARAS 2D
     */
     for(i; i<gdata->total2D; i++) {
         t2D[i].lock();
-        tData[di].camId    = t2D[i].context->id;
         tData[di].state    = 0;
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
@@ -146,12 +143,11 @@ void Grabber::updateThreadData() {
     /**
     * ACTUALIZO LA INFO DE LAS CÁMARAS 3D
     */
-    ofLogVerbose() << "ACTUALIZO LA INFO DE LAS CÁMARAS 3D" << endl;
     i = 0;
     for(i; i<gdata->total3D; i++) {
+
         t3D[i].lock();
         tData[di].state    = 0;
-        tData[di].camId    = t3D[i].context->id;
 
         if(t3D[i].isDeviceInitted()) { //Si la cámara está inicializada.
 
@@ -170,17 +166,11 @@ void Grabber::updateThreadData() {
 
                 tData[di].nubeW         = t3D[i].spix.getWidth();
                 tData[di].nubeH         = t3D[i].spix.getHeight();
-
-//                tData[di].cvX.allocate(tData[di].nubeW, tData[di].nubeH);
-//                tData[di].cvY.allocate(tData[di].nubeW, tData[di].nubeH);
-//                tData[di].cvZ.allocate(tData[di].nubeW, tData[di].nubeH);
-//                tData[di].encodedCloud.allocate(tData[di].nubeW, tData[di].nubeH);
-
                 XnDepthPixel*  rawPix   = t3D[i].spix.getPixels();
 
                 xn::DepthGenerator& Xn_depth = t3D[i].openNIRecorder->getDepthGenerator();
-                //fxOpenNI oni;
-                //xn::DepthGenerator& Xn_depth2 = oni.getDepthGenerator();
+                ofxOpenNI oni;
+                xn::DepthGenerator& Xn_depth2 = oni.getDepthGenerator();
 
                 int downsampling = 2;
                 XnPoint3D Point2D, Point3D;
@@ -191,6 +181,7 @@ void Grabber::updateThreadData() {
                 tData[di].nubeLength    = 0;
                 ofVec3f v1;
                 ofVec3f * vt;
+                ofVec3f * vtmp;
                 ofLogVerbose() << di << " tData[di].nubeH " << tData[di].nubeH << " tData[di].nubeW " << tData[di].nubeW;
 
                 float * tmpX = NULL;
@@ -204,10 +195,19 @@ void Grabber::updateThreadData() {
                 }
 
                 ofLogVerbose() << t3D[i].context->matrix << endl;
+
+                Point2D.X   = 1.0f;
+                Point2D.Y   = 1.0f;
+                Point2D.Z   = 1.0f;
+                Xn_depth2.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
+
+                ofVec3f vtrans;
+                vtrans.set(Point3D.X, Point3D.Y, Point3D.Z);
+
                 for(y=0; y < tData[di].nubeH; y += downsampling) {
-                    //if(y < tData[di].nubeH) {
+                    if(y < tData[di].nubeH) {
                         for(x=0; x < tData[di].nubeW; x += downsampling) {
-                            //if(x < tData[di].nubeW) {
+                            if(x < tData[di].nubeW) {
                                 d = rawPix[y * tData[di].nubeW + x];
                                 if(d != 0) {
                                     Point2D.X   = x;
@@ -215,34 +215,40 @@ void Grabber::updateThreadData() {
                                     Point2D.Z   = (float)d;
                                     try {
 
-                                        Xn_depth.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
-                                        v1.set(Point3D.X, Point3D.Y, Point3D.Z);
-
-                                        vt = transformPoint(v1, t3D[i].context->matrix);
+                                        //Xn_depth2.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
+                                        v1.set(x, y, (float)d);
+                                        vtmp    =   transformPointDepth(v1, vtrans);
+                                        vt      =   transformPoint(*vtmp, t3D[i].context->matrix);
                                         tmpX[tData[di].nubeLength] = vt->x;
                                         tmpY[tData[di].nubeLength] = vt->y;
                                         tmpZ[tData[di].nubeLength] = vt->z;
-
+                                        tData[di].nubeLength ++;
+                                        delete vtmp;
                                         delete vt;
 
                                     } catch(...) {
                                         ofLogVerbose() << "[Grabber::updateThreadData] " << "Excepción al transformar los puntos.";
                                     }
-                                } else {
-                                    tmpX[tData[di].nubeLength] = 0;
-                                    tmpY[tData[di].nubeLength] = 0;
-                                    tmpZ[tData[di].nubeLength] = 0;
                                 }
-                                tData[di].nubeLength ++;
-                            //}
+                            }
                         }
-                    //}
+                    }
                 }
-//                tData[di].cvX.setFromPixels(tmpX[tData[di].nubeLength], tData[di].nubeW, tData[di].nubeH);
-//                tData[di].cvY.setFromPixels(tmpX[tData[di].nubeLength], tData[di].nubeW, tData[di].nubeH);
-//                tData[di].cvZ.setFromPixels(tmpX[tData[di].nubeLength], tData[di].nubeW, tData[di].nubeH);
-//
-//                tData[di].encodedCloud.setFromGrayscalePlanarImages(tData[di].cvX, tData[di].cvY, tData[di].cvZ);
+
+                //
+                char nombre2[50];
+                sprintf(nombre2, "frame1.xyz", i);
+
+                //Creo el archivo b,n de la nube unida
+                FILE * pFile;
+                pFile = fopen (nombre2,"w");
+                //Recorro los frames de cada camara y me quedo solo con los 3D
+                for(int i=0; i < tData[di].nubeLength; i ++) {
+                    fprintf (pFile, "%f %f %f\n", tmpX[i], tmpY[i], tmpZ[i]);
+                }
+
+                fclose (pFile);
+                //
 
                 if(tData[di].nubeLength > 0) {
                     tData[di].xpix = new float[tData[di].nubeLength];
@@ -261,14 +267,23 @@ void Grabber::updateThreadData() {
                 }
 
                 ofLogVerbose() << "[Grabber::updateThreadData] " << " saliendo del for for.";
-                /**/
+
             }
         }
         gettimeofday(&tData[di].curTime, NULL);
         t3D[i].unlock();
         di++;
+
     }
 
+}
+
+ofVec3f * Grabber::transformPointDepth(ofVec3f point, ofVec3f vtrans) {
+    ofVec3f v;
+    v.set(point.x, point.y, point.z);
+    v            = vtrans * v;
+    ofVec3f * v3 = new ofVec3f(v.x, v.y, v.z);
+    return v3;
 }
 
 ofVec3f * Grabber::transformPoint(ofVec3f point, ofMatrix4x4 transform) {

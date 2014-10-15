@@ -26,6 +26,8 @@ struct t_camera {
 
 struct t_data {
     bool     goLive;
+    bool     persistence;
+    int      logLevel;
     int      cliId;
     int      cliPort;
     string   serverIp;

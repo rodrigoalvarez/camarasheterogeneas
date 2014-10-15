@@ -8,19 +8,38 @@
 #include <sys/time.h>
 #include <sstream>
 #include "ofxCvShortImage.h"
-/*
-unsigned int  timestamp;
-ofImage img;
-int     inited;
 
-void    updateData();
-ofShortPixels  spix;
-*/
-//struct tm *newtime;
-//time_t aclock;
+#include <windows.h>
+
+
+typedef void (*f_compress_img) (void ** srcBuff, int width, int height, void ** destBuff, int * comp_size);
+typedef void (*f_decompress_img) (void * srcBuff, int comp_size, int* width, int* height, void ** destBuff);
+
+//f_compress_img    compress_img;
+//f_decompress_img  decompress_img;
+
+
+
 class FrameUtils {
 
 	public:
+
+    //static f_compress_img    compress_img;
+    //static f_decompress_img  decompress_img;
+
+    static void init() {
+//        HINSTANCE hGetProcIDDLL;
+//        hGetProcIDDLL =  LoadLibraryA("imageCompression.dll");
+//
+//        if (!hGetProcIDDLL) {
+//            std::cout << "No se pudo cargar la libreria: " << std::endl;
+//        } else {
+//            //FrameUtils::compress_img = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
+//            compress_img    = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
+//            decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
+//        }
+    }
+
     static ThreadData * getDummyFrame() {
 
         //time( &aclock );                 /* Get time in seconds */
@@ -119,13 +138,15 @@ class FrameUtils {
                 if(tData[i].state > 0) {
                     //Si tiene imágen;
                     if((tData[i].state == 1) || (tData[i].state == 3)) {
-                        totSize += sizeof(int);     //(int) camWidth
-                        totSize += sizeof(int);     //(int) camHeight
-                        totSize += sizeof(float)*6; //(int) camHeight
+                        totSize += sizeof(int);     //(int) camBArrSize
+                        //totSize += sizeof(int);     //(int) camHeight
+                        totSize += sizeof(float)*6; //(int) transformación matriz
                         //Reservo lugar para la imágen.
 
-                        ofPixels p = tData[i].img.getPixelsRef();
-                        totSize += p.size();
+                        //ofPixels p = tData[i].img.getPixelsRef();
+                        //totSize += p.size();
+                        ofLogVerbose() << "[FrameUtils::getFrameSize] sumando el size " << tData[i].compSize << endl;
+                        totSize += tData[i].compSize;
                     }
 
                     //Si tiene nube;
@@ -171,6 +192,7 @@ class FrameUtils {
                 char* off_camId;
                 char* off_state;
                 char* off_curTime;
+                char* off_imgBArrSize;
                 char* off_imgWidth;
                 char* off_imgHeight;
                 char* off_imgXYZ;
@@ -205,31 +227,27 @@ class FrameUtils {
                     memcpy(&(tData[i].state),   (off_state),     sizeof(int));
                     memcpy(&(tData[i].curTime), (off_curTime),   sizeof(timeval));
 
-                    ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - cliId: " << tData[i].cliId;
-                    ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - camId: " << tData[i].camId;
-                    ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - state: " << tData[i].state;
-                    ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - curTime: " << tData[i].curTime.tv_usec << " " << tData[i].curTime.tv_sec;
+                    ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - cliId: " << tData[i].cliId << " - camId: " << tData[i].camId << " - state: " << tData[i].state ;
 
                     start = off_curTime   + sizeof(timeval);
 
-                    ofLogVerbose() << "tData[i].state " << tData[i].state;
                     //Si (tData[i].state > 0) = Está inicializado
                     if(tData[i].state > 0) {
-                        ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - (tData[i].state > 0) ";
                         //Si tiene imágen;
                         if((tData[i].state == 1) || (tData[i].state == 3)) {
 
                             //Reservo lugar para la imágen.
-                            off_imgWidth         = start;
-                            off_imgHeight        = off_imgWidth  + sizeof(int);
-                            off_imgXYZ           = off_imgHeight + sizeof(int);
+                            off_imgBArrSize      = start;
+                            //off_imgWidth         = start;
+                            //off_imgHeight        = off_imgWidth  + sizeof(int);
+                            off_imgXYZ           = off_imgBArrSize + sizeof(int);
                             off_imagebytearray   = off_imgXYZ    + sizeof(float)*6;
 
                             int w;
                             int h;
 
-                            memcpy(&(w),     (off_imgWidth),     sizeof(int));
-                            memcpy(&(h),     (off_imgHeight),    sizeof(int));
+                            memcpy(&(tData[i].compSize),     (off_imgBArrSize),     sizeof(int));
+                            //memcpy(&(h),     (off_imgHeight),    sizeof(int));
 
                             memcpy(&(tData[i].xyz.x),   (off_imgXYZ),                       sizeof(float));
                             memcpy(&(tData[i].xyz.y),   (off_imgXYZ + sizeof(float)),       sizeof(float));
@@ -239,17 +257,21 @@ class FrameUtils {
                             memcpy(&(tData[i].abc.y),   (off_imgXYZ + sizeof(float) * 4),   sizeof(float));
                             memcpy(&(tData[i].abc.z),   (off_imgXYZ + sizeof(float) * 5),   sizeof(float));
 
-                            ofLogVerbose() << "w || h - " << w << " || " << h;
+                            ofLogVerbose() << "Recibida imagen de: " << w << "x" << h;
 
+                            tData[i].compImg    = new char[tData[i].compSize];
+                            memcpy((tData[i].compImg), ((unsigned char *) off_imagebytearray), tData[i].compSize);
+
+                            /*
                             ofImage imgDest3;
                             //imgDest3.loadImage("foto0.jpg");
                             try {
                                 imgDest3.setFromPixels((unsigned char *) off_imagebytearray, w, h, OF_IMAGE_COLOR, true);
                             }catch(std::bad_alloc& ba) {}
+                            */
 
-                            ofLogVerbose() << "imgDest3.setFromPixels";
-                            char dig = (char)(((int)'0')+i);
-                            tData[i].img.setFromPixels((unsigned char *) off_imagebytearray, w, h, OF_IMAGE_COLOR, true);
+                            //char dig = (char)(((int)'0')+i);
+                            //tData[i].img.setFromPixels((unsigned char *) off_imagebytearray, w, h, OF_IMAGE_COLOR, true);
                             //imgDest3.saveImage("imgDest" + ofToString(i) + ".jpg");
 
                             start = off_imagebytearray + w * h * 3;
@@ -272,9 +294,7 @@ class FrameUtils {
                             memcpy(&(h),            (off_pcHeight),    sizeof(int));
                             memcpy(&(nubeLength),   (off_pcLength),    sizeof(int));
 
-                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube recuperado - w: " << w;
-                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube recuperado - h: " << h;
-                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube recuperado - nubeLength: " << nubeLength;
+                            ofLogVerbose() << "Recibida nube de: " << w << "x" << h << " - total puntos: " << nubeLength;
 
                             tData[i].nubeW  = w;
                             tData[i].nubeH  = h;
@@ -296,13 +316,11 @@ class FrameUtils {
                                 off_nubeByteArray   = off_nubeByteArray + nubeLength*sizeof(float);
                             }
 
-                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nubeLength: " << tData[i].nubeLength;
                             //Reservo lugar para la nube.
                             start = off_nubeByteArray;
 
                         }
                     }
-                    cout << endl;
                 }
                 std::pair <int, ThreadData *> retVal;
                 retVal.first    = totCameras;
@@ -319,7 +337,6 @@ class FrameUtils {
     }
 
     static char * getFrameByteArray(ThreadData * tData, int totalCams, int size) {
-        ofLogVerbose() << " getFrameByteArray tData[0].nubeH " << tData[0].nubeH;
         /*
         Aquí tengo que formar el gran bytearray del frame (el tamaño ya está calculado en size).
         Cada ThreadData lo voy a transformar en un elemento bien controlado en tamaño para poder castearlo sin problema del otro lado.
@@ -343,8 +360,9 @@ class FrameUtils {
             char* off_camId;
             char* off_state;
             char* off_curTime;
-            char* off_imgWidth;
-            char* off_imgHeight;
+            char* off_imgBArrSize;
+            //char* off_imgWidth;
+            //char* off_imgHeight;
             char* off_imgXYZ;
             char* off_imagebytearray;
             char* off_pcWidth;
@@ -354,6 +372,8 @@ class FrameUtils {
 
             int i=0, totSize = 0;
             for(i=0; i<totalCams; i++) {
+                ofLogVerbose() << "off_imagebytearray size " << tData[i].compSize << endl;
+
                 off_cliId           = start;
                 off_camId           = off_cliId     + sizeof(int);
                 off_state           = off_camId     + sizeof(int);
@@ -375,10 +395,12 @@ class FrameUtils {
 
                     //Si tiene imágen;
                     if((tData[i].state == 1) || (tData[i].state == 3)) {
+
                         //Reservo lugar para la imágen.
-                        off_imgWidth         = start;//off_curTime + sizeof(timeval);;
-                        off_imgHeight        = off_imgWidth  + sizeof(int);
-                        off_imgXYZ           = off_imgHeight + sizeof(int);
+                        off_imgBArrSize      = start;
+                        //off_imgWidth         = start;//off_curTime + sizeof(timeval);;
+                        //off_imgHeight        = off_imgWidth  + sizeof(int);
+                        off_imgXYZ           = off_imgBArrSize + sizeof(int);
                         off_imagebytearray   = off_imgXYZ    + sizeof(float)*6;
 
                         int w = tData[i].img.getWidth();
@@ -387,8 +409,10 @@ class FrameUtils {
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - guardado - w: " << w;
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - guardado - h: " << h;
 
-                        memcpy(off_imgWidth,       &w,    sizeof(int));
-                        memcpy(off_imgHeight,      &h,    sizeof(int));
+                        memcpy(off_imgBArrSize,    &tData[i].compSize,    sizeof(int));
+                        //memcpy(off_imgWidth,       &w,    sizeof(int));
+                        //memcpy(off_imgHeight,      &h,    sizeof(int));
+
 
                         memcpy(off_imgXYZ,                   &tData[i].xyz.x,    sizeof(float));
                         memcpy(off_imgXYZ + sizeof(float),   &tData[i].xyz.y,    sizeof(float));
@@ -397,9 +421,27 @@ class FrameUtils {
                         memcpy(off_imgXYZ + sizeof(float)*4, &tData[i].abc.y,    sizeof(float));
                         memcpy(off_imgXYZ + sizeof(float)*5, &tData[i].abc.z,    sizeof(float));
 
-                        memcpy(off_imagebytearray, tData[i].img.getPixels(), tData[i].img.getPixelsRef().size());
 
-                        start    = off_imagebytearray + (w*h*3);
+                        //&tData[i].compImg, &tData[i].compSize
+                        memcpy(off_imagebytearray, tData[i].compImg, tData[i].compSize);
+
+                        //
+                        /*HINSTANCE hGetProcIDDLL;
+                        hGetProcIDDLL                       =  LoadLibraryA("imageCompression.dll");
+                        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
+
+                        int unc_width   = 0;
+                        int unc_height  = 0;
+                        const unsigned char * unc_Buff = NULL;
+                        ofLogVerbose() << "[FrameUtils::decompressImages] tData[i].compSize " << tData[i].compSize;
+                        decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
+                        ofImage img2;
+                        img2.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
+                        img2.saveImage("salida_decompress_img.jpg");*/
+                        //
+                        //memcpy(off_imagebytearray, tData[i].img.getPixels(), tData[i].img.getPixelsRef().size());
+
+                        start    = off_imagebytearray + tData[i].compSize;
                     }
 
                     off_pcWidth = start; //off_curTime + sizeof(timeval);
@@ -464,4 +506,138 @@ class FrameUtils {
         return NULL;
     }
 
+    /**
+    * Recorre los totalCams ThreadData y comprime todas las imágenes.
+    */
+    static void compressImages(ThreadData * tData, int totalCams) {
+        HINSTANCE hGetProcIDDLL;
+        hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
+        f_compress_img compress_img      = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
+        f_decompress_img decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
+
+        try {
+            void * srcBuff;
+            int i;
+            for(i=0; i<totalCams; i++) {
+                if(tData[i].state > 0) {
+                    if((tData[i].state == 1) || (tData[i].state == 3)) {
+                        srcBuff           = (void *) tData[i].img.getPixels();
+
+                        if (!hGetProcIDDLL) {
+                            std::cout << "No se pudo cargar la libreria: " << std::endl;
+                        } else {
+
+                            compress_img(&srcBuff, tData[i].img.getWidth(), tData[i].img.getHeight(), &tData[i].compImg, &tData[i].compSize);
+
+                            /*if(tData[i].compSize == -1) {
+                                std::cout << "Error al comprimir la imagen. " << std::endl;
+                            } else {
+                                int unc_width   = 0;
+                                int unc_height  = 0;
+
+                                const unsigned char * unc_Buff = NULL;
+                                decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
+                            }*/
+                        }
+                        ofLogWarning() << "[FrameUtils::compressImages] - tData[i].compSize " << tData[i].compSize;
+                    }
+                    if((tData[i].state == 2) || (tData[i].state == 3)) {
+                        //@TODO: Acá falta integrar la compresión de la nube.
+                    }
+                }
+            }
+        } catch (...) {
+            ofLogWarning() << "[FrameUtils::compressImages] - Exception occurred.";
+        }
+    }
+
+    static void compressSample() {
+
+        HINSTANCE hGetProcIDDLL;
+        hGetProcIDDLL =  LoadLibraryA("C:\\OpenFrameworks\\apps\\myApps\\camaras_heterogeneas\\Dlls\\imageCompression\\bin\\Release\\imageCompression.dll");
+
+        if (!hGetProcIDDLL) {
+            std::cout << "No se pudo cargar la libreria: " << std::endl;
+        } else {
+            f_compress_img      compress_img    = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
+            f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
+
+            ofImage img;
+            img.loadImage("img1.jpg");
+
+            void * srcBuff           = (void *) img.getPixels();
+            void * destBuff          = NULL;
+            int width                = img.getWidth();
+            int height               = img.getHeight();
+            int comp_size;
+
+            compress_img(&srcBuff, width, height, &destBuff, &comp_size);
+
+            if(comp_size == -1) {
+                std::cout << "Error al comprimir la imagen. " << std::endl;
+            } else {
+                int unc_width   = 0;
+                int unc_height  = 0;
+
+                const unsigned char * unc_Buff = NULL;
+                decompress_img(destBuff, comp_size, &unc_width, &unc_height, (void **)&unc_Buff);
+
+                ofImage img2;
+                img2.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
+                img2.saveImage("salida_decompress_img.jpg");
+
+            }
+        }
+    }
+
+    /**
+    * Recorre los totalCams ThreadData y descomprime todas las imágenes.
+    */
+    static void decompressImages(ThreadData * tData, int totalCams) {
+        HINSTANCE hGetProcIDDLL;
+        hGetProcIDDLL                       =  LoadLibraryA("imageCompression.dll");
+        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
+
+        try {
+            int i;
+            for(i=0; i<totalCams; i++) {
+                if(tData[i].state > 0) {
+                    if((tData[i].state == 1) || (tData[i].state == 3)) {
+
+                        if(tData[i].compSize == -1) {
+                            std::cout << "Error al comprimir la imagen. " << std::endl;
+                        } else {
+                            int unc_width   = 0;
+                            int unc_height  = 0;
+
+                            const unsigned char * unc_Buff = NULL;
+                            decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
+                            tData[i].img.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
+                            tData[i].img.saveImage("decompress_debug.jpg");
+                        }
+
+                    }
+                    if((tData[i].state == 2) || (tData[i].state == 3)) {
+                        //@TODO: Acá falta integrar la compresion de la nube.
+                    }
+                }
+            }
+        } catch (...) {
+            ofLogWarning() << "[FrameUtils::decompressImages] - Exception occurred.";
+        }
+    }
+
+    /**
+    * Retorna un pair con <bytearray, size>
+    */
+    static std::pair <char *, int> compressData(char * data, int size) {
+
+    }
+
+    /**
+    * Retorna un pair con <bytearray, size>
+    */
+    static std::pair <char *, int> decompressData(char * data, int size) {
+
+    }
 };
