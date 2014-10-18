@@ -233,21 +233,25 @@ void Grabber::updateThreadData() {
                                 v1.set(Point3D.X, Point3D.Y, Point3D.Z);
 
                                 vt = transformPoint(v1, matrix);
-                                tmpX[tData[di].nubeLength] = vt->x;
-                                tmpY[tData[di].nubeLength] = vt->y;
-                                tmpZ[tData[di].nubeLength] = vt->z;
+                                if(((int)vt->x == 0) && ((int)vt->x == 0) && ((int)vt->x == 0)) {
 
+                                } else {
+                                    tmpX[tData[di].nubeLength] = vt->x;
+                                    tmpY[tData[di].nubeLength] = vt->y;
+                                    tmpZ[tData[di].nubeLength] = vt->z;
+                                    tData[di].nubeLength ++;
+                                }
                                 delete vt;
 
                             } catch(...) {
                                 ofLogVerbose() << "[Grabber::updateThreadData] " << "Excepción al transformar los puntos.";
                             }
-                        } else {
+
+                        }/* else {
                             tmpX[tData[di].nubeLength] = 0;
                             tmpY[tData[di].nubeLength] = 0;
                             tmpZ[tData[di].nubeLength] = 0;
-                        }
-                        tData[di].nubeLength ++;
+                        }*/
                     }
                 }
 
