@@ -38,6 +38,7 @@ float frustum[6][4];
 
 /* Camera */
 
+float cameraFactor = 1.0;
 int cameraAxis = -1;
 int cameraMove = -1;
 
@@ -64,9 +65,11 @@ void writeText() {
 void setFaceVertex(int index) {
     GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
+    glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
 }
 
 void draw2DElement(int index) {
+
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_POLYGON);
         setFaceVertex(index * 3);
@@ -74,24 +77,40 @@ void draw2DElement(int index) {
         setFaceVertex(index * 3 + 2);
     glEnd();
     if (textureWire) {
+        glDisable(GL_LIGHT0);
+        glDisable(GL_LIGHTING);
         glColor3f(0.5f, 0.5f, 0.5f);
         glBegin(GL_LINE_LOOP);
             setFaceVertex(index * 3);
             setFaceVertex(index * 3 + 1);
             setFaceVertex(index * 3 + 2);
         glEnd();
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
     }
 }
 
-void draw2DView() {
-    for (int i = 0; i < textureModel->TotalFaces; i++) {
-        int hits = 0;
-        for (int k = 1; k <= textureCount; k++) {
-            hits = max(hits, faces[k][i]);
-        }
-        if (hits > 0 && faces[textureIndex][i] == hits) {
-            draw2DElement(i);
-        }
+void draw2DBackground() {
+
+    if (textureIndex > 0) {
+        float wImg = textureImage[textureIndex-1].Width;
+        float hImg = textureImage[textureIndex-1].Height;
+
+        glColor3f(0.0f, 0.0f, 0.0f);
+        glBegin(GL_POLYGON);
+            GLfloat vert1[3] = { -wImg, -hImg, -20.0 };
+            glVertex3fv(vert1);
+            glNormal3f(0,0,1);
+            GLfloat vert2[3] = { -wImg, hImg, -20.0 };
+            glVertex3fv(vert2);
+            glNormal3f(0,0,1);
+            GLfloat vert3[3] = { wImg, hImg, -20.0 };
+            glVertex3fv(vert3);
+            glNormal3f(0,0,1);
+            GLfloat vert4[3] = { wImg, -hImg, -20.0 };
+            glVertex3fv(vert4);
+            glNormal3f(0,0,1);
+        glEnd();
     }
 }
 
@@ -217,6 +236,18 @@ bool PointInFrustum(float x, float y, float z) {
     return true;
 }
 
+void draw2DView() {
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        int hits = 0;
+        for (int k = 1; k <= textureCount; k++) {
+            hits = max(hits, faces[k][i]);
+        }
+        if (hits > 0 && faces[textureIndex][i] == hits) {
+            draw2DElement(i);
+        }
+    }
+}
+
 void draw2DCalibrationFull() {
     ExtractFrustum();
     GLuint queries[textureModel->TotalFaces];
@@ -335,6 +366,24 @@ void IncludeMesh (Model_XYZ* model, Model_XYZ* newModel, MasterMesh master) {
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    glPushMatrix();
+    glLoadIdentity();
+    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 0.5 };
+    GLfloat mat_shininess[] = { 50.0 };
+    GLfloat light_color[] = { 1., 1., 1., 0.5 };
+    GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
+
+    glShadeModel (GL_SMOOTH);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glPopMatrix();
+
+
     if (textureViewMode) {
         for (int i = 1; i <= textureCount; i++) {
             textureIndex = i;
@@ -361,8 +410,15 @@ void display(void) {
         } else {
             draw2DCalibrationFull();
         }
+        glPushMatrix();
+        glLoadIdentity();
+        draw2DBackground();
+        glPopMatrix();
         stepClearTexture();
     }
+
+    glDisable(GL_LIGHT0);
+    glDisable(GL_LIGHTING);
 
     glFlush();
     glutSwapBuffers();
@@ -405,12 +461,15 @@ void keys(unsigned char key, int x, int y) {
         textureIndex = key - 48;
         display();
     }
-    if(key == 'w') textureMaster[textureIndex].rotate[0] += 2.0;
-    if(key == 's') textureMaster[textureIndex].rotate[0] -= 2.0;
-    if(key == 'a') textureMaster[textureIndex].rotate[1] += 2.0;
-    if(key == 'd') textureMaster[textureIndex].rotate[1] -= 2.0;
-    if(key == 'e') textureMaster[textureIndex].rotate[2] += 2.0;
-    if(key == 'q') textureMaster[textureIndex].rotate[2] -= 2.0;
+    if(key == '+') cameraFactor *= 1.25;
+    if(key == '-') cameraFactor *= 0.8;
+
+    if(key == 'w') textureMaster[textureIndex].rotate[0] += 2.0 * cameraFactor;
+    if(key == 's') textureMaster[textureIndex].rotate[0] -= 2.0 * cameraFactor;
+    if(key == 'a') textureMaster[textureIndex].rotate[1] += 2.0 * cameraFactor;
+    if(key == 'd') textureMaster[textureIndex].rotate[1] -= 2.0 * cameraFactor;
+    if(key == 'e') textureMaster[textureIndex].rotate[2] += 2.0 * cameraFactor;
+    if(key == 'q') textureMaster[textureIndex].rotate[2] -= 2.0 * cameraFactor;
 
     display();
 }
@@ -430,7 +489,7 @@ void mouse(int btn, int state, int x, int y) {
 void mouseMove(int x, int y) {
 
     if (cameraAxis != -1) {
-        float deltaMove = (y - cameraMove) * 0.1f;
+        float deltaMove = (y - cameraMove) * 0.1f * cameraFactor;
         cameraMove = y;
         if (cameraAxis == GLUT_LEFT_BUTTON) {
             textureMaster[textureIndex].viewer[0] += deltaMove;
@@ -489,7 +548,7 @@ void loadLightMapTexture(Model_IMG* model, string file) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812D);
     glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderColor);
-    gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_RGB,GL_UNSIGNED_BYTE,model->Pixels);
+    gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_BGR,GL_UNSIGNED_BYTE,model->Pixels);
 }
 
 vector<string> getImageFiles() {
@@ -528,6 +587,8 @@ int main(int argc, char **argv) {
     glutMouseFunc(mouse);
     glutMotionFunc(mouseMove);
     glutKeyboardFunc(keys);
+    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+
     glEnable(GL_DEPTH_TEST);
 
     /* Mesh */
@@ -578,6 +639,5 @@ int main(int argc, char **argv) {
 
     /* Start windows */
     writeText();
-    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
     glutMainLoop();
 }

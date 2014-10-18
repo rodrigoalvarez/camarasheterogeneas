@@ -6,10 +6,11 @@
 #include <vector>
 #include <limits>
 #include <cmath>
+#include "timer.h"
 
 
 Model_XYZ::Model_XYZ() {
-
+    tt = new timer();
 }
 
 int Model_XYZ::Load(string fileName, float alfa) {
@@ -111,6 +112,77 @@ int Model_XYZ::Include(Model_XYZ* model, GLdouble* m) {
     }
     TotalPoints += model->TotalPoints;
 	return TotalPoints;
+}
+
+void Model_XYZ::ToImage() {
+
+    tt->start();
+
+    for (int i = 0; i < TotalPoints * 3; i += 3) {
+        int x = 1000000.f + Points[i] * 10.f;
+        unsigned char xA = x / (256*256);
+        unsigned char xB = (x/256) % 256;
+        unsigned char xC = x % 256;
+        PixelsX.push_back(xA);
+        PixelsX.push_back(xB);
+        PixelsX.push_back(xC);
+
+        int y = 1000000.f + Points[i+1] * 10.f;
+        unsigned char yA = y / (256*256);
+        unsigned char yB = (y/256) % 256;
+        unsigned char yC = y % 256;
+        PixelsY.push_back(yA);
+        PixelsY.push_back(yB);
+        PixelsY.push_back(yC);
+
+        int z = 1000000.f + Points[i+2] * 10.f;
+        unsigned char zA = z / (256*256);
+        unsigned char zB = (z/256) % 256;
+        unsigned char zC = z % 256;
+        PixelsZ.push_back(zA);
+        PixelsZ.push_back(zB);
+        PixelsZ.push_back(zC);
+    }
+    int timeX = tt->get_elapsed_ms();
+    cout << timeX << endl;
+    tt->start();
+}
+
+void Model_XYZ::ToCloud() {
+
+    for (int i = 0; i < TotalPoints * 3; i += 3) {
+        int x = PixelsX[i] * (256*256);
+        x += PixelsX[i+1] * (256);
+        x += PixelsX[i+2];
+        x -= 1000000;
+        float xF = ((double)x) / 10.f;
+        NewPoints.push_back(xF);
+
+        int y = PixelsY[i] * (256*256);
+        y += PixelsY[i+1] * (256);
+        y += PixelsY[i+2];
+        y -= 1000000;
+        float yF = ((double)y) / 10.f;
+        NewPoints.push_back(yF);
+
+        int z = PixelsZ[i] * (256*256);
+        z += PixelsZ[i+1] * (256);
+        z += PixelsZ[i+2];
+        z -= 1000000;
+        float zF = ((double)z) / 10.f;
+        NewPoints.push_back(zF);
+    }
+    int timeX = tt->get_elapsed_ms();
+    cout << timeX << endl;
+    tt->start();
+}
+
+void Model_XYZ::Diff() {
+
+    for (int i = 0; i < TotalPoints * 3; i++) {
+        float fOld = Points[i];
+        float fNew = NewPoints[i];
+    }
 }
 
 int Model_XYZ::Clear() {
