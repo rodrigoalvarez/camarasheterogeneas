@@ -238,11 +238,6 @@ void Grabber::updateThreadData() {
                         }
                     //}
                 }
-//                tData[di].cvX.setFromPixels(tmpX[tData[di].nubeLength], tData[di].nubeW, tData[di].nubeH);
-//                tData[di].cvY.setFromPixels(tmpX[tData[di].nubeLength], tData[di].nubeW, tData[di].nubeH);
-//                tData[di].cvZ.setFromPixels(tmpX[tData[di].nubeLength], tData[di].nubeW, tData[di].nubeH);
-//
-//                tData[di].encodedCloud.setFromGrayscalePlanarImages(tData[di].cvX, tData[di].cvY, tData[di].cvZ);
 
                 if(tData[di].nubeLength > 0) {
                     tData[di].xpix = new float[tData[di].nubeLength];
