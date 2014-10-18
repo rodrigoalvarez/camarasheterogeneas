@@ -39,8 +39,12 @@ class MeshMain
         int cameraMove;
         bool cameraAll;
 
+        bool cameraLight;
+
         FaceStruct* faces;
         int* numberFaces;
+
+        float cameraFactor = 1.0;
 
         MeshMain();
 

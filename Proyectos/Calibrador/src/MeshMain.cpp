@@ -16,6 +16,8 @@ MeshMain::MeshMain()
     cameraMove = -1;
     cameraAll = false;
 
+    cameraLight = true;
+
     settings = NULL;
 
     cloudModel = NULL;//tienen la nube y ubicacion cuando fueron cargados
@@ -23,6 +25,8 @@ MeshMain::MeshMain()
 
     faces = NULL;
     numberFaces = 0;
+
+    cameraFactor = 1.0;
 
     colors[0][0] = 1.0; colors[0][1] = 1.0; colors[0][2] = 1.0;
     colors[1][0] = 1.0; colors[1][1] = 0.0; colors[1][2] = 0.0;
@@ -145,6 +149,7 @@ void MeshMain::saveXmlFile() {
 void MeshMain::setPointVertex(int index) {
     GLfloat vert[3] = { cloudModel[meshIndex]->Points[index * 3], cloudModel[meshIndex]->Points[index * 3 + 1], cloudModel[meshIndex]->Points[index * 3 + 2] };
     glVertex3fv(vert);
+    glNormal3fv(vert);
 }
 
 void MeshMain::draw3D() {
@@ -178,6 +183,24 @@ void MeshMain::display(void) {
         glRotatef(cloudMaster[meshIndex].rotate[1], 0.0f,-1.0f,0.0f);
         glRotatef(cloudMaster[meshIndex].rotate[2], 0.0f,0.0f,-1.0f);
     }
+    if (cameraLight){
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+
+        glPushMatrix();
+        glLoadIdentity();
+        GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 0.5 };
+        GLfloat mat_shininess[] = { 50.0 };
+        GLfloat light_color[] = { 1., 1., 1., 0.5 };
+        GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
+
+        glShadeModel (GL_SMOOTH);
+        glMaterialfv(GL_FRONT, GL_SPECULAR, colors[meshIndex]);
+        glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, colors[meshIndex]);
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+        glPopMatrix();
+    }
 
     draw3D();
 
@@ -190,9 +213,30 @@ void MeshMain::display(void) {
         glRotatef(cloudMaster[0].rotate[0], -1.0f,0.0f,0.0f);
         glRotatef(cloudMaster[0].rotate[1], 0.0f,-1.0f,0.0f);
         glRotatef(cloudMaster[0].rotate[2], 0.0f,0.0f,-1.0f);
+
+        if (cameraLight) {
+            glPushMatrix();
+            glLoadIdentity();
+            GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 0.5 };
+            GLfloat mat_shininess[] = { 50.0 };
+            GLfloat light_color[] = { 1., 1., 1., 0.5 };
+            GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
+
+            glShadeModel (GL_SMOOTH);
+            glMaterialfv(GL_FRONT, GL_SPECULAR, colors[meshIndex]);
+            glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+            glLightfv(GL_LIGHT0, GL_DIFFUSE, colors[meshIndex]);
+            glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+            glPopMatrix();/**/
+        }
         draw3D();
 
         meshIndex = meshIndexOld;
+    }
+
+    if (cameraLight) {
+       glDisable(GL_LIGHT0);
+       glDisable(GL_LIGHTING);
     }
 
 	glFlush();
@@ -203,7 +247,7 @@ void MeshMain::display(void) {
 
 void MeshMain::mouseMove(int x, int y) {
 	if (cameraAxis != -1) {
-		float deltaMove = (y - cameraMove) * 0.1f;
+		float deltaMove = (y - cameraMove) * 0.1f * cameraFactor;
 		cameraMove = y;
         if (cameraAll) {
             if (cameraAxis == GLUT_LEFT_BUTTON) {
@@ -262,20 +306,22 @@ void MeshMain::keys(unsigned char key, int x, int y) {
             }
         }
     }
+    if(key == '+') cameraFactor *= 1.25;
+    if(key == '-') cameraFactor *= 0.8;
 
-    if(key == 'w') cloudMaster[meshIndex].rotate[0] += 2.0;
-    if(key == 's') cloudMaster[meshIndex].rotate[0] -= 2.0;
-    if(key == 'a') cloudMaster[meshIndex].rotate[1] += 2.0;
-    if(key == 'd') cloudMaster[meshIndex].rotate[1] -= 2.0;
-    if(key == 'e') cloudMaster[meshIndex].rotate[2] += 2.0;
-    if(key == 'q') cloudMaster[meshIndex].rotate[2] -= 2.0;
+    if(key == 'w') cloudMaster[meshIndex].rotate[0] += 2.0 * cameraFactor;
+    if(key == 's') cloudMaster[meshIndex].rotate[0] -= 2.0 * cameraFactor;
+    if(key == 'a') cloudMaster[meshIndex].rotate[1] += 2.0 * cameraFactor;
+    if(key == 'd') cloudMaster[meshIndex].rotate[1] -= 2.0 * cameraFactor;
+    if(key == 'e') cloudMaster[meshIndex].rotate[2] += 2.0 * cameraFactor;
+    if(key == 'q') cloudMaster[meshIndex].rotate[2] -= 2.0 * cameraFactor;
 
-    if(key == 'W') cloudMaster[0].rotate[0] += 2.0;
-    if(key == 'S') cloudMaster[0].rotate[0] -= 2.0;
-    if(key == 'A') cloudMaster[0].rotate[1] += 2.0;
-    if(key == 'D') cloudMaster[0].rotate[1] -= 2.0;
-    if(key == 'E') cloudMaster[0].rotate[2] += 2.0;
-    if(key == 'Q') cloudMaster[0].rotate[2] -= 2.0;
+    if(key == 'W') cloudMaster[0].rotate[0] += 2.0 * cameraFactor;
+    if(key == 'S') cloudMaster[0].rotate[0] -= 2.0 * cameraFactor;
+    if(key == 'A') cloudMaster[0].rotate[1] += 2.0 * cameraFactor;
+    if(key == 'D') cloudMaster[0].rotate[1] -= 2.0 * cameraFactor;
+    if(key == 'E') cloudMaster[0].rotate[2] += 2.0 * cameraFactor;
+    if(key == 'Q') cloudMaster[0].rotate[2] -= 2.0 * cameraFactor;
 
 	display();
 }
