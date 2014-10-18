@@ -247,7 +247,8 @@ class FrameUtils {
                             int h;
 
                             memcpy(&(tData[i].compSize),     (off_imgBArrSize),     sizeof(int));
-                            //memcpy(&(h),     (off_imgHeight),    sizeof(int));
+
+                            ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - Recibida imagen de size: " << tData[i].compSize;
 
                             memcpy(&(tData[i].xyz.x),   (off_imgXYZ),                       sizeof(float));
                             memcpy(&(tData[i].xyz.y),   (off_imgXYZ + sizeof(float)),       sizeof(float));
@@ -257,7 +258,13 @@ class FrameUtils {
                             memcpy(&(tData[i].abc.y),   (off_imgXYZ + sizeof(float) * 4),   sizeof(float));
                             memcpy(&(tData[i].abc.z),   (off_imgXYZ + sizeof(float) * 5),   sizeof(float));
 
-                            ofLogVerbose() << "Recibida imagen de: " << w << "x" << h;
+                            ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - xyz.x: " << tData[i].xyz.x;
+                            ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - xyz.y: " << tData[i].xyz.y;
+                            ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - xyz.z: " << tData[i].xyz.z;
+
+                            ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - abc.x: " << tData[i].abc.x;
+                            ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - abc.y: " << tData[i].abc.y;
+                            ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - abc.z: " << tData[i].abc.z;
 
                             tData[i].compImg    = new char[tData[i].compSize];
                             memcpy((tData[i].compImg), ((unsigned char *) off_imagebytearray), tData[i].compSize);
@@ -274,7 +281,8 @@ class FrameUtils {
                             //tData[i].img.setFromPixels((unsigned char *) off_imagebytearray, w, h, OF_IMAGE_COLOR, true);
                             //imgDest3.saveImage("imgDest" + ofToString(i) + ".jpg");
 
-                            start = off_imagebytearray + w * h * 3;
+                            //start = off_imagebytearray + w * h * 3;
+                            start    = off_imagebytearray + tData[i].compSize;
                         }
 
                         off_pcWidth = start;
@@ -412,7 +420,7 @@ class FrameUtils {
                         memcpy(off_imgBArrSize,    &tData[i].compSize,    sizeof(int));
                         //memcpy(off_imgWidth,       &w,    sizeof(int));
                         //memcpy(off_imgHeight,      &h,    sizeof(int));
-
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - Recibida imagen de size: " << tData[i].compSize;
 
                         memcpy(off_imgXYZ,                   &tData[i].xyz.x,    sizeof(float));
                         memcpy(off_imgXYZ + sizeof(float),   &tData[i].xyz.y,    sizeof(float));
@@ -421,25 +429,26 @@ class FrameUtils {
                         memcpy(off_imgXYZ + sizeof(float)*4, &tData[i].abc.y,    sizeof(float));
                         memcpy(off_imgXYZ + sizeof(float)*5, &tData[i].abc.z,    sizeof(float));
 
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - xyz.x: " << tData[i].xyz.x;
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - xyz.y: " << tData[i].xyz.y;
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - xyz.z: " << tData[i].xyz.z;
+
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - abc.x: " << tData[i].abc.x;
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - abc.y: " << tData[i].abc.y;
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - abc.z: " << tData[i].abc.z;
 
                         //&tData[i].compImg, &tData[i].compSize
                         memcpy(off_imagebytearray, tData[i].compImg, tData[i].compSize);
 
-                        //
-                        /*HINSTANCE hGetProcIDDLL;
-                        hGetProcIDDLL                       =  LoadLibraryA("imageCompression.dll");
-                        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
+                        /*
+                        totSize += sizeof(int);     //(int) camBArrSize
+                        totSize += sizeof(float)*6; //(int) transformación matriz
+                        //Reservo lugar para la imágen.
 
-                        int unc_width   = 0;
-                        int unc_height  = 0;
-                        const unsigned char * unc_Buff = NULL;
-                        ofLogVerbose() << "[FrameUtils::decompressImages] tData[i].compSize " << tData[i].compSize;
-                        decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
-                        ofImage img2;
-                        img2.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
-                        img2.saveImage("salida_decompress_img.jpg");*/
+                        ofLogVerbose() << "[FrameUtils::getFrameSize] sumando el size " << tData[i].compSize << endl;
+                        totSize += tData[i].compSize;
+                        */
                         //
-                        //memcpy(off_imagebytearray, tData[i].img.getPixels(), tData[i].img.getPixelsRef().size());
 
                         start    = off_imagebytearray + tData[i].compSize;
                     }
@@ -513,7 +522,7 @@ class FrameUtils {
         HINSTANCE hGetProcIDDLL;
         hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
         f_compress_img compress_img      = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
-        f_decompress_img decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
+        //f_decompress_img decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
 
         try {
             void * srcBuff;
@@ -554,7 +563,8 @@ class FrameUtils {
     static void compressSample() {
 
         HINSTANCE hGetProcIDDLL;
-        hGetProcIDDLL =  LoadLibraryA("C:\\OpenFrameworks\\apps\\myApps\\camaras_heterogeneas\\Dlls\\imageCompression\\bin\\Release\\imageCompression.dll");
+
+        hGetProcIDDLL =  LoadLibraryA("imageCompression.dll");
 
         if (!hGetProcIDDLL) {
             std::cout << "No se pudo cargar la libreria: " << std::endl;
@@ -595,15 +605,19 @@ class FrameUtils {
     */
     static void decompressImages(ThreadData * tData, int totalCams) {
         HINSTANCE hGetProcIDDLL;
-        hGetProcIDDLL                       =  LoadLibraryA("imageCompression.dll");
-        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
+        //HINSTANCE hGetProcPCIDDLL;
+
+        hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
+        //hGetProcPCIDDLL                     =  LoadLibraryA("pointCloudCompression.dll");
+
+        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL,      "decompress_img");
+        //f_decompress_pc     decompress_pc   = (f_decompress_img) GetProcAddress(hGetProcPCIDDLL,    "decompress_pc");
 
         try {
             int i;
             for(i=0; i<totalCams; i++) {
                 if(tData[i].state > 0) {
                     if((tData[i].state == 1) || (tData[i].state == 3)) {
-
                         if(tData[i].compSize == -1) {
                             std::cout << "Error al comprimir la imagen. " << std::endl;
                         } else {
@@ -615,10 +629,20 @@ class FrameUtils {
                             tData[i].img.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
                             tData[i].img.saveImage("decompress_debug.jpg");
                         }
-
                     }
                     if((tData[i].state == 2) || (tData[i].state == 3)) {
                         //@TODO: Acá falta integrar la compresion de la nube.
+//                        if(tData[i].pcCompSize == -1) {
+//                            std::cout << "Error al comprimir la nube. " << std::endl;
+//                        } else {
+//                            int unc_width   = 0;
+//                            int unc_height  = 0;
+//
+//                            const unsigned char * unc_Buff = NULL;
+//                            decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
+//                            tData[i].img.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
+//                            tData[i].img.saveImage("decompress_debug.jpg");
+//                        }
                     }
                 }
             }
