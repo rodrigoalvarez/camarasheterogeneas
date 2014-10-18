@@ -86,9 +86,13 @@ std::pair <ThreadData *, ThreadData *> MainBuffer::getNextFrame() {
 
             ThreadData * td = new ThreadData();
             ThreadData * re = ((ThreadData *) it->second);
+
             td->img.setFromPixels(((ThreadData *) it->second)->img.getPixelsRef());
-            td->xyz     = re->xyz;
-            td->abc     = re->abc;
+            td->row1     = re->row1;
+            td->row2     = re->row2;
+            td->row3     = re->row3;
+            td->row4     = re->row4;
+
             if(ret.second == NULL) {
                 ofLogVerbose() << "[MainBuffer::getNextFrame] primera imagen RGB.";
                 td->sig     = NULL;

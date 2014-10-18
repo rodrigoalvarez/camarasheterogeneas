@@ -32,8 +32,11 @@ class ThreadData {
         ofxCvGrayscaleImage	cvZ;
         ofxCvColorImage encodedCloud;
 
-        ofVec3f xyz;
-        ofVec3f abc;
+        ofVec4f row1;
+        ofVec4f row2;
+        ofVec4f row3;
+        ofVec4f row4;
+        //ofMatrix4x4 matrix;
 
         ofFloatPixels  sXpix;
         ofFloatPixels  sYpix;

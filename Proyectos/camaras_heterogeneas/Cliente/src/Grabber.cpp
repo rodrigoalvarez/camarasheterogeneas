@@ -19,7 +19,7 @@ void Grabber::setup() {
 
     FrameUtils::init();
 
-    ofLogToFile("client_log.txt", false);
+
 
     total2D     = gdata->total2D;    //Hacer que se cargue dinámico.
     total3D     = gdata->total3D;    //Hacer que se cargue dinámico.
@@ -29,7 +29,6 @@ void Grabber::setup() {
     if((gdata->total2D + gdata->total3D) > 0) {
         tData = new ThreadData[gdata->total2D + gdata->total3D];
         for(int w = 0; w < (gdata->total2D + gdata->total3D); w++) {
-            //cout << "gdata->sys_data->cliId" << gdata->sys_data->cliId << endl;
             tData[w].cliId = gdata->sys_data->cliId;
         }
     } else {
@@ -133,9 +132,16 @@ void Grabber::updateThreadData() {
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
             tData[di].img.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.getWidth(), t2D[i].img.getHeight(), OF_IMAGE_COLOR, true);
-            tData[di].abc.set(t2D[i].context->abc.x, t2D[i].context->abc.y, t2D[i].context->abc.z);
-            tData[di].xyz.set(t2D[i].context->xyz.x, t2D[i].context->xyz.y, t2D[i].context->xyz.z);
-            //tData[di].img.saveImage("desde_imagen.jpg");
+
+            tData[di].row1.set(t3D[i].context->row1.x, t3D[i].context->row1.y, t3D[i].context->row1.z, t3D[i].context->row1.w);
+            tData[di].row2.set(t3D[i].context->row2.x, t3D[i].context->row2.y, t3D[i].context->row2.z, t3D[i].context->row2.w);
+            tData[di].row3.set(t3D[i].context->row3.x, t3D[i].context->row3.y, t3D[i].context->row3.z, t3D[i].context->row3.w);
+            tData[di].row4.set(t3D[i].context->row4.x, t3D[i].context->row4.y, t3D[i].context->row4.z, t3D[i].context->row4.w);
+
+            ofLogVerbose() << "[Grabber::updateThreadData] 2D - row1.x: " << tData[di].row1.x << ", row1.y: " << tData[di].row1.y << ", row1.z: " << tData[di].row1.z << ", row1.w: " << tData[di].row1.w;
+            ofLogVerbose() << "[Grabber::updateThreadData] 2D - row2.x: " << tData[di].row2.x << ", row2.y: " << tData[di].row2.y << ", row2.z: " << tData[di].row2.z << ", row2.w: " << tData[di].row2.w;
+            ofLogVerbose() << "[Grabber::updateThreadData] 2D - row3.x: " << tData[di].row3.x << ", row3.y: " << tData[di].row3.y << ", row3.z: " << tData[di].row3.z << ", row3.w: " << tData[di].row3.w;
+            ofLogVerbose() << "[Grabber::updateThreadData] 2D - row4.x: " << tData[di].row4.x << ", row4.y: " << tData[di].row4.y << ", row4.z: " << tData[di].row4.z << ", row4.w: " << tData[di].row4.w;
         }
         tData[di].nubeW = tData[di].nubeH = 0;
         gettimeofday(&tData[di].curTime, NULL);
@@ -171,16 +177,9 @@ void Grabber::updateThreadData() {
                 tData[di].nubeW         = t3D[i].spix.getWidth();
                 tData[di].nubeH         = t3D[i].spix.getHeight();
 
-//                tData[di].cvX.allocate(tData[di].nubeW, tData[di].nubeH);
-//                tData[di].cvY.allocate(tData[di].nubeW, tData[di].nubeH);
-//                tData[di].cvZ.allocate(tData[di].nubeW, tData[di].nubeH);
-//                tData[di].encodedCloud.allocate(tData[di].nubeW, tData[di].nubeH);
-
                 XnDepthPixel*  rawPix   = t3D[i].spix.getPixels();
 
                 xn::DepthGenerator& Xn_depth = t3D[i].openNIRecorder->getDepthGenerator();
-                //fxOpenNI oni;
-                //xn::DepthGenerator& Xn_depth2 = oni.getDepthGenerator();
 
                 int downsampling = 2;
                 XnPoint3D Point2D, Point3D;
@@ -203,40 +202,53 @@ void Grabber::updateThreadData() {
                     tmpZ = new float[tData[di].nubeW * tData[di].nubeH];
                 }
 
-                ofLogVerbose() << t3D[i].context->matrix << endl;
+                tData[di].row1.set(t3D[i].context->row1.x, t3D[i].context->row1.y, t3D[i].context->row1.z, t3D[i].context->row1.w);
+                tData[di].row2.set(t3D[i].context->row2.x, t3D[i].context->row2.y, t3D[i].context->row2.z, t3D[i].context->row2.w);
+                tData[di].row3.set(t3D[i].context->row3.x, t3D[i].context->row3.y, t3D[i].context->row3.z, t3D[i].context->row3.w);
+                tData[di].row4.set(t3D[i].context->row4.x, t3D[i].context->row4.y, t3D[i].context->row4.z, t3D[i].context->row4.w);
+
+                ofLogVerbose() << "[Grabber::updateThreadData] 3D - row1.x: " << tData[di].row1.x << ", row1.y: " << tData[di].row1.y << ", row1.z: " << tData[di].row1.z << ", row1.w: " << tData[di].row1.w;
+                ofLogVerbose() << "[Grabber::updateThreadData] 3D - row2.x: " << tData[di].row2.x << ", row2.y: " << tData[di].row2.y << ", row2.z: " << tData[di].row2.z << ", row2.w: " << tData[di].row2.w;
+                ofLogVerbose() << "[Grabber::updateThreadData] 3D - row3.x: " << tData[di].row3.x << ", row3.y: " << tData[di].row3.y << ", row3.z: " << tData[di].row3.z << ", row3.w: " << tData[di].row3.w;
+                ofLogVerbose() << "[Grabber::updateThreadData] 3D - row4.x: " << tData[di].row4.x << ", row4.y: " << tData[di].row4.y << ", row4.z: " << tData[di].row4.z << ", row4.w: " << tData[di].row4.w;
+
+                ofMatrix4x4 matrix;
+                matrix.set( t3D[i].context->row1.x, t3D[i].context->row1.y, t3D[i].context->row1.z, t3D[i].context->row1.w,
+                            t3D[i].context->row2.x, t3D[i].context->row2.y, t3D[i].context->row2.z, t3D[i].context->row2.w,
+                            t3D[i].context->row3.x, t3D[i].context->row3.y, t3D[i].context->row3.z, t3D[i].context->row3.w,
+                            t3D[i].context->row4.x, t3D[i].context->row4.y, t3D[i].context->row4.z, t3D[i].context->row4.w);
+
+                ofLogVerbose() << matrix << endl;
+
                 for(y=0; y < tData[di].nubeH; y += downsampling) {
-                    //if(y < tData[di].nubeH) {
-                        for(x=0; x < tData[di].nubeW; x += downsampling) {
-                            //if(x < tData[di].nubeW) {
-                                d = rawPix[y * tData[di].nubeW + x];
-                                if(d != 0) {
-                                    Point2D.X   = x;
-                                    Point2D.Y   = y;
-                                    Point2D.Z   = (float)d;
-                                    try {
+                    for(x=0; x < tData[di].nubeW; x += downsampling) {
+                        d = rawPix[y * tData[di].nubeW + x];
+                        if(d != 0) {
+                            Point2D.X   = x;
+                            Point2D.Y   = y;
+                            Point2D.Z   = (float)d;
+                            try {
 
-                                        Xn_depth.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
-                                        v1.set(Point3D.X, Point3D.Y, Point3D.Z);
+                                Xn_depth.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
+                                v1.set(Point3D.X, Point3D.Y, Point3D.Z);
 
-                                        vt = transformPoint(v1, t3D[i].context->matrix);
-                                        tmpX[tData[di].nubeLength] = vt->x;
-                                        tmpY[tData[di].nubeLength] = vt->y;
-                                        tmpZ[tData[di].nubeLength] = vt->z;
+                                vt = transformPoint(v1, matrix);
+                                tmpX[tData[di].nubeLength] = vt->x;
+                                tmpY[tData[di].nubeLength] = vt->y;
+                                tmpZ[tData[di].nubeLength] = vt->z;
 
-                                        delete vt;
+                                delete vt;
 
-                                    } catch(...) {
-                                        ofLogVerbose() << "[Grabber::updateThreadData] " << "Excepción al transformar los puntos.";
-                                    }
-                                } else {
-                                    tmpX[tData[di].nubeLength] = 0;
-                                    tmpY[tData[di].nubeLength] = 0;
-                                    tmpZ[tData[di].nubeLength] = 0;
-                                }
-                                tData[di].nubeLength ++;
-                            //}
+                            } catch(...) {
+                                ofLogVerbose() << "[Grabber::updateThreadData] " << "Excepción al transformar los puntos.";
+                            }
+                        } else {
+                            tmpX[tData[di].nubeLength] = 0;
+                            tmpY[tData[di].nubeLength] = 0;
+                            tmpZ[tData[di].nubeLength] = 0;
                         }
-                    //}
+                        tData[di].nubeLength ++;
+                    }
                 }
 
                 if(tData[di].nubeLength > 0) {

@@ -73,28 +73,16 @@ void GlobalData::loadCalibData(char * xml) {
                         settings.popTag();
                     }
                     if(settings.pushTag("matrix")) {
-                        currCam->matrix.set(settings.getValue("m000", 1.0f),
-                                           settings.getValue("m001", 0.0f),
-                                           settings.getValue("m002", 0.0f),
-                                           settings.getValue("m003", 0.0f),
-                                           settings.getValue("m100", 0.0f),
-                                           settings.getValue("m101", 1.0f),
-                                           settings.getValue("m102", 0.0f),
-                                           settings.getValue("m103", 0.0f),
-                                           settings.getValue("m200", 0.0f),
-                                           settings.getValue("m201", 0.0f),
-                                           settings.getValue("m202", 1.0f),
-                                           settings.getValue("m203", 0.0f),
-                                           settings.getValue("m300", 0.0f),
-                                           settings.getValue("m301", 0.0f),
-                                           settings.getValue("m302", 0.0f),
-                                           settings.getValue("m303", 1.0f)
-                                           );
-                        settings.popTag();
-                    }
-                    if(settings.pushTag("imgTransform")) {
-                        currCam->xyz.set(settings.getValue("x", 1), settings.getValue("y", 1), settings.getValue("z", 1));
-                        currCam->abc.set(settings.getValue("a", 1), settings.getValue("b", 1), settings.getValue("c", 1));
+                        currCam->row1.set(settings.getValue("m000", 1.0f), settings.getValue("m001", 1.0f), settings.getValue("m002", 1.0f), settings.getValue("m003", 1.0f));
+                        currCam->row2.set(settings.getValue("m100", 1.0f), settings.getValue("m101", 1.0f), settings.getValue("m102", 1.0f), settings.getValue("m103", 1.0f));
+                        currCam->row3.set(settings.getValue("m200", 1.0f), settings.getValue("m201", 1.0f), settings.getValue("m202", 1.0f), settings.getValue("m203", 1.0f));
+                        currCam->row4.set(settings.getValue("m300", 1.0f), settings.getValue("m301", 1.0f), settings.getValue("m302", 1.0f), settings.getValue("m303", 1.0f));
+
+                        cout << "[GlobalData::loadCalibData] - row1.x: " << currCam->row1.x << ", row1.y: " << currCam->row1.y << ", row1.z: " << currCam->row1.z << ", row1.w: " << currCam->row1.w << endl;
+                        cout << "[GlobalData::loadCalibData] - row2.x: " << currCam->row2.x << ", row2.y: " << currCam->row2.y << ", row2.z: " << currCam->row2.z << ", row2.w: " << currCam->row2.w << endl;
+                        cout << "[GlobalData::loadCalibData] - row3.x: " << currCam->row3.x << ", row3.y: " << currCam->row3.y << ", row3.z: " << currCam->row3.z << ", row3.w: " << currCam->row3.w << endl;
+                        cout << "[GlobalData::loadCalibData] - row4.x: " << currCam->row4.x << ", row4.y: " << currCam->row4.y << ", row4.z: " << currCam->row4.z << ", row4.w: " << currCam->row4.w << endl;
+
                         settings.popTag();
                     }
                     settings.popTag();
