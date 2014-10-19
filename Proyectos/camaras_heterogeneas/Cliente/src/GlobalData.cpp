@@ -66,12 +66,12 @@ void GlobalData::loadCalibData(char * xml) {
 				currCam->use3D                  = settings.getValue("use3D", true);
 
                 if(settings.pushTag("dataContext")) {
-                    if(settings.pushTag("depthSettings")) {
+                    /*if(settings.pushTag("depthSettings")) {
                         currCam->near3D                 = settings.getValue("near", 0);
                         currCam->far3D                  = settings.getValue("far", 1);
                         currCam->points3DDownSample     = settings.getValue("pointsDownSample", 0.5);
                         settings.popTag();
-                    }
+                    }*/
                     if(settings.pushTag("matrix")) {
                         currCam->row1.set(settings.getValue("m000", 1.0f), settings.getValue("m001", 1.0f), settings.getValue("m002", 1.0f), settings.getValue("m003", 1.0f));
                         currCam->row2.set(settings.getValue("m100", 1.0f), settings.getValue("m101", 1.0f), settings.getValue("m102", 1.0f), settings.getValue("m103", 1.0f));

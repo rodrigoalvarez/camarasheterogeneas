@@ -73,7 +73,7 @@ void Server::setVideoPreview(int cli, int cam, ofImage img) {
     ofTexture txt;
     //txt = videoTexture1;
 
-    cout << texture_map.size()+1 << endl ;
+    //cout << texture_map.size()+1 << endl ;
     if(texture_map.count(search) == 1) {
         txt = texture_map[search];
     } else {
@@ -154,11 +154,9 @@ void Server::setup() {
         tservers[i] = NULL;
 	}
 
-
     generator.sys_data  = gdata->sys_data;
     generator.buffer    = mb;
     generator.startThread(true, false);
-
 
 }
 

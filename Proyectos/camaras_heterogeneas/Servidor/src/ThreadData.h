@@ -23,6 +23,7 @@ class ThreadData {
         int nubeLength;
         int nubeW;
         int nubeH;
+        int cameraType; //0-Unknown, 1-RGB, 2-Depth Camera
         float *         xpix;
         float *         ypix;
         float *         zpix;
@@ -43,10 +44,11 @@ class ThreadData {
         ofFloatPixels  sZpix;
 
         ThreadData() {
-            xpix    = NULL;
-            ypix    = NULL;
-            zpix    = NULL;
-            compImg = NULL;
+            xpix        = NULL;
+            ypix        = NULL;
+            zpix        = NULL;
+            compImg     = NULL;
+            cameraType  = 0;
         }
 
         ~ThreadData() {

@@ -68,6 +68,8 @@ void Grabber::setup() {
         transmitter.sys_data    = gdata->sys_data;
         transmitter.startThread(true, false);
     }
+    ofVideoGrabber vid;
+    vid.listDevices();
 }
 
 //--------------------------------------------------------------
@@ -117,7 +119,7 @@ void Grabber::exit() {
 
 //Operación invocada por Transmitter para refrezcar la información a trasmitir.
 void Grabber::updateThreadData() {
-    ofLogVerbose() << "[Grabber::updateThreadData] " << " entrando.";
+    ofLogVerbose() << "[Grabber::updateThreadData] " << " entrando. " << gdata->total2D;
     int di      = 0;
     int i       = 0;
 
@@ -127,16 +129,18 @@ void Grabber::updateThreadData() {
     */
     for(i; i<gdata->total2D; i++) {
         t2D[i].lock();
-        tData[di].camId    = t2D[i].context->id;
-        tData[di].state    = 0;
+        tData[di].camId         = t2D[i].context->id;
+        tData[di].state         = 0;
+        tData[di].cameraType    = 1;
+        ofLogVerbose() << "[Grabber::updateThreadData] " << " if " << t2D[i].isDeviceInitted() << " " << t2D[i].isDataAllocated() << " " << t2D[i].context->id;
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
             tData[di].img.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.getWidth(), t2D[i].img.getHeight(), OF_IMAGE_COLOR, true);
 
-            tData[di].row1.set(t3D[i].context->row1.x, t3D[i].context->row1.y, t3D[i].context->row1.z, t3D[i].context->row1.w);
-            tData[di].row2.set(t3D[i].context->row2.x, t3D[i].context->row2.y, t3D[i].context->row2.z, t3D[i].context->row2.w);
-            tData[di].row3.set(t3D[i].context->row3.x, t3D[i].context->row3.y, t3D[i].context->row3.z, t3D[i].context->row3.w);
-            tData[di].row4.set(t3D[i].context->row4.x, t3D[i].context->row4.y, t3D[i].context->row4.z, t3D[i].context->row4.w);
+            tData[di].row1.set(t2D[i].context->row1.x, t2D[i].context->row1.y, t2D[i].context->row1.z, t2D[i].context->row1.w);
+            tData[di].row2.set(t2D[i].context->row2.x, t2D[i].context->row2.y, t2D[i].context->row2.z, t2D[i].context->row2.w);
+            tData[di].row3.set(t2D[i].context->row3.x, t2D[i].context->row3.y, t2D[i].context->row3.z, t2D[i].context->row3.w);
+            tData[di].row4.set(t2D[i].context->row4.x, t2D[i].context->row4.y, t2D[i].context->row4.z, t2D[i].context->row4.w);
 
             ofLogVerbose() << "[Grabber::updateThreadData] 2D - row1.x: " << tData[di].row1.x << ", row1.y: " << tData[di].row1.y << ", row1.z: " << tData[di].row1.z << ", row1.w: " << tData[di].row1.w;
             ofLogVerbose() << "[Grabber::updateThreadData] 2D - row2.x: " << tData[di].row2.x << ", row2.y: " << tData[di].row2.y << ", row2.z: " << tData[di].row2.z << ", row2.w: " << tData[di].row2.w;
@@ -156,8 +160,9 @@ void Grabber::updateThreadData() {
     i = 0;
     for(i; i<gdata->total3D; i++) {
         t3D[i].lock();
-        tData[di].state    = 0;
-        tData[di].camId    = t3D[i].context->id;
+        tData[di].state         = 0;
+        tData[di].camId         = t3D[i].context->id;
+        tData[di].cameraType    = 2;
 
         if(t3D[i].isDeviceInitted()) { //Si la cámara está inicializada.
 
@@ -246,12 +251,7 @@ void Grabber::updateThreadData() {
                             } catch(...) {
                                 ofLogVerbose() << "[Grabber::updateThreadData] " << "Excepción al transformar los puntos.";
                             }
-
-                        }/* else {
-                            tmpX[tData[di].nubeLength] = 0;
-                            tmpY[tData[di].nubeLength] = 0;
-                            tmpZ[tData[di].nubeLength] = 0;
-                        }*/
+                        }
                     }
                 }
 

@@ -93,7 +93,6 @@ void ThreadServer::receiveFrame() {
     } catch (exception& e) {
         ofLogVerbose() << "[ThreadServer::receiveFrame] CATCH " << e.what();
         ofLogVerbose() << "[ThreadServer::receiveFrame] An exception occurred. ";
-        //cout << "[PROYECTO] An exception occurred. Exception Nr. " << '\n';
     }
 }
 

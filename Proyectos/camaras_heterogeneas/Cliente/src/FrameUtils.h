@@ -115,6 +115,7 @@ class FrameUtils {
                 totSize += sizeof(int);     //(int) cliId
                 totSize += sizeof(int);     //(int) camId
                 totSize += sizeof(int);     //(int) state
+                totSize += sizeof(int);     //(int) cameraType
                 totSize += sizeof(timeval); //(struct timeval) [long + long]
 
                 //Si (tData[i].state > 0) = Está inicializado
@@ -174,6 +175,7 @@ class FrameUtils {
                 char* off_cliId;
                 char* off_camId;
                 char* off_state;
+                char* off_cameraType;
                 char* off_curTime;
                 char* off_imgBArrSize;
                 char* off_imgWidth;
@@ -201,16 +203,18 @@ class FrameUtils {
                      - ofFloatPixels  sZpix;
                     */
                     off_cliId           = start;
-                    off_camId           = off_cliId     + sizeof(int);
-                    off_state           = off_camId     + sizeof(int);
-                    off_curTime         = off_state     + sizeof(int);
+                    off_camId           = off_cliId         + sizeof(int);
+                    off_state           = off_camId         + sizeof(int);
+                    off_cameraType      = off_state         + sizeof(int);
+                    off_curTime         = off_cameraType    + sizeof(int);
 
-                    memcpy(&(tData[i].cliId),   (off_cliId),     sizeof(int));
-                    memcpy(&(tData[i].camId),   (off_camId),     sizeof(int));
-                    memcpy(&(tData[i].state),   (off_state),     sizeof(int));
-                    memcpy(&(tData[i].curTime), (off_curTime),   sizeof(timeval));
+                    memcpy(&(tData[i].cliId),       (off_cliId),      sizeof(int));
+                    memcpy(&(tData[i].camId),       (off_camId),      sizeof(int));
+                    memcpy(&(tData[i].state),       (off_state),      sizeof(int));
+                    memcpy(&(tData[i].cameraType),  (off_cameraType), sizeof(int));
+                    memcpy(&(tData[i].curTime),     (off_curTime),    sizeof(timeval));
 
-                    ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - cliId: " << tData[i].cliId << " - camId: " << tData[i].camId << " - state: " << tData[i].state ;
+                    ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - cliId: " << tData[i].cliId << ", camId: " << tData[i].camId << ", state: " << tData[i].state  << ", cameraType: " << tData[i].cameraType;
 
                     start = off_curTime   + sizeof(timeval);
 
@@ -345,10 +349,9 @@ class FrameUtils {
             char* off_cliId;
             char* off_camId;
             char* off_state;
+            char* off_cameraType;
             char* off_curTime;
             char* off_imgBArrSize;
-            //char* off_imgWidth;
-            //char* off_imgHeight;
             char* off_imgXYZ;
             char* off_imagebytearray;
             char* off_pcWidth;
@@ -361,18 +364,18 @@ class FrameUtils {
                 ofLogVerbose() << "off_imagebytearray size " << tData[i].compSize << endl;
 
                 off_cliId           = start;
-                off_camId           = off_cliId     + sizeof(int);
-                off_state           = off_camId     + sizeof(int);
-                off_curTime         = off_state     + sizeof(int);
+                off_camId           = off_cliId      + sizeof(int);
+                off_state           = off_camId      + sizeof(int);
+                off_cameraType      = off_state      + sizeof(int);
+                off_curTime         = off_cameraType + sizeof(int);
 
-                memcpy(off_cliId,           &tData[i].cliId,     sizeof(int));
-                memcpy(off_camId,           &tData[i].camId,     sizeof(int));
-                memcpy(off_state,           &tData[i].state,     sizeof(int));
-                memcpy(off_curTime,         &tData[i].curTime,   sizeof(timeval));
+                memcpy(off_cliId,           &tData[i].cliId,        sizeof(int));
+                memcpy(off_camId,           &tData[i].camId,        sizeof(int));
+                memcpy(off_state,           &tData[i].state,        sizeof(int));
+                memcpy(off_cameraType,      &tData[i].cameraType,   sizeof(int));
+                memcpy(off_curTime,         &tData[i].curTime,      sizeof(timeval));
 
-                ofLogVerbose() << "[FrameUtils::getFrameByteArray] - guardado - cliId: "        << tData[i].cliId;
-                ofLogVerbose() << "[FrameUtils::getFrameByteArray] - guardado - camId: "        << tData[i].camId;
-                ofLogVerbose() << "[FrameUtils::getFrameByteArray] - guardado - state: "        << tData[i].state;
+                ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - guardado - cliId: " << tData[i].cliId << ", camId: " << tData[i].camId << ", state: " << tData[i].state  << ", cameraType: " << tData[i].cameraType;
 
                 start = off_curTime + sizeof(timeval);
 
@@ -384,8 +387,6 @@ class FrameUtils {
 
                         //Reservo lugar para la imágen.
                         off_imgBArrSize      = start;
-                        //off_imgWidth         = start;//off_curTime + sizeof(timeval);;
-                        //off_imgHeight        = off_imgWidth  + sizeof(int);
                         off_imgXYZ           = off_imgBArrSize + sizeof(int);
                         off_imagebytearray   = off_imgXYZ    + sizeof(float)*6;
 
@@ -499,7 +500,6 @@ class FrameUtils {
         HINSTANCE hGetProcIDDLL;
         hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
         f_compress_img compress_img      = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
-        //f_decompress_img decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
 
         try {
             void * srcBuff;
@@ -512,18 +512,7 @@ class FrameUtils {
                         if (!hGetProcIDDLL) {
                             std::cout << "No se pudo cargar la libreria: " << std::endl;
                         } else {
-
                             compress_img(&srcBuff, tData[i].img.getWidth(), tData[i].img.getHeight(), &tData[i].compImg, &tData[i].compSize);
-
-                            /*if(tData[i].compSize == -1) {
-                                std::cout << "Error al comprimir la imagen. " << std::endl;
-                            } else {
-                                int unc_width   = 0;
-                                int unc_height  = 0;
-
-                                const unsigned char * unc_Buff = NULL;
-                                decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
-                            }*/
                         }
                         ofLogWarning() << "[FrameUtils::compressImages] - tData[i].compSize " << tData[i].compSize;
                     }
@@ -609,17 +598,7 @@ class FrameUtils {
                     }
                     if((tData[i].state == 2) || (tData[i].state == 3)) {
                         //@TODO: Acá falta integrar la compresion de la nube.
-//                        if(tData[i].pcCompSize == -1) {
-//                            std::cout << "Error al comprimir la nube. " << std::endl;
-//                        } else {
-//                            int unc_width   = 0;
-//                            int unc_height  = 0;
-//
-//                            const unsigned char * unc_Buff = NULL;
-//                            decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
-//                            tData[i].img.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
-//                            tData[i].img.saveImage("decompress_debug.jpg");
-//                        }
+
                     }
                 }
             }
