@@ -34,10 +34,13 @@ int meshIndex = 0;
 
 /* Camera */
 
+int doubleClickTime = 500;
+int clickCount = 0;
 float cameraFactor = 1.0;
 int cameraAxis = -1;
 int cameraMove = -1;
 bool cameraAll = false;
+bool cameraLight = true;
 
 
 void writeText() {
@@ -92,22 +95,24 @@ void display(void) {
         glRotatef(cloudMaster[meshIndex].rotate[2], 0.0f,0.0f,-1.0f);
     }
 
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+    if (cameraLight) {
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
 
-    glPushMatrix();
-    glLoadIdentity();
-    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 0.5 };
-    GLfloat mat_shininess[] = { 50.0 };
-    GLfloat light_color[] = { 1., 1., 1., 0.5 };
-    GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
+        glPushMatrix();
+        glLoadIdentity();
+        GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 0.5 };
+        GLfloat mat_shininess[] = { 50.0 };
+        GLfloat light_color[] = { 1., 1., 1., 0.5 };
+        GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
 
-    glShadeModel (GL_SMOOTH);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, colors[meshIndex]);
-    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glPopMatrix();
+        glShadeModel (GL_SMOOTH);
+        glMaterialfv(GL_FRONT, GL_SPECULAR, colors[meshIndex]);
+        glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, colors[meshIndex]);
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+        glPopMatrix();
+    }
 
     draw3D();
 
@@ -120,9 +125,31 @@ void display(void) {
         glRotatef(cloudMaster[0].rotate[0], -1.0f,0.0f,0.0f);
         glRotatef(cloudMaster[0].rotate[1], 0.0f,-1.0f,0.0f);
         glRotatef(cloudMaster[0].rotate[2], 0.0f,0.0f,-1.0f);
+
+        if (cameraLight) {
+            glPushMatrix();
+            glLoadIdentity();
+            GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 0.5 };
+            GLfloat mat_shininess[] = { 50.0 };
+            GLfloat light_color[] = { 1., 1., 1., 0.5 };
+            GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
+
+            glShadeModel (GL_SMOOTH);
+            glMaterialfv(GL_FRONT, GL_SPECULAR, colors[meshIndex]);
+            glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+            glLightfv(GL_LIGHT0, GL_DIFFUSE, colors[meshIndex]);
+            glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+            glPopMatrix();/**/
+        }
+
         draw3D();
 
         meshIndex = meshIndexOld;
+    }
+
+    if (cameraLight) {
+        glDisable(GL_LIGHT0);
+        glDisable(GL_LIGHTING);
     }
 
     glFlush();
@@ -138,6 +165,9 @@ void keys(unsigned char key, int x, int y) {
     }
     if (key == 'k') {
         settings->saveMeshCalibration();
+    }
+    if (key == 'n') {
+        cameraLight = !cameraLight;
     }
     if(key == 'v') {
         meshIndex = 0;
@@ -158,19 +188,28 @@ void keys(unsigned char key, int x, int y) {
     if(key == '+') cameraFactor *= 1.25;
     if(key == '-') cameraFactor *= 0.8;
 
-    if(key == 'w') cloudMaster[meshIndex].rotate[0] += 2.0 * cameraFactor;
-    if(key == 's') cloudMaster[meshIndex].rotate[0] -= 2.0 * cameraFactor;
-    if(key == 'a') cloudMaster[meshIndex].rotate[1] += 2.0 * cameraFactor;
-    if(key == 'd') cloudMaster[meshIndex].rotate[1] -= 2.0 * cameraFactor;
-    if(key == 'e') cloudMaster[meshIndex].rotate[2] += 2.0 * cameraFactor;
-    if(key == 'q') cloudMaster[meshIndex].rotate[2] -= 2.0 * cameraFactor;
+    if (cameraAll) {
+        if(key == 'W' || key == 'w') cloudMaster[0].rotate[0] += 2.0 * cameraFactor;
+        if(key == 'S' || key == 's') cloudMaster[0].rotate[0] -= 2.0 * cameraFactor;
+        if(key == 'A' || key == 'a') cloudMaster[0].rotate[1] += 2.0 * cameraFactor;
+        if(key == 'D' || key == 'd') cloudMaster[0].rotate[1] -= 2.0 * cameraFactor;
+        if(key == 'E' || key == 'e') cloudMaster[0].rotate[2] += 2.0 * cameraFactor;
+        if(key == 'Q' || key == 'q') cloudMaster[0].rotate[2] -= 2.0 * cameraFactor;
+    } else {
+        if(key == 'w') cloudMaster[meshIndex].rotate[0] += 2.0 * cameraFactor;
+        if(key == 's') cloudMaster[meshIndex].rotate[0] -= 2.0 * cameraFactor;
+        if(key == 'a') cloudMaster[meshIndex].rotate[1] += 2.0 * cameraFactor;
+        if(key == 'd') cloudMaster[meshIndex].rotate[1] -= 2.0 * cameraFactor;
+        if(key == 'e') cloudMaster[meshIndex].rotate[2] += 2.0 * cameraFactor;
+        if(key == 'q') cloudMaster[meshIndex].rotate[2] -= 2.0 * cameraFactor;
 
-    if(key == 'W') cloudMaster[0].rotate[0] += 2.0 * cameraFactor;
-    if(key == 'S') cloudMaster[0].rotate[0] -= 2.0 * cameraFactor;
-    if(key == 'A') cloudMaster[0].rotate[1] += 2.0 * cameraFactor;
-    if(key == 'D') cloudMaster[0].rotate[1] -= 2.0 * cameraFactor;
-    if(key == 'E') cloudMaster[0].rotate[2] += 2.0 * cameraFactor;
-    if(key == 'Q') cloudMaster[0].rotate[2] -= 2.0 * cameraFactor;
+        if(key == 'W') cloudMaster[0].rotate[0] += 2.0 * cameraFactor;
+        if(key == 'S') cloudMaster[0].rotate[0] -= 2.0 * cameraFactor;
+        if(key == 'A') cloudMaster[0].rotate[1] += 2.0 * cameraFactor;
+        if(key == 'D') cloudMaster[0].rotate[1] -= 2.0 * cameraFactor;
+        if(key == 'E') cloudMaster[0].rotate[2] += 2.0 * cameraFactor;
+        if(key == 'Q') cloudMaster[0].rotate[2] -= 2.0 * cameraFactor;
+    }
 
     display();
 }
@@ -179,6 +218,7 @@ void mouse(int btn, int state, int x, int y) {
     cameraAxis = state == GLUT_DOWN ? btn : -1;
     if (state == GLUT_DOWN) {
         cameraMove = y;
+        clickCount++;
     }
     if (state == GLUT_UP) {
         cameraMove = -1;
@@ -235,6 +275,14 @@ vector<string> getCloudFiles() {
     return files;
 }
 
+void timerFunction(int arg) {
+    glutTimerFunc(doubleClickTime, timerFunction, 0);
+    if (clickCount > 1) {
+        cameraAll = !cameraAll;
+    }
+    clickCount = 0;
+}
+
 int main(int argc, char **argv) {
 
     glutInit(&argc, argv);
@@ -242,6 +290,7 @@ int main(int argc, char **argv) {
     glutInitWindowSize(500,500);
     glutInitWindowPosition(300, 300);
     glutCreateWindow("Calibration project");
+    glutTimerFunc(doubleClickTime,timerFunction,0);
     glutReshapeFunc(myReshape);
     glutDisplayFunc(display);
     glutMouseFunc(mouse);

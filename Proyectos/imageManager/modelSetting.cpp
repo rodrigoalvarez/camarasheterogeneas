@@ -18,7 +18,7 @@ bool Model_SET::MemoryLoad() {
         nValues = memoryMappedNValues.getData();
     }
 
-    memoryMappedValues.setup("SettingsValues", sizeof(float) * (*nValues) * 6, false);
+    memoryMappedValues.setup("SettingsValues", sizeof(float) * (*nValues) * 16, false);
     isConnectedValues = memoryMappedValues.connect();
     if (isConnectedValues) {
         values = memoryMappedValues.getData();
@@ -28,8 +28,8 @@ bool Model_SET::MemoryLoad() {
         *nValues > 0) {
 
         NValues = *nValues;
-        Values = new float[NValues * 6];
-        memcpy(Values, values, sizeof(float) * NValues * 6);
+        Values = new float[NValues * 16];
+        memcpy(Values, values, sizeof(float) * NValues * 16);
         return true;
     }
     return false;

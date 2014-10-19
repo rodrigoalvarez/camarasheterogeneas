@@ -262,6 +262,18 @@ void draw2DPlayerFast() {
     }
 }*/
 
+void applyTransformations(vector<MasterTransform*> history) {
+    for (int i = 0; i < history.size(); i++) {
+        MasterTransform* trans = history[i];
+        if (trans->type == 0) { glTranslatef(trans->value, 0, 0); }
+        if (trans->type == 1) { glTranslatef(0, trans->value, 0); }
+        if (trans->type == 2) { glTranslatef(0, 0, trans->value); }
+        if (trans->type == 3) { glRotatef(trans->value, 1.0f,0.0f,0.0f); }
+        if (trans->type == 4) { glRotatef(trans->value, 0.0f,1.0f,0.0f); }
+        if (trans->type == 5) { glRotatef(trans->value, 0.0f,0.0f,1.0f); }
+    }
+}
+
 void textureProjection(Matrix4x4f &mv) {
 
     Matrix4x4f inverseMV = Matrix4x4f::invertMatrix(mv);
@@ -282,20 +294,16 @@ void textureProjection(Matrix4x4f &mv) {
 
 
 void stepTransformTexture() {
-    glTranslatef(textureMaster[0].viewer[0],
-                 textureMaster[0].viewer[1],
-                 textureMaster[0].viewer[2] - 20);
+    glTranslatef(0, 0, -20);
+    applyTransformations(textureMaster[0].history);
+    glTranslatef(0, 0, 20);
 
-    glRotatef(textureMaster[textureIndex].rotate[0] - textureMaster[0].rotate[0], 1.0f,0.0f,0.0f);
-    glRotatef(textureMaster[textureIndex].rotate[1] - textureMaster[0].rotate[1], 0.0f,1.0f,0.0f);
-    glRotatef(textureMaster[textureIndex].rotate[2] - textureMaster[0].rotate[2], 0.0f,0.0f,1.0f);
-
-    glTranslatef(-textureMaster[0].viewer[0],
-                 -textureMaster[0].viewer[1],
-                 -textureMaster[0].viewer[2] + 20);
-    glTranslatef(textureMaster[0].viewer[0] - textureMaster[textureIndex].viewer[0],
-                 textureMaster[0].viewer[1] - textureMaster[textureIndex].viewer[1],
-                 textureMaster[0].viewer[2] - textureMaster[textureIndex].viewer[2]);
+    glTranslatef(0, 0, -20);
+    GLdouble m[16];
+    //MasterSettings::CalculateMatrix(textureMaster[textureIndex].history, m);
+    glMultMatrixd(textureMaster[textureIndex].matrix);
+    //applyTransformations(textureMaster[textureIndex].history, false);
+    glTranslatef(0, 0, 20);
 }
 
 void stepTexture() {
@@ -328,10 +336,8 @@ void display(void) {
         textureIndex = i;
         stepTexture();
         glLoadIdentity();
-        glTranslatef(textureMaster[0].viewer[0], textureMaster[0].viewer[1], textureMaster[0].viewer[2] - 20);
-        glRotatef(textureMaster[0].rotate[0], -1.0f,0.0f,0.0f);
-        glRotatef(textureMaster[0].rotate[1], 0.0f,-1.0f,0.0f);
-        glRotatef(textureMaster[0].rotate[2], 0.0f,0.0f,-1.0f);
+        glTranslatef(0, 0, -20);
+        applyTransformations(textureMaster[0].history);
         if (drawFast) {
             draw2DPlayerFast();
         } else {
@@ -348,20 +354,68 @@ void display(void) {
     drawFast = true;
 }
 
+void UpdateHistory (int id) {
+    int type = 0;
+    float value = 0;
+    if (textureMaster[id].viewer[0] != 0) {
+        type = 0;
+        value = textureMaster[id].viewer[0];
+    }
+    if (textureMaster[id].viewer[1] != 0) {
+        type = 1;
+        value = textureMaster[id].viewer[1];
+    }
+    if (textureMaster[id].viewer[2] != 0) {
+        type = 2;
+        value = textureMaster[id].viewer[2];
+    }
+    if (textureMaster[id].rotate[0] != 0) {
+        type = 3;
+        value = textureMaster[id].rotate[0];
+    }
+    if (textureMaster[id].rotate[1] != 0) {
+        type = 4;
+        value = textureMaster[id].rotate[1];
+    }
+    if (textureMaster[id].rotate[2] != 0) {
+        type = 5;
+        value = textureMaster[id].rotate[2];
+    }
+
+    textureMaster[id].viewer[0] = 0;
+    textureMaster[id].viewer[1] = 0;
+    textureMaster[id].viewer[2] = 0;
+    textureMaster[id].rotate[0] = 0;
+    textureMaster[id].rotate[1] = 0;
+    textureMaster[id].rotate[2] = 0;
+
+    MasterTransform* trans = NULL;
+    if (textureMaster[id].history.size() == 0 || textureMaster[id].history.back()->type != type) {
+        trans = new MasterTransform();
+        trans->value = value;
+        trans->type = type;
+        textureMaster[id].history.push_back(trans);
+    } else {
+        trans = textureMaster[id].history.back();
+        trans->value += value;
+    }
+}
+
 void keys(unsigned char key, int x, int y) {
 
     if (key == 'm') {
-        textureWire = true;
+        textureWire = !textureWire;
     }
-    if (key == 'n') {
-        textureWire = false;
+    if (key == 'w') textureMaster[0].rotate[0] += 2.0;
+    if (key == 's') textureMaster[0].rotate[0] -= 2.0;
+    if (key == 'a') textureMaster[0].rotate[1] += 2.0;
+    if (key == 'd') textureMaster[0].rotate[1] -= 2.0;
+    if (key == 'e') textureMaster[0].rotate[2] += 2.0;
+    if (key == 'q') textureMaster[0].rotate[2] -= 2.0;
+
+    if (key == 'w' || key == 's' || key == 'a' || key == 'd' || key == 'e' || key == 'q') {
+        UpdateHistory(textureIndex);
     }
-    if(key == 'w') textureMaster[0].rotate[0] += 2.0;
-    if(key == 's') textureMaster[0].rotate[0] -= 2.0;
-    if(key == 'a') textureMaster[0].rotate[1] += 2.0;
-    if(key == 'd') textureMaster[0].rotate[1] -= 2.0;
-    if(key == 'e') textureMaster[0].rotate[2] += 2.0;
-    if(key == 'q') textureMaster[0].rotate[2] -= 2.0;
 
     display();
 }
@@ -389,6 +443,9 @@ void mouseMove(int x, int y) {
             textureMaster[0].viewer[1] += deltaMove;
         } else if (cameraAxis == GLUT_MIDDLE_BUTTON) {
             textureMaster[0].viewer[2] += deltaMove;
+        }
+        if (cameraAxis == GLUT_LEFT_BUTTON || cameraAxis == GLUT_RIGHT_BUTTON || cameraAxis == GLUT_MIDDLE_BUTTON) {
+            UpdateHistory(textureIndex);
         }
         display();
     }
@@ -486,8 +543,11 @@ int main(int argc, char **argv) {
         for (int j = 0; j < 3; j++) {
             textureMaster[0].viewer[j] = 0.0f;
             textureMaster[0].rotate[j] = 0.0f;
-            textureMaster[i].viewer[j] = textureSetting->Values[(i-1) * 6 + j * 2];
-            textureMaster[i].rotate[j] = textureSetting->Values[(i-1) * 6 + j * 2 + 1];
+        }
+        for (int j = 0; j < 4; j++) {
+            for (int k = 0; k < 4; k++) {
+                textureMaster[i].matrix[j * 4 + k] = textureSetting->Values[i * 16 + j * 4 + k];
+            }
         }
         faces[i] = new int[facesCount];
     }

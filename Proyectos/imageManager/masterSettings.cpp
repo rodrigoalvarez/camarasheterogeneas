@@ -52,7 +52,20 @@ void MasterSettings::loadTextureCalibration () {
         MasterTexture* masterNow = &textureMaster[i];
         std::stringstream fileName;
         fileName << "texture" << i << ".txt";
+
         std::ifstream in(fileName.str().c_str());
+        std::stringstream buffer;
+        buffer << in.rdbuf();
+
+        string line;
+        if (getline(buffer, line, '\n')) {
+            istringstream subBuffer(line);
+            string value;
+            for (int i = 0; i < 16 && getline(subBuffer, value, ' '); i++) {
+                masterNow->matrix[i] = ::atof(value.c_str());
+            }
+        }
+        /*std::ifstream in(fileName.str().c_str());
         std::stringstream buffer;
         buffer << in.rdbuf();
 
@@ -70,20 +83,28 @@ void MasterSettings::loadTextureCalibration () {
             for (int i = 0; i < 3 && getline(subBuffer, value, ' '); i++) {
                 masterNow->rotate[i] = ::atof(value.c_str());
             }
-        }
+        }*/
         in.close();
     }
 }
 
 void MasterSettings::saveTextureCalibration () {
 
-    for (int i = 1; i < textureCount; i++) {
+    for (int i = 1; i <= textureCount; i++) {
         MasterTexture* masterNow = &textureMaster[i];
         std::stringstream fileName;
         fileName << "texture" << i << ".txt";
+
         std::ofstream out(fileName.str().c_str());
+        GLdouble m[16];
+        CalculateMatrix(masterNow->history, m);
+        out << m[0] << " " << m[1] << " " << m[2] << " " << m[3] << " ";
+        out << m[4] << " " << m[5] << " " << m[6] << " " << m[7] << " ";
+        out << m[8] << " " << m[9] << " " << m[10] << " " << m[11] << " ";
+        out << m[12] << " " << m[13] << " " << m[14] << " " << m[15];
+        /*std::ofstream out(fileName.str().c_str());
         out << masterNow->viewer[0] << " " << masterNow->viewer[1] << " " << masterNow->viewer[2] << endl;
-        out << masterNow->rotate[0] << " " << masterNow->rotate[1] << " " << masterNow->rotate[2];
+        out << masterNow->rotate[0] << " " << masterNow->rotate[1] << " " << masterNow->rotate[2];*/
         out.close();
     }
 }
@@ -95,6 +116,22 @@ void MasterSettings::CalculateMatrix(MasterMesh master, GLdouble* m) {
     glRotatef(master.rotate[2], 0.0f,0.0f,1.0f);
     glRotatef(master.rotate[1], 0.0f,1.0f,0.0f);
     glRotatef(master.rotate[0], 1.0f,0.0f,0.0f);
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    glPopMatrix();
+}
+
+void MasterSettings::CalculateMatrix(vector<MasterTransform*> history, GLdouble* m) {
+    glPushMatrix();
+    glLoadIdentity();
+    for (int i = 0; i < history.size(); i++) {
+        MasterTransform* trans = history[i];
+        if (trans->type == 0) { glTranslatef(-trans->value, 0, 0); }
+        if (trans->type == 1) { glTranslatef(0, -trans->value, 0); }
+        if (trans->type == 2) { glTranslatef(0, 0, -trans->value); }
+        if (trans->type == 3) { glRotatef(-trans->value, 1.0f,0.0f,0.0f); }
+        if (trans->type == 4) { glRotatef(-trans->value, 0.0f,1.0f,0.0f); }
+        if (trans->type == 5) { glRotatef(-trans->value, 0.0f,0.0f,1.0f); }
+    }
     glGetDoublev(GL_MODELVIEW_MATRIX, m);
     glPopMatrix();
 }
