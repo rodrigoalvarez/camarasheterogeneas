@@ -33,7 +33,7 @@
                 <r23>0.000000000</r23>
                 <r30>0.000000000</r30>
                 <r31>0.000000000</r31>
-                <r32>4.200005531</r32>
+                <r32>0.000000000</r32>
                 <r33>1.000000000</r33>
             </matrix>
         </camera>
@@ -72,14 +72,14 @@
             </matrix>
         </camera>
         <camera>
-            <id>2</id>
+            <id>0</id>
             <resolutionX>800</resolutionX>
             <resolutionY>600</resolutionY>
             <resolutionDownSample>1</resolutionDownSample>
             <FPS>30</FPS>
             <colorRGB>1</colorRGB>
-            <use2D>0</use2D>
-            <use3D>1</use3D>
+            <use2D>1</use2D>
+            <use3D>0</use3D>
             <dataContext></dataContext>
             <depthSettings>
                 <near>10</near>
@@ -87,97 +87,29 @@
                 <pointsDownSample>1</pointsDownSample>
             </depthSettings>
             <matrix>
-                <r00>1.000000000</r00>
-                <r01>0.000000000</r01>
-                <r02>0.000000000</r02>
-                <r03>0.000000000</r03>
-                <r10>0.000000000</r10>
-                <r11>1.000000000</r11>
-                <r12>0.000000000</r12>
-                <r13>0.000000000</r13>
-                <r20>0.000000000</r20>
-                <r21>0.000000000</r21>
-                <r22>1.000000000</r22>
-                <r23>0.000000000</r23>
-                <r30>0.000000000</r30>
-                <r31>4.799999237</r31>
-                <r32>-1.900000811</r32>
-                <r33>1.000000000</r33>
+                <viewer>0.000000 0.000000 0.000000</viewer>
+                <rotate>0.000000 0.000000 0.000000</rotate>
             </matrix>
         </camera>
-        <camera></camera>
-        <id>0</id>
-        <resolutionX>800</resolutionX>
-        <resolutionY>600</resolutionY>
-        <resolutionDownSample>1</resolutionDownSample>
-        <FPS>30</FPS>
-        <colorRGB>1</colorRGB>
-        <use2D>1</use2D>
-        <use3D>0</use3D>
-        <dataContext></dataContext>
-        <depthSettings>
-            <near>10</near>
-            <far>100</far>
-            <pointsDownSample>1</pointsDownSample>
-        </depthSettings>
-        <matrix>
-            <viewer>0.000000 0.000000 13.100000</viewer>
-            <rotate>0.000000 0.000000 0.000000</rotate>
-        </matrix>
+        <camera>
+            <id>1</id>
+            <resolutionX>800</resolutionX>
+            <resolutionY>600</resolutionY>
+            <resolutionDownSample>1</resolutionDownSample>
+            <FPS>30</FPS>
+            <colorRGB>1</colorRGB>
+            <use2D>1</use2D>
+            <use3D>0</use3D>
+            <dataContext></dataContext>
+            <depthSettings>
+                <near>10</near>
+                <far>100</far>
+                <pointsDownSample>1</pointsDownSample>
+            </depthSettings>
+            <matrix>
+                <viewer>0.000000 0.000000 11.400003</viewer>
+                <rotate>376.000000 178.000000 0.000000</rotate>
+            </matrix>
+        </camera>
     </cameras>
-    <camera></camera>
-    <id>1</id>
-    <resolutionX>800</resolutionX>
-    <resolutionY>600</resolutionY>
-    <resolutionDownSample>1</resolutionDownSample>
-    <FPS>30</FPS>
-    <colorRGB>1</colorRGB>
-    <use2D>1</use2D>
-    <use3D>0</use3D>
-    <dataContext></dataContext>
-    <depthSettings>
-        <near>10</near>
-        <far>100</far>
-        <pointsDownSample>1</pointsDownSample>
-    </depthSettings>
-    <matrix>
-        <viewer>0.000000 5.200000 8.600000</viewer>
-        <rotate>0.000000 0.000000 0.000000</rotate>
-    </matrix>
 </settings>
-<camera></camera>
-<id>2</id>
-<resolutionX>800</resolutionX>
-<resolutionY>600</resolutionY>
-<resolutionDownSample>1</resolutionDownSample>
-<FPS>30</FPS>
-<colorRGB>1</colorRGB>
-<use2D>1</use2D>
-<use3D>0</use3D>
-<dataContext></dataContext>
-<depthSettings>
-    <near>10</near>
-    <far>100</far>
-    <pointsDownSample>1</pointsDownSample>
-    <near>10</near>
-    <far>100</far>
-    <pointsDownSample>1</pointsDownSample>
-</depthSettings>
-<matrix>
-    <viewer>0.000000 0.000000 0.000000</viewer>
-    <rotate>0.000000 0.000000 0.000000</rotate>
-    <viewer>0.000000 0.000000 0.000000</viewer>
-    <rotate>0.000000 0.000000 0.000000</rotate>
-</matrix>
-<camera></camera>
-<id>3</id>
-<resolutionX>800</resolutionX>
-<resolutionY>600</resolutionY>
-<resolutionDownSample>1</resolutionDownSample>
-<FPS>30</FPS>
-<colorRGB>1</colorRGB>
-<use2D>1</use2D>
-<use3D>0</use3D>
-<dataContext></dataContext>
-<depthSettings></depthSettings>
-<matrix></matrix>

@@ -73,7 +73,7 @@ void Server::setVideoPreview(int cli, int cam, ofImage img) {
     ofTexture txt;
     //txt = videoTexture1;
 
-    cout << texture_map.size()+1 << endl ;
+    //cout << texture_map.size()+1 << endl ;
     if(texture_map.count(search) == 1) {
         txt = texture_map[search];
     } else {
@@ -189,12 +189,14 @@ void Server::update() {
 
                 //NOTA: Además del puerto del thread que lo atiende debería pasarle hora actual del servidor (para que sincronice) y fps.
 
+
                 tservers[totThreadedServers]            = new ThreadServer();
                 tservers[totThreadedServers]->sys_data  = gdata->sys_data;
                 tservers[totThreadedServers]->cliId     = atoi(cli.c_str());
                 tservers[totThreadedServers]->ip        = TCP.getClientIP(i);
                 tservers[totThreadedServers]->port      = atoi(port.c_str());
                 tservers[totThreadedServers]->startThread(true, false);
+
 
                 currCliPort         ++;
                 totThreadedServers  ++;

@@ -20,6 +20,12 @@ struct t_camera {
     ofMatrix4x4 matrix;
     ofVec3f xyz;
     ofVec3f abc;
+
+    ofVec4f row1;
+    ofVec4f row2;
+    ofVec4f row3;
+    ofVec4f row4;
+
     t_camera * sig;
 };
 

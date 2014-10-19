@@ -35,8 +35,11 @@ class TextureMain
 
         /* Camera */
 
+        float cameraFactor;
         int cameraAxis;
         int cameraMove;
+
+        bool cameraLight;
 
         TextureMain();
         virtual ~TextureMain();
@@ -64,6 +67,7 @@ class TextureMain
 
         void draw2DCalibrationFull();
         void draw2DCalibrationFast();
+        void draw2DBackground();
 
         void textureProjection(Matrix4x4f &mv);
         void stepTransformTexture();

@@ -23,6 +23,7 @@ class ThreadData {
         int nubeLength;
         int nubeW;
         int nubeH;
+        int cameraType; //0-Unknown, 1-RGB, 2-Depth Camera
         float *         xpix;
         float *         ypix;
         float *         zpix;
@@ -32,18 +33,22 @@ class ThreadData {
         ofxCvGrayscaleImage	cvZ;
         ofxCvColorImage encodedCloud;
 
-        ofVec3f xyz;
-        ofVec3f abc;
+        ofVec4f row1;
+        ofVec4f row2;
+        ofVec4f row3;
+        ofVec4f row4;
+        //ofMatrix4x4 matrix;
 
         ofFloatPixels  sXpix;
         ofFloatPixels  sYpix;
         ofFloatPixels  sZpix;
 
         ThreadData() {
-            xpix    = NULL;
-            ypix    = NULL;
-            zpix    = NULL;
-            compImg = NULL;
+            xpix        = NULL;
+            ypix        = NULL;
+            zpix        = NULL;
+            compImg     = NULL;
+            cameraType  = 0;
         }
 
         ~ThreadData() {
@@ -73,12 +78,6 @@ class ThreadData {
                 memcpy(offz,     td->zpix,  sizeof(float) * td->nubeLength);
 
                 int w;
-//                for(w=0; w<nubeLength; w++) {
-//                    cout << xpix[w] << " " << ypix[w] << " " << zpix[w] << endl;
-//                }
-//                for(w=0; w<td->nubeLength; w++) {
-//                    cout << td->xpix[w] << " " << td->ypix[w] << " " << td->zpix[w] << endl;
-//                }
 
                 free(xpix);
                 free(ypix);
@@ -90,10 +89,6 @@ class ThreadData {
 
                 nubeLength = curLength + td->nubeLength;
 
-//                for(w=0; w<nubeLength; w++) {
-//                    //cout << xpix[w] << " " << ypix[w] << " " /*<< zpix[w] */<< endl;
-//                    cout << xpix[w] << " " << ypix[w] << " " << zpix[w]<< endl;
-//                }
             }
         }
 };

@@ -46,6 +46,7 @@ void Model_PLY::MemoryLoadCalibrator(FaceStruct* faces, int numberFaces)
     TotalPoints = numberFaces / 3;
     TotalFaces = numberFaces;
     Faces_Triangles = new float[TotalFaces * 9];
+	Normals  = new float[TotalFaces * 9];
     for (int i = 0; i< TotalFaces; i++){
         Faces_Triangles[i*9] = faces[i].p1[0];
         Faces_Triangles[i*9+1] = faces[i].p1[1];
@@ -56,6 +57,21 @@ void Model_PLY::MemoryLoadCalibrator(FaceStruct* faces, int numberFaces)
         Faces_Triangles[i*9+6] = faces[i].p3[0];
         Faces_Triangles[i*9+7] = faces[i].p3[1];
         Faces_Triangles[i*9+8] = faces[i].p3[2];
+
+        float coord1[3] = { Faces_Triangles[i*9], Faces_Triangles[i*9+1], Faces_Triangles[i*9+2] };
+        float coord2[3] = { Faces_Triangles[i*9+3], Faces_Triangles[i*9+4], Faces_Triangles[i*9+5] };
+        float coord3[3] = { Faces_Triangles[i*9+6], Faces_Triangles[i*9+7], Faces_Triangles[i*9+8] };
+        float* norm = calculateNormal(coord1, coord2, coord3);
+
+        Normals[i*9] = norm[0];
+        Normals[i*9+1] = norm[1];
+        Normals[i*9+2] = norm[2];
+        Normals[i*9+3] = norm[0];
+        Normals[i*9+4] = norm[1];
+        Normals[i*9+5] = norm[2];
+        Normals[i*9+6] = norm[0];
+        Normals[i*9+7] = norm[1];
+        Normals[i*9+8] = norm[2];/**/
     }
     MinCoord = std::numeric_limits<float>::max();
     MaxCoord = std::numeric_limits<float>::min();

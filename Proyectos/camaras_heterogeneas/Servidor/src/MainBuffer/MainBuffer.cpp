@@ -69,9 +69,9 @@ std::pair <ThreadData *, ThreadData *> MainBuffer::getNextFrame() {
     for (map< long int, ThreadData * >::iterator it = fi->frame_map.begin(); it != fi->frame_map.end(); ++it) {
         //ofLogVerbose() << "[MainBuffer::getNextFrame] for.";
         if( (((ThreadData *) it->second)->state == 2 ) || (((ThreadData *) it->second)->state == 3 )) {
-            //ofLogVerbose() << "[MainBuffer::getNextFrame] if.";
+            ((ThreadData *) it->second)->cameraType = 2;
             if(((ThreadData *) it->second)->nubeLength > 0) {
-                //ofLogVerbose() << "[MainBuffer::getNextFrame] nubeLength > 0.";
+
                 if(ret.first == NULL) {
                     ofLogVerbose() << "[MainBuffer::getNextFrame] first==NULL.";
                     ret.first = (ThreadData *) it->second;
@@ -85,10 +85,23 @@ std::pair <ThreadData *, ThreadData *> MainBuffer::getNextFrame() {
         if( (((ThreadData *) it->second)->state == 1) || (((ThreadData *) it->second)->state == 3) ) {
 
             ThreadData * td = new ThreadData();
+            if(((ThreadData *) it->second)->state == 3) {
+                td->cameraType  = 2;
+            } else {
+                td->cameraType  = 1;
+            }
+
             ThreadData * re = ((ThreadData *) it->second);
+
+            td->cliId   = re->cliId;
+            td->camId   = re->camId;
+
             td->img.setFromPixels(((ThreadData *) it->second)->img.getPixelsRef());
-            td->xyz     = re->xyz;
-            td->abc     = re->abc;
+            td->row1     = re->row1;
+            td->row2     = re->row2;
+            td->row3     = re->row3;
+            td->row4     = re->row4;
+
             if(ret.second == NULL) {
                 ofLogVerbose() << "[MainBuffer::getNextFrame] primera imagen RGB.";
                 td->sig     = NULL;

@@ -75,16 +75,17 @@ void ThreadServer::receiveFrame() {
             ofLogVerbose() << "[ThreadServer::receiveFrame] time fraction: " << p << endl;
 
             if(currTotal > 0) {
-                //int cams    = FrameUtils::getTotalCamerasFromByteArray( currBytearray );
+
                 std::pair <int, ThreadData *>  tPair = FrameUtils::getThreadDataFromByteArray( currBytearray );
-                //tData       = FrameUtils::getThreadDataFromByteArray( currBytearray );
+
                 ThreadData * td = tPair.second;
-                //td->img.saveImage("desde_thread_server.jpg");
                 ofLogVerbose() << "[ThreadServer::receiveFrame] Por agregar frame a buffer con " << tPair.first;
+
                 FrameUtils::decompressImages(tPair.second, tPair.first);
                 fb.addFrame(tPair.second, tPair.first);
-                //std::pair <int, ThreadData *> head = fb.getHeadFrame();
+
                 ofLogVerbose() << "[ThreadServer::receiveFrame] Estado del buffer de este ThreadServer: fb.tope " << fb.tope  << ", fb.base " << fb.base;
+
              }
             unlock();
         }
@@ -92,7 +93,6 @@ void ThreadServer::receiveFrame() {
     } catch (exception& e) {
         ofLogVerbose() << "[ThreadServer::receiveFrame] CATCH " << e.what();
         ofLogVerbose() << "[ThreadServer::receiveFrame] An exception occurred. ";
-        //cout << "[PROYECTO] An exception occurred. Exception Nr. " << '\n';
     }
 }
 

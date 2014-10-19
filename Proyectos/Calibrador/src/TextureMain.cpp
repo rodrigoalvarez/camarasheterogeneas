@@ -25,27 +25,31 @@ TextureMain::TextureMain()
 
     /* Camera */
 
+    cameraFactor = 1.0;
+
     cameraAxis = -1;
     cameraMove = -1;
+
+    cameraLight = true;
 }
 
 void TextureMain::writeText() {
-    system("cls");
-    cout << "2D CALIBRATION" << endl;
-    cout << "Triangles: " << textureModel->TotalConnectedTriangles << endl;
-    cout << "Points: " << textureModel->TotalPoints << endl;
-    cout << "Faces: " << textureModel->TotalFaces << endl;
-    cout << "MinCoord: " << textureModel->MinCoord << endl;
-    cout << "MaxCoord: " << textureModel->MaxCoord << endl;
-    cout << "AlfaCoord: " << textureModel->AlfaCoord << endl;
-    cout << "Mode: " << (textureIndex == 0 ? "View" : "Calibration") << endl << endl;
-    for (int i = 0; i <= textureCount; i++) {
-        MasterTexture* masterNow = &textureMaster[i];
-        cout << "Texture :: " << i << endl;
-        cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
-        cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
-        cout << endl;
-    }
+//    system("cls");
+//    cout << "2D CALIBRATION" << endl;
+//    cout << "Triangles: " << textureModel->TotalConnectedTriangles << endl;
+//    cout << "Points: " << textureModel->TotalPoints << endl;
+//    cout << "Faces: " << textureModel->TotalFaces << endl;
+//    cout << "MinCoord: " << textureModel->MinCoord << endl;
+//    cout << "MaxCoord: " << textureModel->MaxCoord << endl;
+//    cout << "AlfaCoord: " << textureModel->AlfaCoord << endl;
+//    cout << "Mode: " << (textureIndex == 0 ? "View" : "Calibration") << endl << endl;
+//    for (int i = 0; i <= textureCount; i++) {
+//        MasterTexture* masterNow = &textureMaster[i];
+//        cout << "Texture :: " << i << endl;
+//        cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
+//        cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
+//        cout << endl;
+//    }
 }
 
 void TextureMain::IncludeMesh (Model_XYZ* model, Model_XYZ* newModel, MasterMesh master) {
@@ -57,6 +61,7 @@ void TextureMain::IncludeMesh (Model_XYZ* model, Model_XYZ* newModel, MasterMesh
 void TextureMain::setFaceVertex(int index) {
     GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
+    glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
 }
 
 void TextureMain::draw2DElement(int index) {
@@ -66,16 +71,31 @@ void TextureMain::draw2DElement(int index) {
         setFaceVertex(index * 3 + 1);
         setFaceVertex(index * 3 + 2);
     glEnd();
-    if (textureWire) {
-        glColor3f(0.5f, 0.5f, 0.5f);
-        glBegin(GL_LINE_LOOP);
-            setFaceVertex(index * 3);
-            setFaceVertex(index * 3 + 1);
-            setFaceVertex(index * 3 + 2);
-        glEnd();
-    }
 }
 
+void TextureMain::draw2DBackground() {
+
+   if (textureIndex > 0) {
+       float wImg = textureImage[textureIndex-1].Width;
+       float hImg = textureImage[textureIndex-1].Height;
+
+       glColor3f(0.0f, 0.0f, 0.0f);
+       glBegin(GL_POLYGON);
+           GLfloat vert1[3] = { -wImg, -hImg, -19.0 };
+           glVertex3fv(vert1);
+           glNormal3f(0,0,1);
+           GLfloat vert2[3] = { -wImg, hImg, -19.0 };
+           glVertex3fv(vert2);
+           glNormal3f(0,0,1);
+           GLfloat vert3[3] = { wImg, hImg, -19.0 };
+           glVertex3fv(vert3);
+           glNormal3f(0,0,1);
+           GLfloat vert4[3] = { wImg, -hImg, -19.0 };
+           glVertex3fv(vert4);
+           glNormal3f(0,0,1);
+       glEnd();
+   }
+}
 void TextureMain::draw2DView() {
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         int hits = 0;
@@ -320,6 +340,26 @@ void TextureMain::stepClearTexture() {
 
 void TextureMain::display(void) {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    if (cameraLight) {
+       glEnable(GL_LIGHTING);
+       glEnable(GL_LIGHT0);
+
+//       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+
+       glPushMatrix();
+       glLoadIdentity();
+       GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 0.5 };
+       GLfloat mat_shininess[] = { 50.0 };
+       GLfloat light_color[] = { 1., 1., 1., 0.5 };
+       GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
+
+       glShadeModel (GL_SMOOTH);
+       glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+       glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+       glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color);
+       glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+       glPopMatrix();
+   }
 
     if (textureViewMode) {
         for (int i = 1; i <= textureCount; i++) {
@@ -347,9 +387,19 @@ void TextureMain::display(void) {
         } else {
             draw2DCalibrationFull();
         }
+
+        glPushMatrix();
+        glLoadIdentity();
+        draw2DBackground();
+        glPopMatrix();
+
         stepClearTexture();
     }
 
+    if (cameraLight) {
+       glDisable(GL_LIGHT0);
+       glDisable(GL_LIGHTING);
+    }
     glFlush();
     glutSwapBuffers();
 
@@ -370,11 +420,8 @@ void TextureMain::keys(unsigned char key, int x, int y) {
     if (key == 'k') {
         settings->saveTextureCalibration();
     }
-    if (key == 'm') {
-        textureWire = true;
-    }
     if (key == 'n') {
-        textureWire = false;
+        cameraLight = !cameraLight;
     }
     if(key == 'v') {
         drawFast = false;
@@ -391,12 +438,16 @@ void TextureMain::keys(unsigned char key, int x, int y) {
         textureIndex = key - 48;
         display();
     }
-    if(key == 'w') textureMaster[textureIndex].rotate[0] += 2.0;
-    if(key == 's') textureMaster[textureIndex].rotate[0] -= 2.0;
-    if(key == 'a') textureMaster[textureIndex].rotate[1] += 2.0;
-    if(key == 'd') textureMaster[textureIndex].rotate[1] -= 2.0;
-    if(key == 'e') textureMaster[textureIndex].rotate[2] += 2.0;
-    if(key == 'q') textureMaster[textureIndex].rotate[2] -= 2.0;
+
+    if(key == '+') cameraFactor *= 1.25;
+    if(key == '-') cameraFactor *= 0.8;
+
+    if(key == 'w') textureMaster[textureIndex].rotate[0] += 2.0 * cameraFactor;
+    if(key == 's') textureMaster[textureIndex].rotate[0] -= 2.0 * cameraFactor;
+    if(key == 'a') textureMaster[textureIndex].rotate[1] += 2.0 * cameraFactor;
+    if(key == 'd') textureMaster[textureIndex].rotate[1] -= 2.0 * cameraFactor;
+    if(key == 'e') textureMaster[textureIndex].rotate[2] += 2.0 * cameraFactor;
+    if(key == 'q') textureMaster[textureIndex].rotate[2] -= 2.0 * cameraFactor;
 
     display();
 }
@@ -416,7 +467,7 @@ void TextureMain::mouse(int btn, int state, int x, int y) {
 void TextureMain::mouseMove(int x, int y) {
 
     if (cameraAxis != -1) {
-        float deltaMove = (y - cameraMove) * 0.1f;
+        float deltaMove = (y - cameraMove) * 0.1f * cameraFactor;
         cameraMove = y;
         if (cameraAxis == GLUT_LEFT_BUTTON) {
             textureMaster[textureIndex].viewer[0] += deltaMove;
