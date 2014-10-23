@@ -69,6 +69,8 @@ class TextureMain
         void draw2DCalibrationFast();
         void draw2DBackground();
 
+        void applyTransformations(vector<MasterTransform*> history, bool flag);
+        void UpdateHistory (int id);
         void textureProjection(Matrix4x4f &mv);
         void stepTransformTexture();
         void stepTexture();

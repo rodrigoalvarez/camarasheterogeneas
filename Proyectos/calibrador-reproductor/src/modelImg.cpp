@@ -20,7 +20,7 @@ Model_IMG::Model_IMG() {
     }
 }
 
-void Model_IMG::MemoryLoad() {
+bool Model_IMG::MemoryLoad() {
 
     cout << "test2" << endl;
     std::stringstream key1;
@@ -29,14 +29,20 @@ void Model_IMG::MemoryLoad() {
     f_ReadSharedImage readImage = (f_ReadSharedImage)GetProcAddress(shareImageLibrary, "ReadSharedImage");
 
     readImage(&Id, &pixels, wPixels, hPixels);
+    if (Id >= 0){
+        if (*wPixels > 0 && *hPixels > 0) {
 
-    if (*wPixels > 0 && *hPixels > 0) {
-
-        Width = *wPixels;
-        Height = *hPixels;
-        Pixels = new unsigned char[Width * Height * 3];
-        memcpy(Pixels, pixels, sizeof(unsigned char) * Width * Height * 3);
+            Width = *wPixels;
+            Height = *hPixels;
+            Pixels = new unsigned char[Width * Height * 3];
+            memcpy(Pixels, pixels, sizeof(unsigned char) * Width * Height * 3);
+            return true;
+        }
+        else
+            return false;
     }
+    else
+        return false;
 }
 
 void Model_IMG::Load(string filename) {

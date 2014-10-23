@@ -6,7 +6,7 @@
 		<Option makefile="makefile" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="addons\;src\;addons\ofxSharedMemory\src\;" />
+		<Option virtualFolders="addons\;addons\ofxXmlSetting\;src\;addons\ofxSharedMemory\src\;addons\ofxXmlSetting\src\;addons\ofxXmlSetting\lib\;" />
 		<Build>
 			<Target title="release">
 				<Option output="bin/$(PROJECT_NAME)" prefix_auto="1" extension_auto="1" />
@@ -73,6 +73,8 @@
 			<Add directory="../../../../../openframeworks/libs/poco/include" />
 			<Add directory="../../../../../openframeworks/libs/tess2/include" />
 			<Add directory="../../../../../openframeworks/libs/cairo/include/cairo" />
+			<Add directory="../../../../../openframeworks/addons/ofxXmlSettings/libs" />
+			<Add directory="../../../../../openframeworks/addons/ofxXmlSettings/src" />
 		</Compiler>
 		<Linker>
 			<Add library="..\..\..\..\..\openframeworks\libs\FreeImage\lib\win_cb\FreeImage.lib" />
@@ -115,7 +117,31 @@
 			<Add after='cmd /c if not exist &quot;$(PROJECT_DIR)bin/data&quot; mkdir &quot;$(PROJECT_DIR)bin/data&quot;' />
 			<Mode after="always" />
 		</ExtraCommands>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/libs/tinyxml.cpp">
+			<Option virtualFolder="addons/ofxXmlSetting/lib/" />
+		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/libs/tinyxml.h">
+			<Option virtualFolder="addons/ofxXmlSetting/lib/" />
+		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/libs/tinyxmlerror.cpp">
+			<Option virtualFolder="addons/ofxXmlSetting/lib/" />
+		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/libs/tinyxmlparser.cpp">
+			<Option virtualFolder="addons/ofxXmlSetting/lib/" />
+		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/src/ofxXmlSettings.cpp">
+			<Option virtualFolder="addons/ofxXmlSetting/src/" />
+		</Unit>
+		<Unit filename="../../../../../openframeworks/addons/ofxXmlSettings/src/ofxXmlSettings.h">
+			<Option virtualFolder="addons/ofxXmlSetting/src/" />
+		</Unit>
 		<Unit filename="src/FreeImage.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="src/GlobalData.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="src/GlobalData.h">
 			<Option virtualFolder="src/" />
 		</Unit>
 		<Unit filename="src/main.cpp">
@@ -151,10 +177,10 @@
 		<Unit filename="src/modelPly.h">
 			<Option virtualFolder="src/" />
 		</Unit>
-		<Unit filename="src/modelXYZ.cpp">
+		<Unit filename="src/modelSetting.cpp">
 			<Option virtualFolder="src/" />
 		</Unit>
-		<Unit filename="src/modelXYZ.h">
+		<Unit filename="src/modelSetting.h">
 			<Option virtualFolder="src/" />
 		</Unit>
 		<Unit filename="src/plylib.cpp">

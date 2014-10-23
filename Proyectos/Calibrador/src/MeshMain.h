@@ -44,7 +44,10 @@ class MeshMain
         FaceStruct* faces;
         int* numberFaces;
 
-        float cameraFactor = 1.0;
+        float cameraFactor;
+
+        int doubleClickTime;
+        int clickCount;
 
         MeshMain();
 

@@ -23,7 +23,7 @@ class Model_IMG
 
 	public:
 		Model_IMG();
-		void MemoryLoad();
+		bool MemoryLoad();
 		void Load(string filename);
 
         int Id;

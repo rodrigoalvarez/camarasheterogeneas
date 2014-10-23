@@ -28,6 +28,10 @@ MeshMain::MeshMain()
 
     cameraFactor = 1.0;
 
+
+    doubleClickTime = 500;
+    clickCount = 0;
+
     colors[0][0] = 1.0; colors[0][1] = 1.0; colors[0][2] = 1.0;
     colors[1][0] = 1.0; colors[1][1] = 0.0; colors[1][2] = 0.0;
     colors[2][0] = 0.0; colors[2][1] = 1.0; colors[2][2] = 0.0;
@@ -274,6 +278,7 @@ void MeshMain::mouse(int btn, int state, int x, int y) {
     cameraAxis = state == GLUT_DOWN ? btn : -1;
     if (state == GLUT_DOWN) {
         cameraMove = y;
+        clickCount++;
     }
     if (state == GLUT_UP) {
         cameraMove = -1;
@@ -309,19 +314,28 @@ void MeshMain::keys(unsigned char key, int x, int y) {
     if(key == '+') cameraFactor *= 1.25;
     if(key == '-') cameraFactor *= 0.8;
 
-    if(key == 'w') cloudMaster[meshIndex].rotate[0] += 2.0 * cameraFactor;
-    if(key == 's') cloudMaster[meshIndex].rotate[0] -= 2.0 * cameraFactor;
-    if(key == 'a') cloudMaster[meshIndex].rotate[1] += 2.0 * cameraFactor;
-    if(key == 'd') cloudMaster[meshIndex].rotate[1] -= 2.0 * cameraFactor;
-    if(key == 'e') cloudMaster[meshIndex].rotate[2] += 2.0 * cameraFactor;
-    if(key == 'q') cloudMaster[meshIndex].rotate[2] -= 2.0 * cameraFactor;
+    if (cameraAll) {
+        if(key == 'W' || key == 'w') cloudMaster[0].rotate[0] += 2.0 * cameraFactor;
+        if(key == 'S' || key == 's') cloudMaster[0].rotate[0] -= 2.0 * cameraFactor;
+        if(key == 'A' || key == 'a') cloudMaster[0].rotate[1] += 2.0 * cameraFactor;
+        if(key == 'D' || key == 'd') cloudMaster[0].rotate[1] -= 2.0 * cameraFactor;
+        if(key == 'E' || key == 'e') cloudMaster[0].rotate[2] += 2.0 * cameraFactor;
+        if(key == 'Q' || key == 'q') cloudMaster[0].rotate[2] -= 2.0 * cameraFactor;
+    } else {
+        if(key == 'w') cloudMaster[meshIndex].rotate[0] += 2.0 * cameraFactor;
+        if(key == 's') cloudMaster[meshIndex].rotate[0] -= 2.0 * cameraFactor;
+        if(key == 'a') cloudMaster[meshIndex].rotate[1] += 2.0 * cameraFactor;
+        if(key == 'd') cloudMaster[meshIndex].rotate[1] -= 2.0 * cameraFactor;
+        if(key == 'e') cloudMaster[meshIndex].rotate[2] += 2.0 * cameraFactor;
+        if(key == 'q') cloudMaster[meshIndex].rotate[2] -= 2.0 * cameraFactor;
 
-    if(key == 'W') cloudMaster[0].rotate[0] += 2.0 * cameraFactor;
-    if(key == 'S') cloudMaster[0].rotate[0] -= 2.0 * cameraFactor;
-    if(key == 'A') cloudMaster[0].rotate[1] += 2.0 * cameraFactor;
-    if(key == 'D') cloudMaster[0].rotate[1] -= 2.0 * cameraFactor;
-    if(key == 'E') cloudMaster[0].rotate[2] += 2.0 * cameraFactor;
-    if(key == 'Q') cloudMaster[0].rotate[2] -= 2.0 * cameraFactor;
+        if(key == 'W') cloudMaster[0].rotate[0] += 2.0 * cameraFactor;
+        if(key == 'S') cloudMaster[0].rotate[0] -= 2.0 * cameraFactor;
+        if(key == 'A') cloudMaster[0].rotate[1] += 2.0 * cameraFactor;
+        if(key == 'D') cloudMaster[0].rotate[1] -= 2.0 * cameraFactor;
+        if(key == 'E') cloudMaster[0].rotate[2] += 2.0 * cameraFactor;
+        if(key == 'Q') cloudMaster[0].rotate[2] -= 2.0 * cameraFactor;
+    }
 
 	display();
 }
