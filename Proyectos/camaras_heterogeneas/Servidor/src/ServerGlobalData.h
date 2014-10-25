@@ -2,6 +2,7 @@
 #include "ofxXmlSettings.h"
 #include "ofMain.h"
 #include "ofMatrix4x4.h"
+#include "ServerGlobalData.h"
 
 struct t_data {
     string   serverIp;
@@ -18,6 +19,7 @@ struct t_data {
 
 class ServerGlobalData {
 	public:
-        void    loadCalibData(char * xml);
-        t_data      * sys_data;
+        static bool     debug;
+        void            loadCalibData(char * xml);
+        t_data          * sys_data;
 };

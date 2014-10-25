@@ -11,6 +11,7 @@
 class ThreadServer : public ofThread {
 
 	public:
+        f_decompress_img    decompress_img;
 		void threadedFunction();
 		int port;
 		int cliId;

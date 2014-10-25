@@ -71,7 +71,6 @@ std::pair <ThreadData *, ThreadData *> MainBuffer::getNextFrame() {
         if( (((ThreadData *) it->second)->state == 2 ) || (((ThreadData *) it->second)->state == 3 )) {
             ((ThreadData *) it->second)->cameraType = 2;
             if(((ThreadData *) it->second)->nubeLength > 0) {
-
                 if(ret.first == NULL) {
                     ofLogVerbose() << "[MainBuffer::getNextFrame] first==NULL.";
                     ret.first = (ThreadData *) it->second;
@@ -83,7 +82,6 @@ std::pair <ThreadData *, ThreadData *> MainBuffer::getNextFrame() {
         }
 
         if( (((ThreadData *) it->second)->state == 1) || (((ThreadData *) it->second)->state == 3) ) {
-
             ThreadData * td = new ThreadData();
             if(((ThreadData *) it->second)->state == 3) {
                 td->cameraType  = 2;
@@ -112,6 +110,7 @@ std::pair <ThreadData *, ThreadData *> MainBuffer::getNextFrame() {
             ret.second  = td;
         }
     }
+    //fm->removeField(fi);
     ofLogVerbose() << "[MainBuffer::getNextFrame] Luego de mergear";
     return ret;
 }

@@ -1,7 +1,7 @@
 #include "ServerGlobalData.h"
 
 //--------------------------------------------------------------
-
+bool ServerGlobalData::debug = false;
 void ServerGlobalData::loadCalibData(char * xml) {
     ofxXmlSettings settings;
     settings.loadFile(xml);

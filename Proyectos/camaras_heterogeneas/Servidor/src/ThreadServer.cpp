@@ -5,6 +5,14 @@
 using namespace std;
 
 void ThreadServer::threadedFunction() {
+
+    HINSTANCE hGetProcIDDLL;
+    hGetProcIDDLL   =  LoadLibraryA("imageCompression.dll");
+    if (!hGetProcIDDLL) {
+        std::cout << "No se pudo cargar la libreria: " << std::endl;
+    }
+    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
+
     ofLogVerbose() << "[ThreadServer::threadedFunction] " << this->ip << ":" << this->port;
     TCPCLI.setup(this->ip, this->port, true);
 
@@ -81,7 +89,7 @@ void ThreadServer::receiveFrame() {
                 ThreadData * td = tPair.second;
                 ofLogVerbose() << "[ThreadServer::receiveFrame] Por agregar frame a buffer con " << tPair.first;
 
-                FrameUtils::decompressImages(tPair.second, tPair.first);
+                FrameUtils::decompressImages(tPair.second, tPair.first, decompress_img);
                 fb.addFrame(tPair.second, tPair.first);
 
                 ofLogVerbose() << "[ThreadServer::receiveFrame] Estado del buffer de este ThreadServer: fb.tope " << fb.tope  << ", fb.base " << fb.base;

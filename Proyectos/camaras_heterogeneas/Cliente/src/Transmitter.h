@@ -14,7 +14,7 @@ class Transmitter : public ofThread {
         int camWidth;
         int camHeight;
         IGrabber * grabber;
-
+        f_compress_img      compress_img;
         ofxTCPClient TCP;
         ofxTCPServer TCPSVR;
 

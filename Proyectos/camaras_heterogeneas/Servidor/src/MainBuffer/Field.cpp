@@ -4,6 +4,7 @@ using namespace std;
 
 Field::Field() {
     totFrames   = 0;
+    enabled     = true;
 }
 
 Field::~Field() {

@@ -25,7 +25,7 @@ ofImage tmp;
 ofVideoGrabber		vidGrabber;
 
 void Server::setupGui(string ip) {
-
+    ServerGlobalData::debug = false;
     gui.addTitle("IP: " + ip);
     gui.addTitle("Port: " + ofToString(gdata->sys_data->serverPort));
     gui.addTitle("FPS: " + ofToString(gdata->sys_data->fps));
@@ -164,7 +164,6 @@ void Server::setup() {
 //  Si recibo un cliente conectado,
         //Abro un thread con un puerto libre PUERTO_X
         //Le retorno al cliente el puerto (PUERTO_X) asignado.
-
 //--------------------------------------------------------------
 void Server::update() {
     ofSleepMillis(1000/gdata->sys_data->fps);
@@ -173,22 +172,20 @@ void Server::update() {
         if( TCP.isClientConnected(i) ) { // check and see if it's still around
             string str = TCP.receive(i);
             if(str.length() > 0 ) {
-
                 std::string delimiter   = "|";
                 std::size_t found       = str.find(delimiter);
                 std::string cli         = str.substr(0, found);
                 std::string port        = str.substr(found+1, str.size());
 
                 ofLogVerbose() << "[Server::update] NUEVO CLIENTE id:" << str;
-                ofLogVerbose() << "[Server::update] cli:" << cli;
-                ofLogVerbose() << "[Server::update] port:" << port;
-                ofLogVerbose() << "[Server::update] ip:" << TCP.getClientIP(i);
+                ofLogVerbose() << "[Server::update] cli:"   << cli;
+                ofLogVerbose() << "[Server::update] port:"  << port;
+                ofLogVerbose() << "[Server::update] ip:"    << TCP.getClientIP(i);
 
                 ostringstream convert;
                 convert << currCliPort;
 
                 //NOTA: Además del puerto del thread que lo atiende debería pasarle hora actual del servidor (para que sincronice) y fps.
-
 
                 tservers[totThreadedServers]            = new ThreadServer();
                 tservers[totThreadedServers]->sys_data  = gdata->sys_data;
@@ -196,7 +193,6 @@ void Server::update() {
                 tservers[totThreadedServers]->ip        = TCP.getClientIP(i);
                 tservers[totThreadedServers]->port      = atoi(port.c_str());
                 tservers[totThreadedServers]->startThread(true, false);
-
 
                 currCliPort         ++;
                 totThreadedServers  ++;
@@ -286,10 +282,14 @@ void Server::generarMalla(ThreadData data) {
 //--------------------------------------------------------------
 void Server::keyPressed(int key) {
     //procesar = 1;
-    if(gui.isOn()) {
-        gui.hide();
-    } else {
-        gui.show();
+    if(key == 'g') {
+        if(gui.isOn()) {
+            gui.hide();
+        } else {
+            gui.show();
+        }
+    } else if(key == 'd') {
+        ServerGlobalData::debug = !ServerGlobalData::debug;
     }
 }
 

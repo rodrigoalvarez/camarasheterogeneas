@@ -305,10 +305,8 @@ class FrameUtils {
                                 memcpy((tData[i].zpix),     (off_nubeByteArray),     sizeof(float)*nubeLength);
                                 off_nubeByteArray   = off_nubeByteArray + nubeLength*sizeof(float);
                             }
-
                             //Reservo lugar para la nube.
                             start = off_nubeByteArray;
-
                         }
                     }
                 }
@@ -381,10 +379,8 @@ class FrameUtils {
 
                 //Si (tData[i].state > 0) = Está inicializado
                 if(tData[i].state > 0) {
-
                     //Si tiene imágen;
                     if((tData[i].state == 1) || (tData[i].state == 3)) {
-
                         //Reservo lugar para la imágen.
                         off_imgBArrSize      = start;
                         off_imgXYZ           = off_imgBArrSize + sizeof(int);
@@ -397,8 +393,7 @@ class FrameUtils {
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - guardado - h: " << h;
 
                         memcpy(off_imgBArrSize,    &tData[i].compSize,    sizeof(int));
-                        //memcpy(off_imgWidth,       &w,    sizeof(int));
-                        //memcpy(off_imgHeight,      &h,    sizeof(int));
+
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - Peso de la imagen guardada: " << tData[i].compSize;
 
                         memcpy(off_imgXYZ,                    &tData[i].row1.x,    sizeof(float));
@@ -496,11 +491,7 @@ class FrameUtils {
     /**
     * Recorre los totalCams ThreadData y comprime todas las imágenes.
     */
-    static void compressImages(ThreadData * tData, int totalCams) {
-        HINSTANCE hGetProcIDDLL;
-        hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
-        f_compress_img compress_img      = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
-
+    static void compressImages(ThreadData * tData, int totalCams, f_compress_img compress_img) {
         try {
             void * srcBuff;
             int i;
@@ -508,12 +499,7 @@ class FrameUtils {
                 if(tData[i].state > 0) {
                     if((tData[i].state == 1) || (tData[i].state == 3)) {
                         srcBuff           = (void *) tData[i].img.getPixels();
-
-                        if (!hGetProcIDDLL) {
-                            std::cout << "No se pudo cargar la libreria: " << std::endl;
-                        } else {
-                            compress_img(&srcBuff, tData[i].img.getWidth(), tData[i].img.getHeight(), &tData[i].compImg, &tData[i].compSize);
-                        }
+                        compress_img(&srcBuff, tData[i].img.getWidth(), tData[i].img.getHeight(), &tData[i].compImg, &tData[i].compSize);
                         ofLogWarning() << "[FrameUtils::compressImages] - tData[i].compSize " << tData[i].compSize;
                     }
                     if((tData[i].state == 2) || (tData[i].state == 3)) {
@@ -526,7 +512,7 @@ class FrameUtils {
         }
     }
 
-    static void compressSample() {
+    /*static void compressSample() {
 
         HINSTANCE hGetProcIDDLL;
 
@@ -564,19 +550,19 @@ class FrameUtils {
 
             }
         }
-    }
+    }*/
 
     /**
     * Recorre los totalCams ThreadData y descomprime todas las imágenes.
     */
-    static void decompressImages(ThreadData * tData, int totalCams) {
-        HINSTANCE hGetProcIDDLL;
-        //HINSTANCE hGetProcPCIDDLL;
-
-        hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
-        //hGetProcPCIDDLL                     =  LoadLibraryA("pointCloudCompression.dll");
-
-        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL,      "decompress_img");
+    static void decompressImages(ThreadData * tData, int totalCams, f_decompress_img decompress_img) {
+//        HINSTANCE hGetProcIDDLL;
+//        //HINSTANCE hGetProcPCIDDLL;
+//
+//        hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
+//        //hGetProcPCIDDLL                     =  LoadLibraryA("pointCloudCompression.dll");
+//
+//        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL,      "decompress_img");
         //f_decompress_pc     decompress_pc   = (f_decompress_img) GetProcAddress(hGetProcPCIDDLL,    "decompress_pc");
 
         try {
@@ -593,7 +579,7 @@ class FrameUtils {
                             const unsigned char * unc_Buff = NULL;
                             decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
                             tData[i].img.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
-                            tData[i].img.saveImage("decompress_debug.jpg");
+                            //tData[i].img.saveImage("decompress_debug.jpg");
                         }
                     }
                     if((tData[i].state == 2) || (tData[i].state == 3)) {
