@@ -6,6 +6,15 @@
 #define  CLI_PORT 15000
 
 void Transmitter::threadedFunction() {
+
+    HINSTANCE hGetProcIDDLL;
+    hGetProcIDDLL   =  LoadLibraryA("imageCompression.dll");
+    if (!hGetProcIDDLL) {
+        std::cout << "No se pudo cargar la libreria: " << std::endl;
+    }
+    compress_img    = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
+    //decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
+
     state       = 0;
 
     std::string str =  ofToString(sys_data->cliId) + "|" + ofToString(sys_data->cliPort);
@@ -65,7 +74,7 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
 
 
     ofLogVerbose()  << "[Transmitter::sendFrame] Por entrar a hacer compressImages " << totalCams;
-    FrameUtils::compressImages(tData, totalCams);
+    FrameUtils::compressImages(tData, totalCams, compress_img);
     ofLogVerbose()  << "[Transmitter::sendFrame] Saliendo de hacer compressImages " << totalCams;
 
     int frameSize       = FrameUtils::getFrameSize(tData, totalCams);

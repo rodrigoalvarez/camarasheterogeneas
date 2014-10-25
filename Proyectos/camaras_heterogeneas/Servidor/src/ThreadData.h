@@ -37,6 +37,12 @@ class ThreadData {
         ofVec4f row2;
         ofVec4f row3;
         ofVec4f row4;
+
+        ofVec4f imgrow1;
+        ofVec4f imgrow2;
+        ofVec4f imgrow3;
+        ofVec4f imgrow4;
+
         //ofMatrix4x4 matrix;
 
         ofFloatPixels  sXpix;

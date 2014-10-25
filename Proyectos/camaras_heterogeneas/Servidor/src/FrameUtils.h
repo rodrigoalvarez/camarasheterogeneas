@@ -48,6 +48,11 @@ class FrameUtils {
         tData[0].row3.set(1, 1, 1, 1);
         tData[0].row4.set(1, 1, 1, 1);
 
+        tData[0].imgrow1.set(1, 1, 1, 1);
+        tData[0].imgrow2.set(1, 1, 1, 1);
+        tData[0].imgrow3.set(1, 1, 1, 1);
+        tData[0].imgrow4.set(1, 1, 1, 1);
+
         tData[1].cliId      = 1; // ID que identificará a esta instalación de cliente en el servidor.
         tData[1].camId      = 3; // ID que identifica esta cámara dentro de la instalación cliente.
         gettimeofday(&tData[1].curTime, NULL);
@@ -70,6 +75,11 @@ class FrameUtils {
         tData[1].row2.set(1, 1, 1, 1);
         tData[1].row3.set(1, 1, 1, 1);
         tData[1].row4.set(1, 1, 1, 1);
+
+        tData[1].imgrow1.set(1, 1, 1, 1);
+        tData[1].imgrow2.set(1, 1, 1, 1);
+        tData[1].imgrow3.set(1, 1, 1, 1);
+        tData[1].imgrow4.set(1, 1, 1, 1);
 
         int w;
         for(w=0; w<tData[1].nubeLength; w++) {
@@ -237,30 +247,30 @@ class FrameUtils {
 
                             ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - Recibida imagen de size: " << tData[i].compSize;
 
-                            memcpy(&(tData[i].row1.x),   (off_imgXYZ),                        sizeof(float));
-                            memcpy(&(tData[i].row1.y),   (off_imgXYZ + sizeof(float)),        sizeof(float));
-                            memcpy(&(tData[i].row1.z),   (off_imgXYZ + sizeof(float) * 2),    sizeof(float));
-                            memcpy(&(tData[i].row1.w),   (off_imgXYZ + sizeof(float) * 3),    sizeof(float));
+                            memcpy(&(tData[i].imgrow1.x),   (off_imgXYZ),                        sizeof(float));
+                            memcpy(&(tData[i].imgrow1.y),   (off_imgXYZ + sizeof(float)),        sizeof(float));
+                            memcpy(&(tData[i].imgrow1.z),   (off_imgXYZ + sizeof(float) * 2),    sizeof(float));
+                            memcpy(&(tData[i].imgrow1.w),   (off_imgXYZ + sizeof(float) * 3),    sizeof(float));
 
-                            memcpy(&(tData[i].row2.x),   (off_imgXYZ + sizeof(float) * 4),    sizeof(float));
-                            memcpy(&(tData[i].row2.y),   (off_imgXYZ + sizeof(float) * 5),    sizeof(float));
-                            memcpy(&(tData[i].row2.z),   (off_imgXYZ + sizeof(float) * 6),    sizeof(float));
-                            memcpy(&(tData[i].row2.w),   (off_imgXYZ + sizeof(float) * 7),    sizeof(float));
+                            memcpy(&(tData[i].imgrow2.x),   (off_imgXYZ + sizeof(float) * 4),    sizeof(float));
+                            memcpy(&(tData[i].imgrow2.y),   (off_imgXYZ + sizeof(float) * 5),    sizeof(float));
+                            memcpy(&(tData[i].imgrow2.z),   (off_imgXYZ + sizeof(float) * 6),    sizeof(float));
+                            memcpy(&(tData[i].imgrow2.w),   (off_imgXYZ + sizeof(float) * 7),    sizeof(float));
 
-                            memcpy(&(tData[i].row3.x),   (off_imgXYZ + sizeof(float) * 8),    sizeof(float));
-                            memcpy(&(tData[i].row3.y),   (off_imgXYZ + sizeof(float) * 9),    sizeof(float));
-                            memcpy(&(tData[i].row3.z),   (off_imgXYZ + sizeof(float) * 10),   sizeof(float));
-                            memcpy(&(tData[i].row3.w),   (off_imgXYZ + sizeof(float) * 11),   sizeof(float));
+                            memcpy(&(tData[i].imgrow3.x),   (off_imgXYZ + sizeof(float) * 8),    sizeof(float));
+                            memcpy(&(tData[i].imgrow3.y),   (off_imgXYZ + sizeof(float) * 9),    sizeof(float));
+                            memcpy(&(tData[i].imgrow3.z),   (off_imgXYZ + sizeof(float) * 10),   sizeof(float));
+                            memcpy(&(tData[i].imgrow3.w),   (off_imgXYZ + sizeof(float) * 11),   sizeof(float));
 
-                            memcpy(&(tData[i].row4.x),   (off_imgXYZ + sizeof(float) * 12),   sizeof(float));
-                            memcpy(&(tData[i].row4.y),   (off_imgXYZ + sizeof(float) * 13),   sizeof(float));
-                            memcpy(&(tData[i].row4.z),   (off_imgXYZ + sizeof(float) * 14),   sizeof(float));
-                            memcpy(&(tData[i].row4.w),   (off_imgXYZ + sizeof(float) * 15),   sizeof(float));
+                            memcpy(&(tData[i].imgrow4.x),   (off_imgXYZ + sizeof(float) * 12),   sizeof(float));
+                            memcpy(&(tData[i].imgrow4.y),   (off_imgXYZ + sizeof(float) * 13),   sizeof(float));
+                            memcpy(&(tData[i].imgrow4.z),   (off_imgXYZ + sizeof(float) * 14),   sizeof(float));
+                            memcpy(&(tData[i].imgrow4.w),   (off_imgXYZ + sizeof(float) * 15),   sizeof(float));
 
-                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row1.x: " << tData[i].row1.x << ", row1.y: " << tData[i].row1.y << ", row1.z: " << tData[i].row1.z << ", row1.w: " << tData[i].row1.w;
-                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row2.x: " << tData[i].row2.x << ", row2.y: " << tData[i].row2.y << ", row2.z: " << tData[i].row2.z << ", row2.w: " << tData[i].row2.w;
-                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row3.x: " << tData[i].row3.x << ", row3.y: " << tData[i].row3.y << ", row3.z: " << tData[i].row3.z << ", row3.w: " << tData[i].row3.w;
-                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row4.x: " << tData[i].row4.x << ", row4.y: " << tData[i].row4.y << ", row4.z: " << tData[i].row4.z << ", row4.w: " << tData[i].row4.w;
+                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - imgrow1.x: " << tData[i].imgrow1.x << ", imgrow1.y: " << tData[i].imgrow1.y << ", imgrow1.z: " << tData[i].imgrow1.z << ", imgrow1.w: " << tData[i].imgrow1.w;
+                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - imgrow2.x: " << tData[i].imgrow2.x << ", imgrow2.y: " << tData[i].imgrow2.y << ", imgrow2.z: " << tData[i].imgrow2.z << ", imgrow2.w: " << tData[i].imgrow2.w;
+                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - imgrow3.x: " << tData[i].imgrow3.x << ", imgrow3.y: " << tData[i].imgrow3.y << ", imgrow3.z: " << tData[i].imgrow3.z << ", imgrow3.w: " << tData[i].imgrow3.w;
+                            ofLogVerbose() << "[FrameUtils::getFrameByteArray] - imgrow4.x: " << tData[i].imgrow4.x << ", imgrow4.y: " << tData[i].imgrow4.y << ", imgrow4.z: " << tData[i].imgrow4.z << ", imgrow4.w: " << tData[i].imgrow4.w;
 
                             tData[i].compImg    = new char[tData[i].compSize];
                             memcpy((tData[i].compImg), ((unsigned char *) off_imagebytearray), tData[i].compSize);
@@ -305,10 +315,8 @@ class FrameUtils {
                                 memcpy((tData[i].zpix),     (off_nubeByteArray),     sizeof(float)*nubeLength);
                                 off_nubeByteArray   = off_nubeByteArray + nubeLength*sizeof(float);
                             }
-
                             //Reservo lugar para la nube.
                             start = off_nubeByteArray;
-
                         }
                     }
                 }
@@ -381,10 +389,8 @@ class FrameUtils {
 
                 //Si (tData[i].state > 0) = Está inicializado
                 if(tData[i].state > 0) {
-
                     //Si tiene imágen;
                     if((tData[i].state == 1) || (tData[i].state == 3)) {
-
                         //Reservo lugar para la imágen.
                         off_imgBArrSize      = start;
                         off_imgXYZ           = off_imgBArrSize + sizeof(int);
@@ -397,34 +403,33 @@ class FrameUtils {
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - guardado - h: " << h;
 
                         memcpy(off_imgBArrSize,    &tData[i].compSize,    sizeof(int));
-                        //memcpy(off_imgWidth,       &w,    sizeof(int));
-                        //memcpy(off_imgHeight,      &h,    sizeof(int));
+
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - Peso de la imagen guardada: " << tData[i].compSize;
 
-                        memcpy(off_imgXYZ,                    &tData[i].row1.x,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float),    &tData[i].row1.y,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*2,  &tData[i].row1.z,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*3,  &tData[i].row1.w,    sizeof(float));
+                        memcpy(off_imgXYZ,                    &tData[i].imgrow1.x,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float),    &tData[i].imgrow1.y,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*2,  &tData[i].imgrow1.z,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*3,  &tData[i].imgrow1.w,    sizeof(float));
 
-                        memcpy(off_imgXYZ + sizeof(float)*4,  &tData[i].row2.x,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*5,  &tData[i].row2.y,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*6,  &tData[i].row2.z,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*7,  &tData[i].row2.w,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*4,  &tData[i].imgrow2.x,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*5,  &tData[i].imgrow2.y,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*6,  &tData[i].imgrow2.z,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*7,  &tData[i].imgrow2.w,    sizeof(float));
 
-                        memcpy(off_imgXYZ + sizeof(float)*8,  &tData[i].row3.x,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*9,  &tData[i].row3.y,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*10, &tData[i].row3.z,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*11, &tData[i].row3.w,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*8,  &tData[i].imgrow3.x,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*9,  &tData[i].imgrow3.y,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*10, &tData[i].imgrow3.z,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*11, &tData[i].imgrow3.w,    sizeof(float));
 
-                        memcpy(off_imgXYZ + sizeof(float)*12, &tData[i].row4.x,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*13, &tData[i].row4.y,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*14, &tData[i].row4.z,    sizeof(float));
-                        memcpy(off_imgXYZ + sizeof(float)*15, &tData[i].row4.w,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*12, &tData[i].imgrow4.x,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*13, &tData[i].imgrow4.y,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*14, &tData[i].imgrow4.z,    sizeof(float));
+                        memcpy(off_imgXYZ + sizeof(float)*15, &tData[i].imgrow4.w,    sizeof(float));
 
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row1.x: " << tData[i].row1.x << ", row1.y: " << tData[i].row1.y << ", row1.z: " << tData[i].row1.z << ", row1.w: " << tData[i].row1.w;
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row2.x: " << tData[i].row2.x << ", row2.y: " << tData[i].row2.y << ", row2.z: " << tData[i].row2.z << ", row2.w: " << tData[i].row2.w;
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row3.x: " << tData[i].row3.x << ", row3.y: " << tData[i].row3.y << ", row3.z: " << tData[i].row3.z << ", row3.w: " << tData[i].row3.w;
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row4.x: " << tData[i].row4.x << ", row4.y: " << tData[i].row4.y << ", row4.z: " << tData[i].row4.z << ", row4.w: " << tData[i].row4.w;
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row1.x: " << tData[i].imgrow1.x << ", row1.y: " << tData[i].imgrow1.y << ", row1.z: " << tData[i].imgrow1.z << ", row1.w: " << tData[i].imgrow1.w;
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row2.x: " << tData[i].imgrow2.x << ", row2.y: " << tData[i].imgrow2.y << ", row2.z: " << tData[i].imgrow2.z << ", row2.w: " << tData[i].imgrow2.w;
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row3.x: " << tData[i].imgrow3.x << ", row3.y: " << tData[i].imgrow3.y << ", row3.z: " << tData[i].imgrow3.z << ", row3.w: " << tData[i].imgrow3.w;
+                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row4.x: " << tData[i].imgrow4.x << ", row4.y: " << tData[i].imgrow4.y << ", row4.z: " << tData[i].imgrow4.z << ", row4.w: " << tData[i].imgrow4.w;
 
                         memcpy(off_imagebytearray, tData[i].compImg, tData[i].compSize);
 
@@ -496,11 +501,7 @@ class FrameUtils {
     /**
     * Recorre los totalCams ThreadData y comprime todas las imágenes.
     */
-    static void compressImages(ThreadData * tData, int totalCams) {
-        HINSTANCE hGetProcIDDLL;
-        hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
-        f_compress_img compress_img      = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
-
+    static void compressImages(ThreadData * tData, int totalCams, f_compress_img compress_img) {
         try {
             void * srcBuff;
             int i;
@@ -508,12 +509,7 @@ class FrameUtils {
                 if(tData[i].state > 0) {
                     if((tData[i].state == 1) || (tData[i].state == 3)) {
                         srcBuff           = (void *) tData[i].img.getPixels();
-
-                        if (!hGetProcIDDLL) {
-                            std::cout << "No se pudo cargar la libreria: " << std::endl;
-                        } else {
-                            compress_img(&srcBuff, tData[i].img.getWidth(), tData[i].img.getHeight(), &tData[i].compImg, &tData[i].compSize);
-                        }
+                        compress_img(&srcBuff, tData[i].img.getWidth(), tData[i].img.getHeight(), &tData[i].compImg, &tData[i].compSize);
                         ofLogWarning() << "[FrameUtils::compressImages] - tData[i].compSize " << tData[i].compSize;
                     }
                     if((tData[i].state == 2) || (tData[i].state == 3)) {
@@ -526,7 +522,7 @@ class FrameUtils {
         }
     }
 
-    static void compressSample() {
+    /*static void compressSample() {
 
         HINSTANCE hGetProcIDDLL;
 
@@ -564,19 +560,19 @@ class FrameUtils {
 
             }
         }
-    }
+    }*/
 
     /**
     * Recorre los totalCams ThreadData y descomprime todas las imágenes.
     */
-    static void decompressImages(ThreadData * tData, int totalCams) {
-        HINSTANCE hGetProcIDDLL;
-        //HINSTANCE hGetProcPCIDDLL;
-
-        hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
-        //hGetProcPCIDDLL                     =  LoadLibraryA("pointCloudCompression.dll");
-
-        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL,      "decompress_img");
+    static void decompressImages(ThreadData * tData, int totalCams, f_decompress_img decompress_img) {
+//        HINSTANCE hGetProcIDDLL;
+//        //HINSTANCE hGetProcPCIDDLL;
+//
+//        hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
+//        //hGetProcPCIDDLL                     =  LoadLibraryA("pointCloudCompression.dll");
+//
+//        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL,      "decompress_img");
         //f_decompress_pc     decompress_pc   = (f_decompress_img) GetProcAddress(hGetProcPCIDDLL,    "decompress_pc");
 
         try {
@@ -593,7 +589,7 @@ class FrameUtils {
                             const unsigned char * unc_Buff = NULL;
                             decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
                             tData[i].img.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
-                            tData[i].img.saveImage("decompress_debug.jpg");
+                            //tData[i].img.saveImage("decompress_debug.jpg");
                         }
                     }
                     if((tData[i].state == 2) || (tData[i].state == 3)) {

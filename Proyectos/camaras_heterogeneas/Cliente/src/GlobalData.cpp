@@ -65,26 +65,34 @@ void GlobalData::loadCalibData(char * xml) {
 				currCam->use2D                  = settings.getValue("use2D", true);
 				currCam->use3D                  = settings.getValue("use3D", true);
 
+                if(settings.pushTag("matrix2D")) {
+                    currCam->imgrow1.set(settings.getValue("m00", 1.0f), settings.getValue("m01", 1.0f), settings.getValue("m02", 1.0f), settings.getValue("m03", 1.0f));
+                    currCam->imgrow2.set(settings.getValue("m10", 1.0f), settings.getValue("m11", 1.0f), settings.getValue("m12", 1.0f), settings.getValue("m13", 1.0f));
+                    currCam->imgrow3.set(settings.getValue("m20", 1.0f), settings.getValue("m21", 1.0f), settings.getValue("m22", 1.0f), settings.getValue("m23", 1.0f));
+                    currCam->imgrow4.set(settings.getValue("m30", 1.0f), settings.getValue("m31", 1.0f), settings.getValue("m32", 1.0f), settings.getValue("m33", 1.0f));
+
+                    cout << "[GlobalData::loadCalibData] - imgrow1.x: " << currCam->imgrow1.x << ", imgrow1.y: " << currCam->imgrow1.y << ", imgrow1.z: " << currCam->imgrow1.z << ", imgrow1.w: " << currCam->imgrow1.w << endl;
+                    cout << "[GlobalData::loadCalibData] - imgrow2.x: " << currCam->imgrow2.x << ", imgrow2.y: " << currCam->imgrow2.y << ", imgrow2.z: " << currCam->imgrow2.z << ", imgrow2.w: " << currCam->imgrow2.w << endl;
+                    cout << "[GlobalData::loadCalibData] - imgrow3.x: " << currCam->imgrow3.x << ", imgrow3.y: " << currCam->imgrow3.y << ", imgrow3.z: " << currCam->imgrow3.z << ", imgrow3.w: " << currCam->imgrow3.w << endl;
+                    cout << "[GlobalData::loadCalibData] - imgrow4.x: " << currCam->imgrow4.x << ", imgrow4.y: " << currCam->imgrow4.y << ", imgrow4.z: " << currCam->imgrow4.z << ", imgrow4.w: " << currCam->imgrow4.w << endl;
+
+                    settings.popTag();
+                }
+
+                if(settings.pushTag("matrix3D")) {
+                    currCam->row1.set(settings.getValue("m00", 1.0f), settings.getValue("m01", 1.0f), settings.getValue("m02", 1.0f), settings.getValue("m03", 1.0f));
+                    currCam->row2.set(settings.getValue("m10", 1.0f), settings.getValue("m11", 1.0f), settings.getValue("m12", 1.0f), settings.getValue("m13", 1.0f));
+                    currCam->row3.set(settings.getValue("m20", 1.0f), settings.getValue("m21", 1.0f), settings.getValue("m22", 1.0f), settings.getValue("m23", 1.0f));
+                    currCam->row4.set(settings.getValue("m30", 1.0f), settings.getValue("m31", 1.0f), settings.getValue("m32", 1.0f), settings.getValue("m33", 1.0f));
+
+                    cout << "[GlobalData::loadCalibData] - row1.x: " << currCam->row1.x << ", row1.y: " << currCam->row1.y << ", row1.z: " << currCam->row1.z << ", row1.w: " << currCam->row1.w << endl;
+                    cout << "[GlobalData::loadCalibData] - row2.x: " << currCam->row2.x << ", row2.y: " << currCam->row2.y << ", row2.z: " << currCam->row2.z << ", row2.w: " << currCam->row2.w << endl;
+                    cout << "[GlobalData::loadCalibData] - row3.x: " << currCam->row3.x << ", row3.y: " << currCam->row3.y << ", row3.z: " << currCam->row3.z << ", row3.w: " << currCam->row3.w << endl;
+                    cout << "[GlobalData::loadCalibData] - row4.x: " << currCam->row4.x << ", row4.y: " << currCam->row4.y << ", row4.z: " << currCam->row4.z << ", row4.w: " << currCam->row4.w << endl;
+
+                    settings.popTag();
+                }
                 if(settings.pushTag("dataContext")) {
-                    /*if(settings.pushTag("depthSettings")) {
-                        currCam->near3D                 = settings.getValue("near", 0);
-                        currCam->far3D                  = settings.getValue("far", 1);
-                        currCam->points3DDownSample     = settings.getValue("pointsDownSample", 0.5);
-                        settings.popTag();
-                    }*/
-                    if(settings.pushTag("matrix")) {
-                        currCam->row1.set(settings.getValue("m000", 1.0f), settings.getValue("m001", 1.0f), settings.getValue("m002", 1.0f), settings.getValue("m003", 1.0f));
-                        currCam->row2.set(settings.getValue("m100", 1.0f), settings.getValue("m101", 1.0f), settings.getValue("m102", 1.0f), settings.getValue("m103", 1.0f));
-                        currCam->row3.set(settings.getValue("m200", 1.0f), settings.getValue("m201", 1.0f), settings.getValue("m202", 1.0f), settings.getValue("m203", 1.0f));
-                        currCam->row4.set(settings.getValue("m300", 1.0f), settings.getValue("m301", 1.0f), settings.getValue("m302", 1.0f), settings.getValue("m303", 1.0f));
-
-                        cout << "[GlobalData::loadCalibData] - row1.x: " << currCam->row1.x << ", row1.y: " << currCam->row1.y << ", row1.z: " << currCam->row1.z << ", row1.w: " << currCam->row1.w << endl;
-                        cout << "[GlobalData::loadCalibData] - row2.x: " << currCam->row2.x << ", row2.y: " << currCam->row2.y << ", row2.z: " << currCam->row2.z << ", row2.w: " << currCam->row2.w << endl;
-                        cout << "[GlobalData::loadCalibData] - row3.x: " << currCam->row3.x << ", row3.y: " << currCam->row3.y << ", row3.z: " << currCam->row3.z << ", row3.w: " << currCam->row3.w << endl;
-                        cout << "[GlobalData::loadCalibData] - row4.x: " << currCam->row4.x << ", row4.y: " << currCam->row4.y << ", row4.z: " << currCam->row4.z << ", row4.w: " << currCam->row4.w << endl;
-
-                        settings.popTag();
-                    }
                     settings.popTag();
                 }
 

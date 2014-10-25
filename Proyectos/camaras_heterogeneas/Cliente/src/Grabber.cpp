@@ -137,15 +137,15 @@ void Grabber::updateThreadData() {
             tData[di].state  = DEVICE_2D; // 2D
             tData[di].img.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.getWidth(), t2D[i].img.getHeight(), OF_IMAGE_COLOR, true);
 
-            tData[di].row1.set(t2D[i].context->row1.x, t2D[i].context->row1.y, t2D[i].context->row1.z, t2D[i].context->row1.w);
-            tData[di].row2.set(t2D[i].context->row2.x, t2D[i].context->row2.y, t2D[i].context->row2.z, t2D[i].context->row2.w);
-            tData[di].row3.set(t2D[i].context->row3.x, t2D[i].context->row3.y, t2D[i].context->row3.z, t2D[i].context->row3.w);
-            tData[di].row4.set(t2D[i].context->row4.x, t2D[i].context->row4.y, t2D[i].context->row4.z, t2D[i].context->row4.w);
+            tData[di].imgrow1.set(t2D[i].context->imgrow1.x, t2D[i].context->imgrow1.y, t2D[i].context->imgrow1.z, t2D[i].context->imgrow1.w);
+            tData[di].imgrow2.set(t2D[i].context->imgrow2.x, t2D[i].context->imgrow2.y, t2D[i].context->imgrow2.z, t2D[i].context->imgrow2.w);
+            tData[di].imgrow3.set(t2D[i].context->imgrow3.x, t2D[i].context->imgrow3.y, t2D[i].context->imgrow3.z, t2D[i].context->imgrow3.w);
+            tData[di].imgrow4.set(t2D[i].context->imgrow4.x, t2D[i].context->imgrow4.y, t2D[i].context->imgrow4.z, t2D[i].context->imgrow4.w);
 
-            ofLogVerbose() << "[Grabber::updateThreadData] 2D - row1.x: " << tData[di].row1.x << ", row1.y: " << tData[di].row1.y << ", row1.z: " << tData[di].row1.z << ", row1.w: " << tData[di].row1.w;
-            ofLogVerbose() << "[Grabber::updateThreadData] 2D - row2.x: " << tData[di].row2.x << ", row2.y: " << tData[di].row2.y << ", row2.z: " << tData[di].row2.z << ", row2.w: " << tData[di].row2.w;
-            ofLogVerbose() << "[Grabber::updateThreadData] 2D - row3.x: " << tData[di].row3.x << ", row3.y: " << tData[di].row3.y << ", row3.z: " << tData[di].row3.z << ", row3.w: " << tData[di].row3.w;
-            ofLogVerbose() << "[Grabber::updateThreadData] 2D - row4.x: " << tData[di].row4.x << ", row4.y: " << tData[di].row4.y << ", row4.z: " << tData[di].row4.z << ", row4.w: " << tData[di].row4.w;
+            ofLogVerbose() << "[Grabber::updateThreadData] 2D - imgrow1.x: " << tData[di].imgrow1.x << ", imgrow1.y: " << tData[di].imgrow1.y << ", imgrow1.z: " << tData[di].imgrow1.z << ", imgrow1.w: " << tData[di].imgrow1.w;
+            ofLogVerbose() << "[Grabber::updateThreadData] 2D - imgrow2.x: " << tData[di].imgrow2.x << ", imgrow2.y: " << tData[di].imgrow2.y << ", imgrow2.z: " << tData[di].imgrow2.z << ", imgrow2.w: " << tData[di].imgrow2.w;
+            ofLogVerbose() << "[Grabber::updateThreadData] 2D - imgrow3.x: " << tData[di].imgrow3.x << ", imgrow3.y: " << tData[di].imgrow3.y << ", imgrow3.z: " << tData[di].imgrow3.z << ", imgrow3.w: " << tData[di].imgrow3.w;
+            ofLogVerbose() << "[Grabber::updateThreadData] 2D - imgrow4.x: " << tData[di].imgrow4.x << ", imgrow4.y: " << tData[di].imgrow4.y << ", imgrow4.z: " << tData[di].imgrow4.z << ", imgrow4.w: " << tData[di].imgrow4.w;
         }
         tData[di].nubeW = tData[di].nubeH = 0;
         gettimeofday(&tData[di].curTime, NULL);

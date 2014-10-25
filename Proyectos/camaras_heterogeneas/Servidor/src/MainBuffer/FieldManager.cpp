@@ -30,8 +30,6 @@ void FieldManager::calcSyncTime(ThreadData * frame) {
 
     frame->key.first    = frame->curTime.tv_sec;
     frame->key.second   = step;
-
-
     //printf("current time: %d %d \n", frame->key.first, frame->key.second);
 }
 
@@ -46,7 +44,6 @@ Field * FieldManager::getFieldForTime(std::pair <time_t, int> timestamp) {
         ofLogVerbose() << "[FieldManager::getFieldForTime] - " << "ENCONTRO";
         return field_map[search];
     } else {
-
         Field * fi  = new Field();
         fi->id = field_map.size();
 
@@ -97,7 +94,7 @@ Field * FieldManager::getOlderCompleteFrame() {
 /**
 * Remueve de memoria el Field pasado por parámetro.
 */
-void FieldManager::removeField(Field *) {
+void FieldManager::removeField(Field * fi) {
 
 }
 
@@ -110,7 +107,7 @@ Field * FieldManager::getNextFilledField() {
     int step;
     std::pair <time_t, int> search;
     Field * fi = NULL;
-    //timeval index = curIndex;
+
     if(sys_data->processMostRecent == 1) {
         curIndex    = maxIndex;
     }
@@ -123,11 +120,13 @@ Field * FieldManager::getNextFilledField() {
         search.second   = step;
 
         if(field_map.count(search) == 1) {
-            ofLogVerbose() << "[FieldManager::getNextFilledField] - ENCONTRO curIndex.tv_sec: " << curIndex.tv_sec << " - curIndex.tv_usec: " << curIndex.tv_usec;
-            encontro = true;
-            fi       = field_map[search]; //Faltaría después evaluar si borrarlo o no.
+            fi          = field_map[search]; //Faltaría después evaluar si borrarlo o no.
+            if(fi->enabled) {
+                encontro      = true;
+                fi->enabled   = false;
+                ofLogVerbose() << "[FieldManager::getNextFilledField] - ENCONTRO curIndex.tv_sec: " << curIndex.tv_sec << " - curIndex.tv_usec: " << curIndex.tv_usec;
+            }
         }
-
         if(step >= (topeUnit-1)) {
             curIndex.tv_sec  += 1;
             curIndex.tv_usec  = 0;

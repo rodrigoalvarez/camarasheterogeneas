@@ -18,6 +18,7 @@ class Field {
         time_t time;
         int totFrames;
         int id;
+        bool enabled;
 
         map< long int, ThreadData * > frame_map;
         Field();

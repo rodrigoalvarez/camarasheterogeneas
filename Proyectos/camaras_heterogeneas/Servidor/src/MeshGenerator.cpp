@@ -2,139 +2,98 @@
 
 #include <iostream>
 #include <fstream>
+#include "masterPly.h"
 #include <string>
 #include <ctime>
-#include <windows.h>
-#include <iostream>
-#include <sstream>
-
-#include <stdio.h>
-#include "FreeImage.h"
 
 using namespace std;
-
-struct NubePuntos{
-    float* x;
-    float* y;
-    float* z;
-    int largo;
-};
-
-string facesMemoryKey = "Faces";
-string nFacesMemoryKey = "NumberFaces";
-int nFacesMemorySize = sizeof(int);
-int facesMemorySize;
-
-typedef void (*f_generarMalla)(NubePuntos* nbIN, FaceStruct** faces, int* numberFaces, int nroFrame);
-typedef void (*f_compartirMalla)(int numberFaces, FaceStruct* faces);
-typedef void (*f_ShareImage) (unsigned char* pixels, int* wPixels, int* hPixels);
-
-
 int i = 0;
+
+int debugIterFrame = 0;
+
 void MeshGenerator::threadedFunction() {
     if(buffer == NULL) return;
 
     while(isThreadRunning()) {
         ofSleepMillis(1000/sys_data->fps);
         processFrame();
+        debugIterFrame++;
     }
 }
 
-void MeshGenerator::processFrame(){
 
-    std::pair <ThreadData *, ThreadData *> frame = buffer->getNextFrame();
-    if(frame.first != NULL) { // En first viene un ThreadData con la nube de puntos.
+void MeshGenerator::debug(ThreadData * td, int type) {
+    if(!ServerGlobalData::debug) return;
+    string path = "frames/" + ofToString(debugIterFrame);
+    ofDirectory::createDirectory(path, true, true);
+    if(type == 2) { //Nube de puntos
+        char nombre2[50];
+        string framePath = "data/" + path + "/frame_" + ofToString(td->cliId) + "_" + ofToString(td->camId) + ".xyz";
 
-        cout<< "entro!!!" << endl;
-        ThreadData* td = ((ThreadData *) frame.first);
-        time_t now = time(0);
-        tm *ltm = localtime(&now);
-
-        /*char nombre2[50];
-        sprintf(nombre2, "frame%d.xyz", i);
-        //char* fileName      = "frameeee_i.xyz";
-
-        //Creo el archivo b,n de la nube unida
         FILE * pFile;
-        pFile = fopen (nombre2,"w");
-        //Recorro los frames de cada camara y me quedo solo con los 3D
+        pFile = fopen (framePath.c_str(),"w");
         for(int i=0; i < td->nubeLength; i ++) {
             fprintf (pFile, "%f %f %f\n", td->xpix[i], td->ypix[i], td->zpix[i]);
         }
+        fclose (pFile);
+    } else if(type == 1) { //Imágen RGB
+        string framePath = "data/" + path + "/img_" + ofToString(td->cliId) + "_" + ofToString(td->camId) + "_" + ofToString(td->cameraType) + ".jpg";
+        td->img.saveImage(framePath);
+    }
+}
 
-        fclose (pFile);*/
+void MeshGenerator::processFrame() {
+    std::pair <ThreadData *, ThreadData *> frame = buffer->getNextFrame();
 
-        ///GENERAR MALLA
-        f_generarMalla generarMalla = (f_generarMalla)GetProcAddress(generateMeshLibrary, "generarMalla");
+    if(frame.first != NULL) { // En first viene un ThreadData con la nube de puntos.
 
-        NubePuntos* nbIN = new NubePuntos;
-        nbIN->largo = td->nubeLength;
-        nbIN->x = td->xpix;
-        nbIN->y = td->ypix;
-        nbIN->z = td->zpix;
-        faces = new FaceStruct;
-        numberFaces = new int;
+        time_t now = time(0);
+        tm *ltm = localtime(&now);
 
-        generarMalla(nbIN, &faces, numberFaces, i);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Obtuve un frame mergeado con nube de puntos largo: " << ((ThreadData *) frame.first)->nubeLength;
+        ThreadData* td = ((ThreadData *) frame.first);
 
-        ///FIN GENERAR MALLA
+        debug(td, 2);
 
-        ///MEMORIA COMPARTIDA
-        cout<< "entro1" << endl;
-        f_compartirMalla compartirMalla = (f_compartirMalla)GetProcAddress(memorySharedLibrary, "compartirMemoria");
+        MasterPly* mply = new MasterPly();
 
-        cout<< "entro2" << endl;
-        compartirMalla(*numberFaces, faces);
+        mply->loadMesh(td->xpix,td->ypix,td->zpix,td->nubeLength);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Nube cargada nubeLength " << td->nubeLength;
+        mply->poissonDiskSampling(td->nubeLength/4);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Poisson disk sampling aplicado, cantidad de vertices: " <<  mply->totalVertex();
+        mply->calculateNormalsVertex();
 
-        cout<< "entro3" << endl;
+        now = time(0);
+        ltm = localtime(&now);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Calculadas normales de los vertices " << 1 + ltm->tm_min << ":" << 1 + ltm->tm_sec;
+        mply->buildMeshBallPivoting();
 
-        /*
-        nFacesMemoryMappedFile.setup(nFacesMemoryKey, nFacesMemorySize, true);
-        isConnected = nFacesMemoryMappedFile.connect();
+        now = time(0);
+        ltm = localtime(&now);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Ball Pivoting terminado " << 1 + ltm->tm_min << ":" << 1 + ltm->tm_sec;
 
-        if(isConnected){
-            nFacesMemoryMappedFile.setData(numberFaces);
-            facesMemorySize = sizeof(FaceStruct)* (*numberFaces);
+        if(sys_data->persistToPly == 1) {
+            char nombre[50];
+            sprintf(nombre, "frame%d.ply", i);
+            mply->savePLY(nombre,true);
+        }
 
-            facesMemoryMappedFile.setup(facesMemoryKey, facesMemorySize, true);
-            isConnected = facesMemoryMappedFile.connect();
-            if(isConnected){
-                facesMemoryMappedFile.setData(faces);
-            }
-        }*/
-        ///FIN MEMORIA COMPARTIDA
-
-        delete nbIN;
-        delete numberFaces;
-        delete [] faces;
-        delete nbIN;
+        now = time(0);
+        ltm = localtime(&now);
+        ofLogVerbose() << " [MeshGenerator::processFrame] - Malla guardada " << 1 + ltm->tm_min << ":" << 1 + ltm->tm_sec;
         i++;
     }
+
     if(frame.second != NULL) { // En first viene un array de ThreadData con las texturas.
-        int j=1;
+        int i=1;
         ThreadData * iter = (ThreadData *) frame.second;
-        f_ShareImage shareImage = (f_ShareImage)GetProcAddress(memorySharedLibrary, "ShareImage");
         do {
-            cout<< "Imagen" << j << endl;
-            ofBuffer imageBuffer;
-            cout<< "Paso1" << j << endl;
-            ofSaveImage(iter->img.getPixelsRef(), imageBuffer, OF_IMAGE_FORMAT_JPEG);
-
-            FIMEMORY* stream = FreeImage_OpenMemory((unsigned char*) imageBuffer.getBinaryBuffer(), imageBuffer.size());
-
-            FREE_IMAGE_FORMAT fif   = FreeImage_GetFileTypeFromMemory( stream, 0 );
-
-            FIBITMAP *dib(0);
-            dib = FreeImage_LoadFromMemory(fif, stream);
-
-            unsigned char* pixels = (unsigned char*)FreeImage_GetBits(dib);
-
-            int width = FreeImage_GetWidth(dib);
-            int height = FreeImage_GetHeight(dib);
-
-            shareImage( pixels, &width, &height);
+            cout << "[MeshGenerator::processFrame] cli: " << iter->cliId << ", camId: " << iter->camId << ", cameraType: " << iter->cameraType << endl;
+            debug(iter, 1);
+            //
+            //iter->img.saveImage("enIter" + ofToString(i) + ".jpg");
             iter = iter->sig;
-            j++;
+            i++;
         } while(iter != NULL);
     }
 }
