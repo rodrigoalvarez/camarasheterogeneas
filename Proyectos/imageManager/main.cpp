@@ -59,7 +59,7 @@ void writeText() {
         cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
         cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
         cout << endl;
-    }/**/
+    }
 }
 
 void setFaceVertex(int index) {
@@ -534,7 +534,8 @@ int main(int argc, char **argv) {
 
     /* Mesh */
     textureModel = new Model_PLY();
-    textureModel->MemoryLoad();
+    //textureModel->MemoryLoad();
+    textureModel->Load("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\mesh\\antMesh.ply");
 
     /* Texture */
     textureMaster = new MasterTexture[textureCount + 1];
