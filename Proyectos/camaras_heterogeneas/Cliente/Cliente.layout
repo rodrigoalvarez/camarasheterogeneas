@@ -1,37 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="release" />
-	<File name="..\..\..\..\addons\ofxOpenCv\src\ofxCvImage.h" open="0" top="0" tabpos="0">
-		<Cursor position="245" topLine="170" />
+	<File name="src\Grabber.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
 	</File>
-	<File name="..\..\..\..\addons\ofxOpenCv\src\ofxOpenCv.h" open="0" top="0" tabpos="0">
-		<Cursor position="238" topLine="0" />
+	<File name="src\Thread2D.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
 	</File>
-	<File name="..\..\..\..\addons\ofxOpenNI\src\ofxOpenNI.h" open="0" top="0" tabpos="0">
-		<Cursor position="8934" topLine="270" />
-	</File>
-	<File name="src\GlobalData.cpp" open="0" top="0" tabpos="0">
-		<Cursor position="165" topLine="0" />
-	</File>
-	<File name="src\GlobalData.h" open="0" top="0" tabpos="0">
-		<Cursor position="186" topLine="23" />
-	</File>
-	<File name="src\Grabber.cpp" open="0" top="0" tabpos="2">
-		<Cursor position="1788" topLine="63" />
-	</File>
-	<File name="src\Thread2D.cpp" open="0" top="0" tabpos="3">
-		<Cursor position="1206" topLine="23" />
-	</File>
-	<File name="src\Thread2D.h" open="0" top="0" tabpos="1">
-		<Cursor position="350" topLine="0" />
-	</File>
-	<File name="src\ThreadData.h" open="0" top="0" tabpos="0">
-		<Cursor position="221" topLine="0" />
-	</File>
-	<File name="src\Transmitter.cpp" open="0" top="0" tabpos="0">
-		<Cursor position="291" topLine="9" />
-	</File>
-	<File name="src\Transmitter.h" open="0" top="0" tabpos="0">
-		<Cursor position="186" topLine="0" />
+	<File name="src\Thread2D.h" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

@@ -1,10 +1,12 @@
 #include "modelPly.h"
+#include "ofxXmlSettings.h"
 #include <stdlib.h>
 #include <windows.h>
 #include <GL/glut.h>
 #include "modelXYZ.h"
 #include "masterPly.h"
 #include "masterSettings.h"
+#include "GlobalData.h"
 #include <vector>
 #include <fstream>
 #include <sstream>
@@ -34,6 +36,7 @@ int meshIndex = 0;
 
 /* Camera */
 
+vector<MasterClient*> clients;
 int doubleClickTime = 500;
 int clickCount = 0;
 float cameraFactor = 1.0;
@@ -264,15 +267,300 @@ void myReshape(int w, int h) {
     glMatrixMode(GL_MODELVIEW);
 }
 
+bool REAL_TIME = true;
+int REAL_TIME_FPS = 10;
+int REAL_TIME_PORT = 3232;
+
+void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
+
+    ofxXmlSettings settings = *pSettings;
+    settings.setValue("realTime", REAL_TIME);
+    settings.setValue("realTimeFPS", REAL_TIME_FPS);
+    settings.setValue("realTimePort", REAL_TIME_PORT);
+
+    settings.addTag("cameras");
+    settings.pushTag("cameras");
+
+    for(int i = 0; i < client->cameras.size(); i++) {
+        MasterCamera* camera = client->cameras[i];
+        settings.addTag("camera");
+        settings.pushTag("camera", i);
+
+        settings.addValue("id", camera->idCamera);
+        settings.addValue("resolutionX", 800);//800
+        settings.addValue("resolutionY", 600);//600
+        settings.addValue("resolutionDownSample", 1);
+        settings.addValue("FPS", 30);// camera i fps
+        settings.addValue("colorRGB", true);// camera i color rgb
+        settings.addValue("use2D", camera->is2D);// camera i use2d
+        settings.addValue("use3D", camera->is3D);// camera i use 3d
+        settings.addValue("dataContext", "");// data context
+
+        settings.addTag("depthSettings");
+        settings.pushTag("depthSettings");
+        settings.addValue("near", 10);
+        settings.addValue("far", 100);
+        settings.addValue("pointsDownSample", 1);
+        settings.popTag();
+
+        if (camera->is2D) {
+            settings.addTag("matrix2D");
+            settings.pushTag("matrix2D");
+            MasterTexture* master = camera->masterTexture;
+            GLdouble m[16];
+            MasterSettings::CalculateMatrix(master->history, m);
+            for(int j = 0; j < 16; j++) {
+                std::stringstream cellM;
+                cellM << "m" << j / 4 << j % 4;
+                settings.addValue(cellM.str(), (float)m[j]);
+            }
+            settings.popTag();
+        }
+        if (camera->is3D) {
+            settings.addTag("matrix3D");
+            settings.pushTag("matrix3D");
+            MasterMesh* master = camera->masterMesh;
+            GLdouble m[16];
+            MasterSettings::CalculateMatrix(*master, m);
+            for(int j = 0; j < 16; j++) {
+                std::stringstream cellM;
+                cellM << "m" << j / 4 << j % 4;
+                settings.addValue(cellM.str(), (float)m[j]);
+            }
+            settings.popTag();
+        }
+
+        settings.popTag();
+    }
+
+    settings.popTag();
+}
+
+void saveXmlFiles(vector<MasterClient*> clients) {
+
+    if (clients.size() > 0) {
+        ofxXmlSettings settings;
+        settings.addTag("settings");
+        settings.pushTag("settings");
+        for (int k = 0; k < clients.size(); k++) {
+            settings.addTag("client");
+            settings.pushTag("client", k);
+            saveXmlClient(&settings, clients[k]);
+            settings.popTag();
+        }
+        settings.popTag();
+
+        std::stringstream fileName;
+        fileName << "settings.xml";
+        settings.saveFile(fileName.str());
+    }
+    for (int k = 0; k < clients.size(); k++) {
+        ofxXmlSettings settings;
+        settings.addTag("settings");
+        settings.pushTag("settings");
+        saveXmlClient(&settings, clients[k]);
+        settings.popTag();
+
+        std::stringstream fileName;
+        fileName << "settings" << k << ".xml";
+        settings.saveFile(fileName.str());
+    }
+}
+
+int nClientes = 0;
+int total2D = 0;
+int total3D = 0;
+t_data* sys_data = NULL;
+
+void loadXmlFile() {
+    ofxXmlSettings settings;
+    settings.loadFile("settings.xml");
+
+    total2D = 0;
+    total3D = 0;
+    if (settings.pushTag("settings")) {
+        nClientes = settings.getNumTags("client");
+        sys_data = new t_data[nClientes];
+
+        for (int k = 0; k < nClientes; k++) {
+            if (settings.pushTag("client", k)) {
+                sys_data[k].cliId           = settings.getValue("cliId",          0);
+                sys_data[k].cliPort         = settings.getValue("cliPort",        15000);
+                sys_data[k].serverIp        = settings.getValue("serverIp",       "127.0.0.1");
+                sys_data[k].serverPort      = settings.getValue("serverPort",     11969);
+                sys_data[k].goLive          = settings.getValue("realTime",       0);
+                sys_data[k].persistence     = settings.getValue("persistence",    1);
+                sys_data[k].logLevel        = settings.getValue("logLevel",       0);
+                sys_data[k].fps             = settings.getValue("fps",            10);
+                sys_data[k].maxPackageSize  = settings.getValue("maxPackageSize", 60000);
+
+                if(settings.pushTag("cameras")) {
+                    sys_data[k].nCamaras = settings.getNumTags("camera");
+                    sys_data[k].camera = new t_camera[sys_data[k].nCamaras];
+                    for (int i = 0; i < sys_data[k].nCamaras; i++) {
+                        settings.pushTag("camera", i);
+
+                        sys_data[k].camera[i].id                     = settings.getValue("id", 0);
+                        sys_data[k].camera[i].resolutionX            = settings.getValue("resolutionX", 640);
+                        sys_data[k].camera[i].resolutionY            = settings.getValue("resolutionY", 480);
+                        sys_data[k].camera[i].resolutionDownSample   = settings.getValue("resolutionDownSample", 1);
+                        sys_data[k].camera[i].fps                    = settings.getValue("FPS", 24);
+                        sys_data[k].camera[i].use2D                  = settings.getValue("use2D", true);
+                        sys_data[k].camera[i].use3D                  = settings.getValue("use3D", true);
+
+                        if(settings.pushTag("depthSettings")) {
+                            sys_data[k].camera[i].near3D                 = settings.getValue("near", 0);
+                            sys_data[k].camera[i].far3D                  = settings.getValue("far", 1);
+                            sys_data[k].camera[i].points3DDownSample     = settings.getValue("pointsDownSample", 0.5);
+                            settings.popTag();
+                        }
+                        if(settings.pushTag("matrix2D")) {
+                            sys_data[k].camera[i].imgrow1.set(settings.getValue("m00", 1.0f), settings.getValue("m01", 1.0f), settings.getValue("m02", 1.0f), settings.getValue("m03", 1.0f));
+                            sys_data[k].camera[i].imgrow2.set(settings.getValue("m10", 1.0f), settings.getValue("m11", 1.0f), settings.getValue("m12", 1.0f), settings.getValue("m13", 1.0f));
+                            sys_data[k].camera[i].imgrow3.set(settings.getValue("m20", 1.0f), settings.getValue("m21", 1.0f), settings.getValue("m22", 1.0f), settings.getValue("m23", 1.0f));
+                            sys_data[k].camera[i].imgrow4.set(settings.getValue("m30", 1.0f), settings.getValue("m31", 1.0f), settings.getValue("m32", 1.0f), settings.getValue("m33", 1.0f));
+                            settings.popTag();
+                        }
+                        if(settings.pushTag("matrix3D")) {
+                            sys_data[k].camera[i].row1.set(settings.getValue("m00", 1.0f), settings.getValue("m01", 1.0f), settings.getValue("m02", 1.0f), settings.getValue("m03", 1.0f));
+                            sys_data[k].camera[i].row2.set(settings.getValue("m10", 1.0f), settings.getValue("m11", 1.0f), settings.getValue("m12", 1.0f), settings.getValue("m13", 1.0f));
+                            sys_data[k].camera[i].row3.set(settings.getValue("m20", 1.0f), settings.getValue("m21", 1.0f), settings.getValue("m22", 1.0f), settings.getValue("m23", 1.0f));
+                            sys_data[k].camera[i].row4.set(settings.getValue("m30", 1.0f), settings.getValue("m31", 1.0f), settings.getValue("m32", 1.0f), settings.getValue("m33", 1.0f));
+                            settings.popTag();
+                        }
+
+                        if (sys_data[k].camera[i].use2D)
+                            total2D ++;
+                        if (sys_data[k].camera[i].use3D)
+                            total3D ++;
+
+                        settings.popTag();
+                    }
+                    settings.popTag();
+                }
+                settings.popTag();
+            }
+        }
+    }
+}
+
 vector<string> getCloudFiles() {
     vector<string> files;
-    ofDirectory directory("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\mesh");
-    directory.allowExt("xyz");
+    ofDirectory directory("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\bin\\data");
+
     directory.listDir();
-    for(int i = 0; i < directory.numFiles(); i++) {
-        files.push_back(directory.getPath(i));
+    vector<ofFile> allFiles = directory.getFiles();
+    for(int i = 0; i < allFiles.size(); i++){
+        if (allFiles[i].isDirectory()){
+
+            ofDirectory clientDirectory(allFiles[i].path());
+            clientDirectory.listDir();
+            vector<ofFile> allClientFiles = clientDirectory.getFiles();
+
+            for(int j = 0; j < allClientFiles.size(); j++){
+                if (allClientFiles[j].isDirectory()){
+
+                    ofDirectory cameraDirectory(allClientFiles[j].path());
+                    cameraDirectory.allowExt("xyz");
+                    cameraDirectory.listDir();
+                    if (cameraDirectory.numFiles() > 0){
+                        cout << cameraDirectory.getPath(0) << endl;
+                        files.push_back(cameraDirectory.getPath(0));
+                    }
+                }
+            }
+        }
     }
     return files;
+}
+
+vector<string> getImageFiles() {
+    vector<string> files;
+    ofDirectory directory("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\bin\\data");
+
+    directory.listDir();
+    vector<ofFile> allFiles = directory.getFiles();
+    for(int i = 0; i < allFiles.size(); i++){
+        if (allFiles[i].isDirectory()){
+
+            ofDirectory clientDirectory(allFiles[i].path());
+            clientDirectory.listDir();
+            vector<ofFile> allClientFiles = clientDirectory.getFiles();
+
+            for(int j = 0; j < allClientFiles.size(); j++){
+                if (allClientFiles[j].isDirectory()){
+
+                    ofDirectory cameraDirectory(allClientFiles[j].path());
+                    cameraDirectory.allowExt("png");
+                    cameraDirectory.allowExt("bmp");
+                    cameraDirectory.allowExt("jpg");
+                    cameraDirectory.listDir();
+                    if (cameraDirectory.numFiles() > 0){
+                        cout << cameraDirectory.getPath(0) << endl;
+                        files.push_back(cameraDirectory.getPath(0));
+                    }
+                }
+            }
+        }
+    }
+
+    return files;
+}
+
+vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster, int meshCount, MasterMesh* cloudMaster) {
+    vector<MasterClient*> clients;
+    int idClient = 0;
+    int idCamera = 0;
+    ofDirectory directory("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\bin\\data");
+
+    directory.listDir();
+    vector<ofFile> allFiles = directory.getFiles();
+    for(int i = 0; i < allFiles.size(); i++){
+        if (allFiles[i].isDirectory()){
+
+            MasterClient* client = new MasterClient();
+
+            ofDirectory clientDirectory(allFiles[i].path());
+            clientDirectory.listDir();
+            vector<ofFile> allClientFiles = clientDirectory.getFiles();
+
+            for(int j = 0; j < allClientFiles.size(); j++){
+                if (allClientFiles[j].isDirectory()){
+
+                    MasterCamera* camera = new MasterCamera();
+
+                    ofDirectory cludDirectory(allClientFiles[j].path());
+                    cludDirectory.allowExt("xyz");
+                    cludDirectory.listDir();
+                    camera->is3D = cludDirectory.numFiles() > 0 && idCamera < meshCount;
+                    if (camera->is3D) {
+                        camera->masterMesh = &cloudMaster[idCamera];
+                    }
+
+                    ofDirectory imageDirectory(allClientFiles[j].path());
+                    imageDirectory.allowExt("png");
+                    imageDirectory.allowExt("bmp");
+                    imageDirectory.allowExt("jpg");
+                    imageDirectory.listDir();
+                    camera->is2D = imageDirectory.numFiles() > 0 && idCamera < textureCount;
+                    if (camera->is2D) {
+                        camera->masterTexture = &textureMaster[idCamera];
+                    }
+
+                    if (camera->is2D || camera->is3D) {
+                        camera->idCamera = idCamera++;
+                        client->cameras.push_back(camera);
+                    }
+                }
+            }
+
+            if (client->cameras.size() > 0) {
+                client->idClient = idClient++;
+                clients.push_back(client);
+            }
+        }
+    }
+    return clients;
 }
 
 void timerFunction(int arg) {
@@ -312,7 +600,18 @@ int main(int argc, char **argv) {
     }
 
     /* Settings and files */
+    clients = getClients(0, NULL, meshCount, cloudMaster);
     settings = new MasterSettings(0, NULL, meshCount, cloudMaster);
+
+    /* Test */
+    /*for (int i = 0; i < clients.size(); i++) {
+        cout << "Client " << clients[i]->idClient << endl;
+        for (int j = 0; j < clients[i]->cameras.size(); j++) {
+            cout << "Cameras " << clients[i]->cameras[j]->idCamera << " Is2D " << clients[i]->cameras[j]->is2D << " Is3D " << clients[i]->cameras[j]->is3D << endl;
+        }
+    }*/
+    saveXmlFiles(clients);
+    loadXmlFile();
 
     /* LoadClouds */
     for (int i = 0; i < meshCount; i++) {
