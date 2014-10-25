@@ -20,7 +20,7 @@ Model_PLY::Model_PLY() {
     }
 }
 
-void Model_PLY::MemoryLoad() {
+bool Model_PLY::MemoryLoad() {
 
 
     cout << "test1" << endl;
@@ -30,7 +30,7 @@ void Model_PLY::MemoryLoad() {
     *numberFaces = 0;
     readMesh(&Id, numberFaces, &faces);
 
-    if (*numberFaces > 0) {
+    if (*numberFaces > 0 && Id >= 0) {
         TotalConnectedTriangles = (*numberFaces) * 3;
         TotalPoints = (*numberFaces) / 3;
         TotalFaces = *numberFaces;
@@ -65,7 +65,10 @@ void Model_PLY::MemoryLoad() {
             Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
         }
         cout << Id << "x2" << endl;
+        return true;
     }
+    else
+        return false;
 }
 
 float* calculateNormal( float *coord1, float *coord2, float *coord3 ) {

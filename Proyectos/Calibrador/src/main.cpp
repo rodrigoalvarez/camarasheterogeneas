@@ -100,8 +100,17 @@ void saveXmlFile() {
 		settings.pushTag("matrix");
 
 
+        GLdouble m[16];
+        MasterSettings::CalculateMatrix(mMain->cloudMaster[i], m);
 
         MasterTexture* masterNow = &(tMain->textureMaster[i+1]);
+
+		for(int j = 0; j < 16; j++) {
+            std::stringstream cellM;
+            cellM << "m" << j / 4 << j % 4;
+            settings.addValue(cellM.str(), masterNow->matrix[j]);
+		}
+
 
         char* v = new char[50];
         sprintf ( v, "%f %f %f",masterNow->viewer[0], masterNow->viewer[1], masterNow->viewer[2] );
@@ -176,28 +185,78 @@ void myReshape(int w, int h) {
 	glMatrixMode(GL_MODELVIEW);
 }
 
+void timerFunction(int arg) {
+    if (modeMesh){
+        glutTimerFunc(mMain->doubleClickTime, timerFunction, 0);
+        if (mMain->clickCount > 1) {
+            mMain->cameraAll = !mMain->cameraAll;
+        }
+        mMain->clickCount = 0;
+    }
+    else{
+    }
+}
+
 vector<string> getCloudFiles() {
     vector<string> files;
-    ofDirectory directory("C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\Calibrador\\bin\\mesh");
-    directory.allowExt("xyz");
-    directory.listDir();
-    for(int i = 0; i < directory.numFiles(); i++) {
+    ofDirectory directory("C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\Calibrador\\bin\\data");
 
-        files.push_back(directory.getPath(i));
+    directory.listDir();
+    vector<ofFile> allFiles = directory.getFiles();
+    for(int i = 0; i < allFiles.size(); i++){
+        if (allFiles[i].isDirectory()){
+
+            ofDirectory clientDirectory(allFiles[i].path());
+            clientDirectory.listDir();
+            vector<ofFile> allClientFiles = clientDirectory.getFiles();
+
+            for(int j = 0; j < allClientFiles.size(); j++){
+                if (allClientFiles[j].isDirectory()){
+
+                    ofDirectory cameraDirectory(allClientFiles[j].path());
+                    cameraDirectory.allowExt("xyz");
+                    cameraDirectory.listDir();
+                    if (cameraDirectory.numFiles() > 0){
+                        cout << cameraDirectory.getPath(0) << endl;
+                        files.push_back(cameraDirectory.getPath(0));
+                    }
+                }
+            }
+        }
     }
     return files;
 }
 
 vector<string> getImageFiles() {
     vector<string> files;
-    ofDirectory directory("C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\Calibrador\\bin\\img");
-    directory.allowExt("png");
-    directory.allowExt("bmp");
-    directory.allowExt("jpg");
+    ofDirectory directory("C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\Calibrador\\bin\\data");
+
     directory.listDir();
-    for(int i = 0; i < directory.numFiles(); i++) {
-        files.push_back(directory.getPath(i));
+    vector<ofFile> allFiles = directory.getFiles();
+    for(int i = 0; i < allFiles.size(); i++){
+        if (allFiles[i].isDirectory()){
+
+            ofDirectory clientDirectory(allFiles[i].path());
+            clientDirectory.listDir();
+            vector<ofFile> allClientFiles = clientDirectory.getFiles();
+
+            for(int j = 0; j < allClientFiles.size(); j++){
+                if (allClientFiles[j].isDirectory()){
+
+                    ofDirectory cameraDirectory(allClientFiles[j].path());
+                    cameraDirectory.allowExt("png");
+                    cameraDirectory.allowExt("bmp");
+                    cameraDirectory.allowExt("jpg");
+                    cameraDirectory.listDir();
+                    if (cameraDirectory.numFiles() > 0){
+                        cout << cameraDirectory.getPath(0) << endl;
+                        files.push_back(cameraDirectory.getPath(0));
+                    }
+                }
+            }
+        }
     }
+
     return files;
 }
 
@@ -205,11 +264,14 @@ int main(int argc, char **argv) {
 
 
 
+    mMain = new MeshMain();
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
 	glutInitWindowSize(500,500);
     glutInitWindowPosition(300, 300);
 	glutCreateWindow("Calibration project");
+	glutTimerFunc(mMain->doubleClickTime,timerFunction,0);
 	glutReshapeFunc(myReshape);
 	glutDisplayFunc(display);
 	glutMouseFunc(mouse);
@@ -221,7 +283,6 @@ int main(int argc, char **argv) {
 
 
     ///INICIALIZACION CALIBRACION 3D
-    mMain = new MeshMain();
 
 
     /* Cloud */
@@ -271,6 +332,11 @@ int main(int argc, char **argv) {
         for (int j = 0; j < 3; j++) {
             tMain->textureMaster[i].viewer[j] = 0.0;
             tMain->textureMaster[i].rotate[j] = 0.0;
+        }
+        for (int j = 0; j < 4; j++) {
+            for (int k = 0; k < 4; k++) {
+                tMain->textureMaster[i].matrix[j * 4 + k] = j == k ? 1 : 0;
+            }
         }
         tMain->faces[i] = new int[tMain->facesCount];
     }

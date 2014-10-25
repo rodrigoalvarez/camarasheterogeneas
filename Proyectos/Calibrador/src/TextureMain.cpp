@@ -52,12 +52,6 @@ void TextureMain::writeText() {
 //    }
 }
 
-void TextureMain::IncludeMesh (Model_XYZ* model, Model_XYZ* newModel, MasterMesh master) {
-    GLdouble m[16];
-    MasterSettings::CalculateMatrix(master, m);
-    model->Include(newModel, m);
-}
-
 void TextureMain::setFaceVertex(int index) {
     GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
@@ -273,6 +267,30 @@ void TextureMain::draw2DCalibrationFast() {
     }
 }
 
+void TextureMain::applyTransformations(vector<MasterTransform*> history, bool flag) {
+    if (flag) {
+        for (int i = 0; i < history.size(); i++) {
+            MasterTransform* trans = history[i];
+            if (trans->type == 0) { glTranslatef(trans->value, 0, 0); }
+            if (trans->type == 1) { glTranslatef(0, trans->value, 0); }
+            if (trans->type == 2) { glTranslatef(0, 0, trans->value); }
+            if (trans->type == 3) { glRotatef(trans->value, 1.0f,0.0f,0.0f); }
+            if (trans->type == 4) { glRotatef(trans->value, 0.0f,1.0f,0.0f); }
+            if (trans->type == 5) { glRotatef(trans->value, 0.0f,0.0f,1.0f); }
+        }
+    } else {
+        for (int i = 0; i < history.size(); i++) {
+            MasterTransform* trans = history[i];
+            if (trans->type == 0) { glTranslatef(-trans->value, 0, 0); }
+            if (trans->type == 1) { glTranslatef(0, -trans->value, 0); }
+            if (trans->type == 2) { glTranslatef(0, 0, -trans->value); }
+            if (trans->type == 3) { glRotatef(-trans->value, 1.0f,0.0f,0.0f); }
+            if (trans->type == 4) { glRotatef(-trans->value, 0.0f,1.0f,0.0f); }
+            if (trans->type == 5) { glRotatef(-trans->value, 0.0f,0.0f,1.0f); }
+        }
+    }
+}
+
 void TextureMain::textureProjection(Matrix4x4f &mv) {
 
     Matrix4x4f inverseMV = Matrix4x4f::invertMatrix(mv);
@@ -294,20 +312,17 @@ void TextureMain::textureProjection(Matrix4x4f &mv) {
 
 void TextureMain::stepTransformTexture() {
     if (textureViewMode) {
-        glTranslatef(textureMaster[0].viewer[0],
-                     textureMaster[0].viewer[1],
-                     textureMaster[0].viewer[2] - 20);
+        glTranslatef(0, 0, -20);
+        applyTransformations(textureMaster[0].history, true);
+        glTranslatef(0, 0, 20);
 
-        glRotatef(textureMaster[textureIndex].rotate[0] - textureMaster[0].rotate[0], 1.0f,0.0f,0.0f);
-        glRotatef(textureMaster[textureIndex].rotate[1] - textureMaster[0].rotate[1], 0.0f,1.0f,0.0f);
-        glRotatef(textureMaster[textureIndex].rotate[2] - textureMaster[0].rotate[2], 0.0f,0.0f,1.0f);
+        glTranslatef(0, 0, -20);
 
-        glTranslatef(-textureMaster[0].viewer[0],
-                     -textureMaster[0].viewer[1],
-                     -textureMaster[0].viewer[2] + 20);
-        glTranslatef(textureMaster[0].viewer[0] - textureMaster[textureIndex].viewer[0],
-                     textureMaster[0].viewer[1] - textureMaster[textureIndex].viewer[1],
-                     textureMaster[0].viewer[2] - textureMaster[textureIndex].viewer[2]);
+        GLdouble m[16];
+        MasterSettings::CalculateMatrix(textureMaster[textureIndex].history, m);
+        glMultMatrixd(m);
+        //applyTransformations(textureMaster[textureIndex].history, false);
+        glTranslatef(0, 0, 20);
     } else {
         glRotatef(0, 1.0f,0.0f,0.0f);
         glRotatef(0, 0.0f,1.0f,0.0f);
@@ -366,10 +381,8 @@ void TextureMain::display(void) {
             textureIndex = i;
             stepTexture();
             glLoadIdentity();
-            glTranslatef(textureMaster[0].viewer[0], textureMaster[0].viewer[1], textureMaster[0].viewer[2] - 20);
-            glRotatef(textureMaster[0].rotate[0], -1.0f,0.0f,0.0f);
-            glRotatef(textureMaster[0].rotate[1], 0.0f,-1.0f,0.0f);
-            glRotatef(textureMaster[0].rotate[2], 0.0f,0.0f,-1.0f);
+            glTranslatef(0, 0, -20);
+            applyTransformations(textureMaster[0].history, true);
             draw2DView();
             stepClearTexture();
         }
@@ -378,10 +391,8 @@ void TextureMain::display(void) {
     } else {
         stepTexture();
         glLoadIdentity();
-        glTranslatef(textureMaster[textureIndex].viewer[0], textureMaster[textureIndex].viewer[1], textureMaster[textureIndex].viewer[2] - 20);
-        glRotatef(textureMaster[textureIndex].rotate[0], -1.0f,0.0f,0.0f);
-        glRotatef(textureMaster[textureIndex].rotate[1], 0.0f,-1.0f,0.0f);
-        glRotatef(textureMaster[textureIndex].rotate[2], 0.0f,0.0f,-1.0f);
+        glTranslatef(0, 0, -20);
+        applyTransformations(textureMaster[textureIndex].history, true);
         if (drawFast) {
             draw2DCalibrationFast();
         } else {
@@ -405,6 +416,55 @@ void TextureMain::display(void) {
 
     writeText();
 }
+
+
+void TextureMain::UpdateHistory (int id) {
+    int type = 0;
+    float value = 0;
+    if (textureMaster[id].viewer[0] != 0) {
+        type = 0;
+        value = textureMaster[id].viewer[0];
+    }
+    if (textureMaster[id].viewer[1] != 0) {
+        type = 1;
+        value = textureMaster[id].viewer[1];
+    }
+    if (textureMaster[id].viewer[2] != 0) {
+        type = 2;
+        value = textureMaster[id].viewer[2];
+    }
+    if (textureMaster[id].rotate[0] != 0) {
+        type = 3;
+        value = textureMaster[id].rotate[0];
+    }
+    if (textureMaster[id].rotate[1] != 0) {
+        type = 4;
+        value = textureMaster[id].rotate[1];
+    }
+    if (textureMaster[id].rotate[2] != 0) {
+        type = 5;
+        value = textureMaster[id].rotate[2];
+    }
+
+    textureMaster[id].viewer[0] = 0;
+    textureMaster[id].viewer[1] = 0;
+    textureMaster[id].viewer[2] = 0;
+    textureMaster[id].rotate[0] = 0;
+    textureMaster[id].rotate[1] = 0;
+    textureMaster[id].rotate[2] = 0;
+
+    MasterTransform* trans = NULL;
+    if (textureMaster[id].history.size() == 0 || textureMaster[id].history.back()->type != type) {
+        trans = new MasterTransform();
+        trans->value = value;
+        trans->type = type;
+        textureMaster[id].history.push_back(trans);
+    } else {
+        trans = textureMaster[id].history.back();
+        trans->value += value;
+    }
+}
+
 
 void TextureMain::keys(unsigned char key, int x, int y) {
 
@@ -448,6 +508,9 @@ void TextureMain::keys(unsigned char key, int x, int y) {
     if(key == 'd') textureMaster[textureIndex].rotate[1] -= 2.0 * cameraFactor;
     if(key == 'e') textureMaster[textureIndex].rotate[2] += 2.0 * cameraFactor;
     if(key == 'q') textureMaster[textureIndex].rotate[2] -= 2.0 * cameraFactor;
+    if (key == 'w' || key == 's' || key == 'a' || key == 'd' || key == 'e' || key == 'q') {
+        UpdateHistory(textureIndex);
+    }
 
     display();
 }
@@ -475,6 +538,9 @@ void TextureMain::mouseMove(int x, int y) {
             textureMaster[textureIndex].viewer[1] += deltaMove;
         } else if (cameraAxis == GLUT_MIDDLE_BUTTON) {
             textureMaster[textureIndex].viewer[2] += deltaMove;
+        }
+        if (cameraAxis == GLUT_LEFT_BUTTON || cameraAxis == GLUT_RIGHT_BUTTON || cameraAxis == GLUT_MIDDLE_BUTTON) {
+            UpdateHistory(textureIndex);
         }
         display();
     }

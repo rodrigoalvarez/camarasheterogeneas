@@ -1299,17 +1299,18 @@
 	<vcg/complex/algorithms/smooth.h>
 	<vector>
 
-1411863614 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.cpp
+1413926368 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.cpp
 	"masterSettings.h"
 	<stdlib.h>
 	<string>
 	<fstream>
 	<sstream>
 
-1411848360 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.h
+1413926437 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.h
 	<GL/glew.h>
 	<GL/glut.h>
 	<GL/glext.h>
+	<vector>
 	"matrix4x4.h"
 
 1411848360 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\matrix4x4.h
@@ -1396,7 +1397,7 @@
 	<string>
 	<assert.h>
 
-1413651608 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
+1413932651 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
 	"MeshMain.h"
 	"TextureMain.h"
 	<GL/glut.h>
@@ -1492,10 +1493,10 @@
 
 1411863614 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mainimage.cpp
 
-1413643266 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\meshmain.cpp
+1413927270 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\meshmain.cpp
 	"MeshMain.h"
 
-1413643137 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\meshmain.h
+1413926908 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\meshmain.h
 	"modelPly.h"
 	<stdlib.h>
 	<windows.h>
@@ -1503,7 +1504,7 @@
 	"modelXYZ.h"
 	"ofxXmlSettings.h"
 
-1413650618 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\texturemain.h
+1413928133 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\texturemain.h
 	"modelPly.h"
 	"modelImg.h"
 	<stdlib.h>
@@ -1512,6 +1513,6 @@
 	"modelXYZ.h"
 	"ofxXmlSettings.h"
 
-1413652345 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\texturemain.cpp
+1413928379 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\texturemain.cpp
 	"TextureMain.h"
 

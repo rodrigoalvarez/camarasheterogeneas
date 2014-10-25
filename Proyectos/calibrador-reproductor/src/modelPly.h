@@ -20,7 +20,7 @@ class Model_PLY
 
 	public:
 		Model_PLY();
-		void MemoryLoad();
+		bool MemoryLoad();
 		void Load(string filename);
 
 		float* Faces_Triangles;
