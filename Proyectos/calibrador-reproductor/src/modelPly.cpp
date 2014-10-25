@@ -10,7 +10,7 @@ int masterMeshIndex = 0;
 typedef void (*f_ReadSharedMesh)(int* id, int* numberFaces, FaceStruct** faces);
 
 Model_PLY::Model_PLY() {
-    masterMeshIndex += 100000;
+    masterMeshIndex += 10000;
     Id = masterMeshIndex;
 
     char* dllName = "C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\MemoriaCompartida\\bin\\MemoriaCompartida.dll";
@@ -23,14 +23,17 @@ Model_PLY::Model_PLY() {
 bool Model_PLY::MemoryLoad() {
 
 
-    cout << "test1" << endl;
+    cout << "Id memory load" << Id <<endl;
 
     f_ReadSharedMesh readMesh = (f_ReadSharedMesh)GetProcAddress(shareMeshLibrary, "ReadSharedMesh");
     numberFaces =  new int;
     *numberFaces = 0;
-    readMesh(&Id, numberFaces, &faces);
+    int id = Id;
+    readMesh(&id, numberFaces, &faces);
 
-    if (*numberFaces > 0 && Id >= 0) {
+    cout << "TotalFaces " << (*numberFaces) <<endl;
+    if (*numberFaces > 0 && id >= 0) {
+        Id = id;
         TotalConnectedTriangles = (*numberFaces) * 3;
         TotalPoints = (*numberFaces) / 3;
         TotalFaces = *numberFaces;
@@ -38,6 +41,7 @@ bool Model_PLY::MemoryLoad() {
         FaceStruct* facesAux = new FaceStruct[*numberFaces];
         memcpy(facesAux, faces, sizeof(FaceStruct) * (*numberFaces));
 
+        cout << TotalFaces<< endl;
         Faces_Triangles = new float[TotalFaces * 9];
         for (int i = 0; i< TotalFaces; i++){
             Faces_Triangles[i*9] = facesAux[i].p1[0];

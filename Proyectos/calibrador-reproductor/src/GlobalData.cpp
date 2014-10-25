@@ -10,11 +10,11 @@ bool GlobalData::getGoLive() {
 }
 
 int GlobalData::getTotal3D() {
-
+    return total3D;
 }
 
 int GlobalData::getTotal2D() {
-
+    return total2D;
 }
 
 int GlobalData::getTotalDevices() {
@@ -59,8 +59,8 @@ void GlobalData::loadCalibData(char * xml) {
                         sys_data[k].camera[i].resolutionY            = settings.getValue("resolutionY", 480);
                         sys_data[k].camera[i].resolutionDownSample   = settings.getValue("resolutionDownSample", 1);
                         sys_data[k].camera[i].fps                    = settings.getValue("FPS", 24);
-                        sys_data[k].camera[i].use2D                  = settings.getValue("use2D", true);
-                        sys_data[k].camera[i].use3D                  = settings.getValue("use3D", true);
+                        sys_data[k].camera[i].use2D                  = settings.getValue("use2D", false);
+                        sys_data[k].camera[i].use3D                  = settings.getValue("use3D", false);
 
                         if(settings.pushTag("dataContext")) {
                             if(settings.pushTag("depthSettings")) {
@@ -75,11 +75,6 @@ void GlobalData::loadCalibData(char * xml) {
                                 sys_data[k].camera[i].row3.set(settings.getValue("m200", 1.0f), settings.getValue("m201", 1.0f), settings.getValue("m202", 1.0f), settings.getValue("m203", 1.0f));
                                 sys_data[k].camera[i].row4.set(settings.getValue("m300", 1.0f), settings.getValue("m301", 1.0f), settings.getValue("m302", 1.0f), settings.getValue("m303", 1.0f));
 
-                                cout << "[GlobalData::loadCalibData] - row1.x: " << sys_data[k].camera[i].row1.x << ", row1.y: " << sys_data[k].camera[i].row1.y << ", row1.z: " << sys_data[k].camera[i].row1.z << ", row1.w: " << sys_data[k].camera[i].row1.w << endl;
-                                cout << "[GlobalData::loadCalibData] - row2.x: " << sys_data[k].camera[i].row2.x << ", row2.y: " << sys_data[k].camera[i].row2.y << ", row2.z: " << sys_data[k].camera[i].row2.z << ", row2.w: " << sys_data[k].camera[i].row2.w << endl;
-                                cout << "[GlobalData::loadCalibData] - row3.x: " << sys_data[k].camera[i].row3.x << ", row3.y: " << sys_data[k].camera[i].row3.y << ", row3.z: " << sys_data[k].camera[i].row3.z << ", row3.w: " << sys_data[k].camera[i].row3.w << endl;
-                                cout << "[GlobalData::loadCalibData] - row4.x: " << sys_data[k].camera[i].row4.x << ", row4.y: " << sys_data[k].camera[i].row4.y << ", row4.z: " << sys_data[k].camera[i].row4.z << ", row4.w: " << sys_data[k].camera[i].row4.w << endl;
-
                                 settings.popTag();
                             }
                             settings.popTag();
@@ -88,7 +83,7 @@ void GlobalData::loadCalibData(char * xml) {
                         if (sys_data[k].camera[i].use2D)
                             total2D ++;
                         if (sys_data[k].camera[i].use3D)
-                            total2D ++;
+                            total3D ++;
 
                         settings.popTag();
                     }

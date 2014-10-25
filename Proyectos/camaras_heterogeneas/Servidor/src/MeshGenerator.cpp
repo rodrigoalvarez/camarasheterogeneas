@@ -26,11 +26,11 @@ int nFacesMemorySize = sizeof(int);
 int facesMemorySize;
 
 typedef void (*f_generarMalla)(NubePuntos* nbIN, FaceStruct** faces, int* numberFaces, int nroFrame);
-typedef void (*f_compartirMalla)(int numberFaces, FaceStruct* faces);
-typedef void (*f_ShareImage) (unsigned char* pixels, int* wPixels, int* hPixels);
+typedef void (*f_compartirMalla)(int idMesh, int numberFaces, FaceStruct* faces);
+typedef void (*f_ShareImage) (int* idImage, unsigned char* pixels, int* wPixels, int* hPixels);
 
 
-int i = 0;
+int nframe = 0;
 void MeshGenerator::threadedFunction() {
     if(buffer == NULL) return;
 
@@ -50,20 +50,6 @@ void MeshGenerator::processFrame(){
         time_t now = time(0);
         tm *ltm = localtime(&now);
 
-        /*char nombre2[50];
-        sprintf(nombre2, "frame%d.xyz", i);
-        //char* fileName      = "frameeee_i.xyz";
-
-        //Creo el archivo b,n de la nube unida
-        FILE * pFile;
-        pFile = fopen (nombre2,"w");
-        //Recorro los frames de cada camara y me quedo solo con los 3D
-        for(int i=0; i < td->nubeLength; i ++) {
-            fprintf (pFile, "%f %f %f\n", td->xpix[i], td->ypix[i], td->zpix[i]);
-        }
-
-        fclose (pFile);*/
-
         ///GENERAR MALLA
         f_generarMalla generarMalla = (f_generarMalla)GetProcAddress(generateMeshLibrary, "generarMalla");
 
@@ -75,49 +61,34 @@ void MeshGenerator::processFrame(){
         faces = new FaceStruct;
         numberFaces = new int;
 
-        generarMalla(nbIN, &faces, numberFaces, i);
+        generarMalla(nbIN, &faces, numberFaces, nframe);
 
         ///FIN GENERAR MALLA
 
         ///MEMORIA COMPARTIDA
         cout<< "entro1" << endl;
-        f_compartirMalla compartirMalla = (f_compartirMalla)GetProcAddress(memorySharedLibrary, "compartirMemoria");
+        f_compartirMalla ShareMesh = (f_compartirMalla)GetProcAddress(memorySharedLibrary, "ShareMesh");
 
         cout<< "entro2" << endl;
-        compartirMalla(*numberFaces, faces);
+        int idMesh = 10000 + nframe;
+        ShareMesh(idMesh, *numberFaces, faces);
 
         cout<< "entro3" << endl;
 
-        /*
-        nFacesMemoryMappedFile.setup(nFacesMemoryKey, nFacesMemorySize, true);
-        isConnected = nFacesMemoryMappedFile.connect();
-
-        if(isConnected){
-            nFacesMemoryMappedFile.setData(numberFaces);
-            facesMemorySize = sizeof(FaceStruct)* (*numberFaces);
-
-            facesMemoryMappedFile.setup(facesMemoryKey, facesMemorySize, true);
-            isConnected = facesMemoryMappedFile.connect();
-            if(isConnected){
-                facesMemoryMappedFile.setData(faces);
-            }
-        }*/
         ///FIN MEMORIA COMPARTIDA
 
-        delete nbIN;
-        delete numberFaces;
-        delete [] faces;
-        delete nbIN;
-        i++;
+//        delete nbIN;
+//        delete numberFaces;
+//        delete [] faces;
+//        delete nbIN;
     }
     if(frame.second != NULL) { // En first viene un array de ThreadData con las texturas.
+        cout<< "Procesamiento de imagenes" << endl;
         int j=1;
         ThreadData * iter = (ThreadData *) frame.second;
         f_ShareImage shareImage = (f_ShareImage)GetProcAddress(memorySharedLibrary, "ShareImage");
         do {
-            cout<< "Imagen" << j << endl;
             ofBuffer imageBuffer;
-            cout<< "Paso1" << j << endl;
             ofSaveImage(iter->img.getPixelsRef(), imageBuffer, OF_IMAGE_FORMAT_JPEG);
 
             FIMEMORY* stream = FreeImage_OpenMemory((unsigned char*) imageBuffer.getBinaryBuffer(), imageBuffer.size());
@@ -131,10 +102,19 @@ void MeshGenerator::processFrame(){
 
             int width = FreeImage_GetWidth(dib);
             int height = FreeImage_GetHeight(dib);
+            int bpp = FreeImage_GetBPP(dib);
 
-            shareImage( pixels, &width, &height);
+            int idMomento = iter->cliId;
+            idMomento = idMomento*10 + iter->cameraType;
+            idMomento = idMomento*10 + iter->camId;
+            idMomento = idMomento*10000 + nframe % 10000;
+
+            cout<< "Id momento: " << idMomento << endl;
+            cout<< "bytepp: " << bpp/8 << endl;
+            shareImage(&idMomento, pixels, &width, &height);
             iter = iter->sig;
             j++;
         } while(iter != NULL);
     }
+    nframe++;
 }

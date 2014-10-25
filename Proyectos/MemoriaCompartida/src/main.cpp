@@ -64,91 +64,105 @@ int* id;
 ofxSharedMemory<unsigned char*> memoryMappedImage;
 unsigned char* pixels;
 ofxSharedMemory<int*> memoryMappedImageSizeW;
-int* wPixels;
 ofxSharedMemory<int*> memoryMappedImageSizeH;
-int* hPixels;
 
 bool isConnectedId;
 bool isConnectedPixels;
 bool isConnectedWPixels;
 bool isConnectedHPixels;
 
-void DLL_EXPORT ReadSharedImage(int* Id, unsigned char** pixels, int* wPixels, int* hPixels) {
+void DLL_EXPORT ReadSharedImage(int* Id/*Id del momento osea camara mas frame*/, int* wPixels, int* hPixels , unsigned char** pixels) {
 
-    cout << "test2" << endl;
     std::stringstream key1;
-    key1 << "ImageId" << *Id / 100000;
+    key1 << "ImageId" << *Id / 10000;
+    int* idMomentoNuevo;
     memoryMappedImageId.setup(key1.str(), sizeof(int), false);
     isConnectedId = memoryMappedImageId.connect();
     if (isConnectedId) {
-        id = memoryMappedImageId.getData();
-    }
+        idMomentoNuevo = memoryMappedImageId.getData();
 
-    std::stringstream key2;
-    key2 << "ImagePixelsW" << *Id / 100000;
-    memoryMappedImageSizeW.setup(key2.str(), sizeof(int), false);
-    isConnectedWPixels = memoryMappedImageSizeW.connect();
-    if (isConnectedWPixels) {
-        wPixels = memoryMappedImageSizeW.getData();
+        std::stringstream key2;
+        key2 << "ImagePixelsW" << *Id / 10000;
+        memoryMappedImageSizeW.setup(key2.str(), sizeof(int), false);
+        isConnectedWPixels = memoryMappedImageSizeW.connect();
+        if (isConnectedWPixels) {
+            *wPixels = *memoryMappedImageSizeW.getData();
+
+            std::stringstream key3;
+            key3 << "ImagePixelsH" << *Id / 10000;
+            memoryMappedImageSizeH.setup(key3.str(), sizeof(int), false);
+            isConnectedHPixels = memoryMappedImageSizeH.connect();
+            if (isConnectedHPixels) {
+                *hPixels = *memoryMappedImageSizeH.getData();
+                std::stringstream key4;
+                key4 << "ImagePixels" << *Id / 10000;
+                memoryMappedImage.setup(key4.str(), sizeof(unsigned char) * (*wPixels) * (*hPixels) * 3, false);
+                isConnectedPixels = memoryMappedImage.connect();
+                if (isConnectedPixels) {
+
+                    *pixels = memoryMappedImage.getData();
+                    *Id = *idMomentoNuevo;
+                }
+                else{
+                    *wPixels = 0;
+                    *hPixels = 0;
+                    *Id = -1;
+                }
+            }
+            else{
+                *hPixels = 0;
+                *Id = -1;
+            }
+        }
+        else{
+            *wPixels = 0;
+            *Id = -1;
+        }
     }
     else
-        *wPixels = 0;
-
-    std::stringstream key3;
-    key3 << "ImagePixelsH" << *Id / 100000;
-    memoryMappedImageSizeH.setup(key3.str(), sizeof(int), false);
-    isConnectedHPixels = memoryMappedImageSizeH.connect();
-    if (isConnectedHPixels) {
-        hPixels = memoryMappedImageSizeH.getData();
-    }
-    else
-        *hPixels = 0;
-
-    std::stringstream key4;
-    key4 << "ImagePixels" << *Id / 100000;
-    memoryMappedImage.setup(key4.str(), sizeof(unsigned char) * (*wPixels) * (*hPixels) * 3, false);
-    isConnectedPixels = memoryMappedImage.connect();
-    if (isConnectedPixels) {
-        *pixels = memoryMappedImage.getData();
-    }
-    else{
-        *wPixels = 0;
-        *hPixels = 0;
-    }
-
-    if (isConnectedId && isConnectedWPixels && isConnectedHPixels && isConnectedPixels &&
-        *id > *Id && *wPixels > 0 && *hPixels > 0) {
-        *Id = *id;
-    }
+        *Id = -1;
 }
 
 bool isConnectedImageId;
 
-void DLL_EXPORT ShareImage(int* imageId, unsigned char** pixels, int* wPixels, int* hPixels) {
+void DLL_EXPORT ShareImage(int* imageId, unsigned char* pixels, int* wPixels, int* hPixels) {
 
     std::stringstream key1;
-    key1 << "ImageId" << *imageId / 100000;
-	memoryMappedImageId.setup(key1.str(), sizeof(int), true);
-    isConnectedImageId = memoryMappedImageId.connect();
-    memoryMappedImageId.setData(imageId);
-
+    key1 << "ImageId" << *imageId / 10000;
     std::stringstream key2;
-    key2 << "ImagePixelsW" << *imageId / 100000;
-	memoryMappedImageSizeW.setup(key2.str(), sizeof(int), true);
-    isConnectedWPixels = memoryMappedImageSizeW.connect();
-    memoryMappedImageSizeW.setData(wPixels);
-
+    key2 << "ImagePixelsW" << *imageId / 10000;
     std::stringstream key3;
-    key3 << "ImagePixelsH" << *imageId / 100000;
-	memoryMappedImageSizeH.setup(key3.str(), sizeof(int), true);
-    isConnectedHPixels = memoryMappedImageSizeH.connect();
-    memoryMappedImageSizeH.setData(hPixels);
-
+    key3 << "ImagePixelsH" << *imageId / 10000;
     std::stringstream key4;
-    key4 << "ImagePixels" << *imageId / 100000;
-	memoryMappedImage.setup(key4.str(), sizeof(unsigned char) * (*wPixels) * (*hPixels) * 3, true);
-    isConnectedPixels = memoryMappedImage.connect();
-    memoryMappedImage.setData(*pixels);
+    key4 << "ImagePixels" << *imageId / 10000;
+
+    bool shareImage = false;
+    while (!shareImage){
+        memoryMappedImageId.setup(key1.str(), sizeof(int), true);
+        isConnectedImageId = memoryMappedImageId.connect();
+        if (isConnectedImageId){
+            memoryMappedImageId.setData(imageId);
+
+            memoryMappedImageSizeW.setup(key2.str(), sizeof(int), true);
+            isConnectedWPixels = memoryMappedImageSizeW.connect();
+            if (isConnectedWPixels){
+                memoryMappedImageSizeW.setData(wPixels);
+
+                memoryMappedImageSizeH.setup(key3.str(), sizeof(int), true);
+                isConnectedHPixels = memoryMappedImageSizeH.connect();
+                if (isConnectedHPixels){
+                    memoryMappedImageSizeH.setData(hPixels);
+
+                    memoryMappedImage.setup(key4.str(), sizeof(unsigned char) * (*wPixels) * (*hPixels) * 3, true);
+                    isConnectedPixels = memoryMappedImage.connect();
+                    if (isConnectedPixels){
+                        memoryMappedImage.setData(pixels);
+                        shareImage = true;
+                    }
+                }
+            }
+        }
+    }
 }
 
 bool isConnectedMeshId;
@@ -159,65 +173,161 @@ ofxSharedMemory<int*> memoryMappedMeshId;
 ofxSharedMemory<FaceStruct*> memoryMappedMesh;
 ofxSharedMemory<int*> memoryMappedMeshSize;
 
-void DLL_EXPORT ShareMesh(int meshId, int numberFaces, FaceStruct* faces) {
+
+void DLL_EXPORT ShareMesh(int idMesh, int numberFaces, FaceStruct* faces) {
 
     std::stringstream key1;
-    key1 << "MeshId" << meshId / 100000;
+    key1 << "MeshId" << idMesh / 10000;
 	memoryMappedMeshId.setup(key1.str(), sizeof(int), true);
+
+    cout << "***************** " << key1.str() << "****************"<<endl;
+    cout << "idMesh " << idMesh <<endl;
     isConnectedMeshId = memoryMappedMeshId.connect();
-    memoryMappedMeshId.setData(&meshId);
+    if (isConnectedMeshId){
+        cout << "Paso1 " <<endl;
+        memoryMappedMeshId.setData(&idMesh);
 
-    std::stringstream key2;
-    key2 << "MeshNumberFaces" << meshId / 100000;
-	memoryMappedMeshSize.setup(key2.str(), sizeof(int), true);
-    isConnectedNFaces = memoryMappedMeshSize.connect();
-    memoryMappedMeshSize.setData(&numberFaces);
+        std::stringstream key2;
+        key2 << "MeshNumberFaces" << idMesh / 10000;
+        memoryMappedMeshSize.setup(key2.str(), sizeof(int), true);
+        isConnectedNFaces = memoryMappedMeshSize.connect();
+        if (isConnectedNFaces){
+            cout << "Paso2 " <<endl;
+            int* nfaces = new int;
+            *nfaces = numberFaces;
+            memoryMappedMeshSize.setData(nfaces);
+            cout << "Paso21 " << *nfaces <<endl;
 
-    std::stringstream key3;
-    key3 << "MeshFaces" << meshId / 100000;
-	memoryMappedMesh.setup(key3.str(), sizeof(FaceStruct) * numberFaces, true);
-    isConnectedFaces = memoryMappedMesh.connect();
-    memoryMappedMesh.setData(faces);
+            std::stringstream key3;
+            key3 << "MeshFaces" << idMesh / 10000;
+            memoryMappedMesh.setup(key3.str(), sizeof(FaceStruct) * numberFaces, true);
+            cout << "Paso23 " <<endl;
+            isConnectedFaces = memoryMappedMesh.connect();
+            cout << "Paso24 " <<endl;
+            if (isConnectedFaces){
+                cout << "Paso3 " <<endl;
+                memoryMappedMesh.setData(faces);
+                cout << "***************** TERMINO DLL****************"<<endl;
+            }
+        }
+    }
+
+    isConnectedMeshId = false;
+    isConnectedNFaces = false;
+    isConnectedFaces = false;
+
 }
 
 void DLL_EXPORT ReadSharedMesh(int* Id, int* numberFaces, FaceStruct** faces)
 {
+
+    cout << "Entro dll" << endl;
     std::stringstream key1;
-    key1 << "MeshId" << *Id / 100000;
+    key1 << "MeshId" << *Id / 10000;
     cout << key1.str() << endl;
+    int* id;
 
     memoryMappedMeshId.setup(key1.str(), sizeof(int), false);
     isConnectedId = memoryMappedMeshId.connect();
     if (isConnectedId) {
+
+    cout << "Entro dll2" << endl;
         id = memoryMappedMeshId.getData();
-        cout << *Id << "c1" << endl;
-    }
+        cout << "Id dll" << *id << endl;
 
-    std::stringstream key2;
-    key2 << "MeshNumberFaces" << *Id / 100000;
-    cout << key2.str() << endl;
-    memoryMappedMeshSize.setup(key2.str(), sizeof(int), false);
-    isConnectedNFaces = memoryMappedMeshSize.connect();
-    if (isConnectedNFaces) {
-        numberFaces = memoryMappedMeshSize.getData();
-        cout << Id << "c2" << endl;
-    }
+        std::stringstream key2;
+        key2 << "MeshNumberFaces" << *Id / 10000;
 
-    std::stringstream key3;
-    key3 << "MeshFaces" << *Id / 100000;
-    cout << key3.str() << endl;
-    memoryMappedMesh.setup(key3.str(), sizeof(FaceStruct) * (*numberFaces), false);
-    isConnectedFaces = memoryMappedMesh.connect();
-    if (isConnectedFaces) {
-        *faces = memoryMappedMesh.getData();
-        cout << Id << "c3" << endl;
+        memoryMappedMeshSize.setup(key2.str(), sizeof(int), false);
+        isConnectedNFaces = memoryMappedMeshSize.connect();
+        if (isConnectedNFaces) {
+            *numberFaces = *memoryMappedMeshSize.getData();
+            cout << "numberFaces " << *numberFaces << endl;
+
+    cout << "Entro dll3" << endl;
+            std::stringstream key3;
+            key3 << "MeshFaces" << *Id / 10000;
+            memoryMappedMesh.setup(key3.str(), sizeof(FaceStruct) * (*numberFaces), false);
+            isConnectedFaces = memoryMappedMesh.connect();
+
+    cout << "Entro dll4" << endl;
+            if (isConnectedFaces) {
+                *faces = memoryMappedMesh.getData();
+    cout << "Entro dll5" << endl;
+                cout << "termino" << endl;
+            }
+            else
+                *numberFaces = 0;
+        }
     }
-    else
-        *numberFaces = 0;
 
     if (*id > *Id && *numberFaces > 0) {
         cout << Id << "x1" << endl;
         *Id = *id;
+    }
+    else
+        *Id = -1;
+
+}
+
+ofxSharedMemory<float*> memoryMappedCameras;
+ofxSharedMemory<int*> memoryMappedCamerasIds;
+ofxSharedMemory<int*> memoryMappedCamerasSize;
+bool isConnectedNValues;
+bool isConnectedIdsValues;
+bool isConnectedValues;
+
+void DLL_EXPORT ShareSetting(int numberValues, int* idsValues, float* values){
+
+	memoryMappedCamerasSize.setup("SettingsNumberValues", sizeof(int), true);
+    isConnectedNValues = memoryMappedCamerasSize.connect();
+    while(!(isConnectedNValues && isConnectedIdsValues && isConnectedValues)){
+        if (isConnectedNValues){
+            memoryMappedCamerasSize.setData(&numberValues);
+
+            memoryMappedCamerasIds.setup("SettingsIdsValues", sizeof(int)*numberValues, true);
+            isConnectedIdsValues = memoryMappedCamerasIds.connect();
+            if (isConnectedIdsValues){
+                memoryMappedCamerasIds.setData(idsValues);
+
+                memoryMappedCameras.setup("SettingsValues", sizeof(float) * numberValues * 16, true);
+                isConnectedValues = memoryMappedCameras.connect();
+                if (isConnectedValues){
+                    memoryMappedCameras.setData(values);
+                }
+            }
+        }
+    }
+    isConnectedNValues = false;
+    isConnectedIdsValues = false;
+    isConnectedValues = false;
+}
+
+ofxSharedMemory<float*> memoryMappedValues;
+ofxSharedMemory<int*> memoryMappedIds;
+ofxSharedMemory<int*> memoryMappedNValues;
+
+void DLL_EXPORT ReadSharedSetting(int* numberValues, int** idsValues, float** values){
+
+    memoryMappedNValues.setup("SettingsNumberValues", sizeof(int), false);
+    isConnectedNValues = memoryMappedNValues.connect();
+    while(!(isConnectedNValues && isConnectedIdsValues && isConnectedValues)){
+        if (isConnectedNValues) {
+            numberValues = memoryMappedNValues.getData();
+
+            memoryMappedIds.setup("SettingsIdsValues", sizeof(int) * (*numberValues), true);
+            isConnectedIdsValues = memoryMappedIds.connect();
+            if (isConnectedIdsValues){
+                *idsValues = memoryMappedIds.getData();
+
+                memoryMappedValues.setup("SettingsValues", sizeof(float) * (*numberValues) * 16, false);
+                isConnectedValues = memoryMappedValues.connect();
+                if (isConnectedValues) {
+                    *values = memoryMappedValues.getData();
+
+                }
+            }
+        }
     }
 }
 

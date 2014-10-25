@@ -7,11 +7,11 @@
 using namespace std;
 int masterImageIndex = 0;
 
-typedef void (*f_ReadSharedImage)(int* Id, unsigned char** Pixels, int* Width, int* Height);
+typedef void (*f_ReadSharedImage)(int* Id, int* Width, int* Height, unsigned char** Pixels);
 
 Model_IMG::Model_IMG() {
-    masterImageIndex += 100000;
-    Id = masterImageIndex;
+    //masterImageIndex += 100000;
+    //Id = masterImageIndex;
 
     char* dllName = "C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\MemoriaCompartida\\bin\\MemoriaCompartida.dll";
     shareImageLibrary =  LoadLibraryA(dllName);
@@ -22,13 +22,16 @@ Model_IMG::Model_IMG() {
 
 bool Model_IMG::MemoryLoad() {
 
-    cout << "test2" << endl;
     std::stringstream key1;
-    key1 << "ImageId" << Id / 100000;
+    key1 << "ImageId" << Id / 10000;
 
     f_ReadSharedImage readImage = (f_ReadSharedImage)GetProcAddress(shareImageLibrary, "ReadSharedImage");
+    int* wPixels = new int;
+    int* hPixels = new int;
+    *wPixels = 44;
+    *hPixels = 0;
+    readImage(&Id, wPixels, hPixels, &pixels);
 
-    readImage(&Id, &pixels, wPixels, hPixels);
     if (Id >= 0){
         if (*wPixels > 0 && *hPixels > 0) {
 

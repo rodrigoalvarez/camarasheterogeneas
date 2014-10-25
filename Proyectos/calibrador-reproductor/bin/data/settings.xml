@@ -39,13 +39,13 @@
 				</dataContext>
 			</camera>
 			<camera>
-				<id>2</id>
+				<id>1</id>
 				<resolutionX>640</resolutionX>
 				<resolutionY>480</resolutionY>
 				<resolutionDownSample>0.8</resolutionDownSample>
 				<FPS>24</FPS>
 				<use2D>1</use2D>
-				<use3D>0</use3D>
+				<use3D>1</use3D>
 				<dataContext>
 					<depthSettings>
 						<near>0.000000000</near>
@@ -139,144 +139,4 @@
 			</camera>-->
 		</cameras>
 	</cliente>	
-	<cliente>
-		<cliId>2</cliId>
-		<cliPort>15000</cliPort>
-		<serverIp>127.0.0.1</serverIp>
-		<serverPort>11969</serverPort>
-		<realTime>1</realTime>
-		<persistence>0</persistence>
-		<!-- 
-		logLevel: 
-			0- OF_LOG_VERBOSE,
-			1- OF_LOG_NOTICE,
-			2- OF_LOG_WARNING,
-			3- OF_LOG_ERROR,
-			4- OF_LOG_FATAL_ERROR,
-			5- OF_LOG_SILENT 
-		-->
-		<logLevel>0</logLevel>
-		<fps>4</fps>
-		<maxPackageSize>60000</maxPackageSize>
-		<cameras>
-			<camera>
-				<id>1</id>
-				<resolutionX>640</resolutionX>
-				<resolutionY>480</resolutionY>
-				<resolutionDownSample>0.8</resolutionDownSample>
-				<FPS>24</FPS>
-				<use2D>1</use2D>
-				<use3D>0</use3D>
-				<dataContext>
-					<imgTransform>
-						<x>0</x>
-						<y>0</y>
-						<z>0</z>
-						<a>0</a>
-						<b>0</b>
-						<c>0</c>
-					</imgTransform>
-				</dataContext>
-			</camera>
-			<camera>
-				<id>1</id>
-				<resolutionX>640</resolutionX>
-				<resolutionY>480</resolutionY>
-				<resolutionDownSample>0.8</resolutionDownSample>
-				<FPS>24</FPS>
-				<use2D>1</use2D>
-				<use3D>1</use3D>
-				<dataContext>
-					<depthSettings>
-						<near>0.000000000</near>
-						<far>1.000000000</far>
-						<pointsDownSample>0.500000000</pointsDownSample>
-					</depthSettings>
-					<matrix>
-						<m000>0.9063177</m000>
-						<m001>-0.06025547</m001>
-						<m002>-0.4183064</m002>
-						<m003>1111.891</m003>
-						<m100>0.1503622</m100>
-						<m101>0.9710134</m101>
-						<m102>0.1859172</m102>
-						<m103>-535.1179</m103>
-						<m200>0.3949687</m200>
-						<m201>-0.2313951</m201>
-						<m202>0.889099</m202>
-						<m203>185.6628</m203>
-						<m300>0</m300>
-						<m301>0</m301>
-						<m302>0</m302>
-						<m303>1</m303>
-					</matrix>
-				</dataContext>
-			</camera>-->
-			<!--
-			<camera>
-				<id>2</id>
-				<resolutionX>320</resolutionX>
-				<resolutionY>240</resolutionY>
-				<resolutionDownSample>0.8</resolutionDownSample>
-				<FPS>24</FPS>
-				<colorRGB>1</colorRGB>
-				<use2D>1</use2D>
-				<use3D>0</use3D>
-				<dataContext></dataContext>
-				<depthSettings></depthSettings>
-				<matrix>
-					<m000>1</m000>
-					<m001>0</m001>
-					<m002>0</m002>
-					<m003>0</m003>
-					<m100>0</m100>
-					<m101>1</m101>
-					<m102>0</m102>
-					<m103>0</m103>
-					<m200>0</m200>
-					<m201>0</m201>
-					<m202>1</m202>
-					<m203>1</m203>
-					<m300>0</m300>
-					<m301>0</m301>
-					<m302>1</m302>
-					<m303>1</m303>
-				</matrix>
-			</camera>
-			<camera>
-				<id>3</id>
-				<resolutionX>320</resolutionX>
-				<resolutionY>240</resolutionY>
-				<resolutionDownSample>0.8</resolutionDownSample>
-				<FPS>24</FPS>
-				<colorRGB>1</colorRGB>
-				<use2D>1</use2D>
-				<use3D>1</use3D>
-				<dataContext></dataContext>
-				<depthSettings>
-					<near>0.000000000</near>
-					<far>1.000000000</far>
-					<pointsDownSample>0.500000000</pointsDownSample>
-				</depthSettings>
-				<matrix>
-					<m000>1</m000>
-					<m001>0</m001>
-					<m002>0</m002>
-					<m003>0</m003>
-					<m100>0</m100>
-					<m101>1</m101>
-					<m102>0</m102>
-					<m103>0</m103>
-					<m200>0</m200>
-					<m201>0</m201>
-					<m202>1</m202>
-					<m203>1</m203>
-					<m300>0</m300>
-					<m301>0</m301>
-					<m302>1</m302>
-					<m303>1</m303>
-				</matrix>
-			</camera>-->
-		</cameras>
-	</cliente>
 </settings>

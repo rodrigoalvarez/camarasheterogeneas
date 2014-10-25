@@ -46,7 +46,7 @@ int cameraMove = -1;
 
 
 void writeText() {
-    system("cls");
+    /*system("cls");
     cout << "PLAYER" << endl;
     cout << "Triangles: " << textureModel->TotalConnectedTriangles << endl;
     cout << "Points: " << textureModel->TotalPoints << endl;
@@ -60,7 +60,7 @@ void writeText() {
         cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
         cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
         cout << endl;
-    }/**/
+    }*/
 }
 
 void setFaceVertex(int index) {
@@ -528,15 +528,19 @@ int main(int argc, char **argv) {
     glutKeyboardFunc(keys);
     glEnable(GL_DEPTH_TEST);
 
+    cout << "Paso 1" << endl;
     /* Settings */
     textureSetting = new Model_SET();
-    textureSetting->MemoryLoad();
+    textureSetting->FileLoad();
     textureCount = textureSetting->NValues;
 
-    /* Mesh */
+    cout << "Paso 2.0" << endl;
     textureModel = new Model_PLY();
+    /* Mesh */
+    cout << "Paso 2.1" << endl;
     textureModel->MemoryLoad();
 
+    cout << "Paso 3" << endl;
     /* Texture */
     textureMaster = new MasterTexture[textureCount + 1];
     faces = new int*[textureCount + 1];
@@ -552,6 +556,7 @@ int main(int argc, char **argv) {
         }
         faces[i] = new int[facesCount];
     }
+    cout << "Paso4" << endl;
 
     /* Settings and files */
     settings = new MasterSettings(textureCount, textureMaster, 0, NULL);
@@ -569,6 +574,7 @@ int main(int argc, char **argv) {
         MessageBox(NULL,"One or more GL_ARB_multitexture functions were not found", "ERROR",MB_OK|MB_ICONEXCLAMATION);
         return -1;
     }
+    cout << "Paso5" << endl;
 
     /* LoadImages */
     textureImage = new Model_IMG[textureCount];
@@ -577,10 +583,12 @@ int main(int argc, char **argv) {
         glBindTexture(GL_TEXTURE_2D, textures[i]);
         glDisable(GL_TEXTURE_2D);
         textureIndex = i + 1;
+        textureImage[i].Id = textureSetting->IdsValues[i] * 10000;
         loadLightMapTexture(&textureImage[i]);
     }
     textureIndex = 0;
 
+    cout << "Paso6" << endl;
     /* Start windows */
     writeText();
     glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
