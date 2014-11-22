@@ -42,6 +42,11 @@
 		</Build>
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />
+		<Unit filename="masterPly.cpp" />
+		<Unit filename="masterPly.h" />
+		<Unit filename="plylib.cpp" />
+		<Unit filename="plylib.h" />
+		<Unit filename="plystuff.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

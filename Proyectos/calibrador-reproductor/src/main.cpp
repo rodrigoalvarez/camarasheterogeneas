@@ -66,6 +66,8 @@ void writeText() {
 void setFaceVertex(int index) {
     GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
+    ///
+//    glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
 }
 
 void draw2DElement(int index) {
@@ -208,6 +210,7 @@ bool PointInFrustum(float x, float y, float z) {
 }
 
 
+
 void draw2DPlayerFull() {
     ExtractFrustum();
     GLuint queries[textureModel->TotalFaces];
@@ -236,6 +239,7 @@ void draw2DPlayerFull() {
                 if (textureIndex > 0) {
                     faces[textureIndex][i] = sampleCount;
                 }
+                //glEnable(GL_CULL_FACE);
                 draw2DElement(i);
             }
         }
@@ -256,7 +260,6 @@ void draw2DPlayerFast() {
         }
     }
 }
-
 /*void draw2DPlayerFast() {
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         draw2DElement(i);
@@ -264,7 +267,7 @@ void draw2DPlayerFast() {
 }*/
 
 void applyTransformations(vector<MasterTransform*> history) {
-    for (int i = 0; i < history.size(); i++) {
+	for (int i = 0; i < history.size(); i++) {
         MasterTransform* trans = history[i];
         if (trans->type == 0) { glTranslatef(trans->value, 0, 0); }
         if (trans->type == 1) { glTranslatef(0, trans->value, 0); }
@@ -300,7 +303,7 @@ void stepTransformTexture() {
     glTranslatef(0, 0, 20);
 
     glTranslatef(0, 0, -20);
-    GLdouble m[16];
+    //GLdouble m[16];
     //MasterSettings::CalculateMatrix(textureMaster[textureIndex].history, m);
     glMultMatrixd(textureMaster[textureIndex].matrix);
     //applyTransformations(textureMaster[textureIndex].history, false);
@@ -338,10 +341,11 @@ void display(void) {
         stepTexture();
         glLoadIdentity();
         glTranslatef(0, 0, -20);
-        applyTransformations(textureMaster[0].history);
         if (drawFast) {
+            applyTransformations(textureMaster[0].history);
             draw2DPlayerFast();
         } else {
+            glMultMatrixd(textureMaster[textureIndex].matrix);
             draw2DPlayerFull();
         }
         stepClearTexture();
@@ -465,19 +469,7 @@ void myReshape(int w, int h) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-void timerFunction(int arg) {
-    glutTimerFunc(reDrawRate, timerFunction, 0);
-    bool shouldRedraw = textureModel->MemoryLoad();
-    for (int i = 0; i < textureCount; i++) {
-        shouldRedraw = shouldRedraw || textureImage[i].MemoryLoad();
-    }
-    if (shouldRedraw) {
-        drawFast = false;
-        display();
-    }
-}
-
-void loadLightMapTexture(Model_IMG* model) {
+bool loadLightMapTexture(Model_IMG* model) {
 
     GLfloat eyePlaneS[] =  {1.0f, 0.0f, 0.0f, 0.0f};
     GLfloat eyePlaneT[] =  {0.0f, 1.0f, 0.0f, 0.0f};
@@ -503,14 +495,37 @@ void loadLightMapTexture(Model_IMG* model) {
     glEnable(GL_TEXTURE_GEN_R);
     glEnable(GL_TEXTURE_GEN_Q);
 
-    model->MemoryLoad();
+    bool shouldRedraw = true;
+    shouldRedraw = model->MemoryLoad();
+    //cout << "Salio1!!" << endl;
+    //shouldRedraw = false;
+    //model->Load("indice.jpg");
 
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812D);
     glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderColor);
-    gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_RGB,GL_UNSIGNED_BYTE,model->Pixels);
+    //cout << "TEXTURA ANTES!!" << endl;
+    gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_BGR,GL_UNSIGNED_BYTE,model->Pixels);
+    //cout << "TEXTURA DESPUES!!" << endl;
+
+    return shouldRedraw;
+}
+
+void timerFunction(int arg) {
+    glutTimerFunc(reDrawRate, timerFunction, 0);
+    bool shouldRedraw = false;
+    shouldRedraw = textureModel->MemoryLoad();
+    for (int i = 0; i < textureCount; i++) {
+        cout << "textureImage[i].Id " << textureImage[i].Id << endl;
+        shouldRedraw = shouldRedraw || loadLightMapTexture(&textureImage[i]);//textureImage[i].MemoryLoad();
+    //cout << "Salio2!!" << endl;
+    }
+    if (shouldRedraw) {
+        drawFast = false;
+        display();
+    }
 }
 
 int main(int argc, char **argv) {
@@ -528,19 +543,21 @@ int main(int argc, char **argv) {
     glutKeyboardFunc(keys);
     glEnable(GL_DEPTH_TEST);
 
-    cout << "Paso 1" << endl;
+    //cout << "Paso 1" << endl;
     /* Settings */
     textureSetting = new Model_SET();
     textureSetting->FileLoad();
     textureCount = textureSetting->NValues;
 
-    cout << "Paso 2.0" << endl;
+    //cout << "Paso 2.0" << endl;
     textureModel = new Model_PLY();
+    textureModel->AlfaCoord = textureSetting->alfaCoord;
     /* Mesh */
-    cout << "Paso 2.1" << endl;
+    //cout << "Paso 2.1" << endl;
     textureModel->MemoryLoad();
+    //textureModel->Load("antMesh.ply");
 
-    cout << "Paso 3" << endl;
+    //cout << "Paso 3" << endl;
     /* Texture */
     textureMaster = new MasterTexture[textureCount + 1];
     faces = new int*[textureCount + 1];
@@ -552,11 +569,12 @@ int main(int argc, char **argv) {
         for (int j = 0; j < 4; j++) {
             for (int k = 0; k < 4; k++) {
                 textureMaster[i].matrix[j * 4 + k] = textureSetting->Values[i * 16 + j * 4 + k];
+                cout << "textureMaster[i].matrix[j * 4 + k] =  " << i << " " << textureMaster[i].matrix[j * 4 + k] << endl;
             }
         }
         faces[i] = new int[facesCount];
     }
-    cout << "Paso4" << endl;
+    //cout << "Paso4" << endl;
 
     /* Settings and files */
     settings = new MasterSettings(textureCount, textureMaster, 0, NULL);
@@ -574,7 +592,7 @@ int main(int argc, char **argv) {
         MessageBox(NULL,"One or more GL_ARB_multitexture functions were not found", "ERROR",MB_OK|MB_ICONEXCLAMATION);
         return -1;
     }
-    cout << "Paso5" << endl;
+    //cout << "Paso5" << endl;
 
     /* LoadImages */
     textureImage = new Model_IMG[textureCount];
@@ -583,12 +601,14 @@ int main(int argc, char **argv) {
         glBindTexture(GL_TEXTURE_2D, textures[i]);
         glDisable(GL_TEXTURE_2D);
         textureIndex = i + 1;
-        textureImage[i].Id = textureSetting->IdsValues[i] * 10000;
+        //cout << "textureSetting->IdsValues[i]: " << textureSetting->IdsValues[i+1] << endl;
+        textureImage[i].Id = textureSetting->IdsValues[i+1] * 10000;
+        //cout << "textureImage[i].Id" << textureImage[i].Id << endl;
         loadLightMapTexture(&textureImage[i]);
     }
     textureIndex = 0;
 
-    cout << "Paso6" << endl;
+    //cout << "Paso6" << endl;
     /* Start windows */
     writeText();
     glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );

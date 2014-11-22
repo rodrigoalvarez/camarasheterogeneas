@@ -23,16 +23,18 @@ Model_PLY::Model_PLY() {
 bool Model_PLY::MemoryLoad() {
 
 
-    cout << "Id memory load" << Id <<endl;
+    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
 
     f_ReadSharedMesh readMesh = (f_ReadSharedMesh)GetProcAddress(shareMeshLibrary, "ReadSharedMesh");
     numberFaces =  new int;
     *numberFaces = 0;
     int id = Id;
+    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
     readMesh(&id, numberFaces, &faces);
+    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
 
-    cout << "TotalFaces " << (*numberFaces) <<endl;
     if (*numberFaces > 0 && id >= 0) {
+    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
         Id = id;
         TotalConnectedTriangles = (*numberFaces) * 3;
         TotalPoints = (*numberFaces) / 3;
@@ -41,7 +43,6 @@ bool Model_PLY::MemoryLoad() {
         FaceStruct* facesAux = new FaceStruct[*numberFaces];
         memcpy(facesAux, faces, sizeof(FaceStruct) * (*numberFaces));
 
-        cout << TotalFaces<< endl;
         Faces_Triangles = new float[TotalFaces * 9];
         for (int i = 0; i< TotalFaces; i++){
             Faces_Triangles[i*9] = facesAux[i].p1[0];
@@ -64,11 +65,15 @@ bool Model_PLY::MemoryLoad() {
                 MaxCoord = Faces_Triangles[i];
             }
         }
+        cout << "MinCoord " << MinCoord/AlfaCoord <<endl;
+        cout << "MaxCoord " << MaxCoord/AlfaCoord <<endl;
+        cout << "************AlfaCoord " << AlfaCoord << "************" << endl;
         AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
         for (int i = 0; i < TotalFaces * 9; i++) {
             Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
         }
-        cout << Id << "x2" << endl;
+
+        cout << "RETORNO MALLA" <<endl;
         return true;
     }
     else

@@ -18,6 +18,7 @@ Model_IMG::Model_IMG() {
     if (!shareImageLibrary) {
         std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
     }
+    primeraVez = true;
 }
 
 bool Model_IMG::MemoryLoad() {
@@ -30,44 +31,71 @@ bool Model_IMG::MemoryLoad() {
     int* hPixels = new int;
     *wPixels = 44;
     *hPixels = 0;
+    //cout << "Id1++++++  "<< Id <<endl;
+
+    int idAux = Id;
     readImage(&Id, wPixels, hPixels, &pixels);
 
+            //cout << "Id2++++++  "<< Id <<endl;
     if (Id >= 0){
+            //cout << "Paso2++++++"<< endl;
         if (*wPixels > 0 && *hPixels > 0) {
+            //cout << "Paso3++++++"<< endl;
 
             Width = *wPixels;
             Height = *hPixels;
             Pixels = new unsigned char[Width * Height * 3];
+//            char* nombre = new char[20];
+//            sprintf(nombre,"imagenReproductor%d.png",Id);
+//            FIBITMAP* bitmap = FreeImage_Allocate(Width, Height, 3);
+//            FreeImage_
+//            FreeImage_Save(FIF_PNG, bitmap , nombre , 0 )
+
+
             memcpy(Pixels, pixels, sizeof(unsigned char) * Width * Height * 3);
+
+//            ofImage image;
+//            image.setFromPixels(Pixels,Width,Height,OF_IMAGE_COLOR);
+//            image.saveImage(nombre);
+            cout << "OBTUVO IMAGEN++++++"<< endl;
+            //delete pixels;
             return true;
         }
         else
             return false;
     }
-    else
+    else{
+        Id = idAux;
         return false;
+    }
 }
 
 void Model_IMG::Load(string filename) {
 
-    ofImage auxImg;
-    auxImg.loadImage(filename);
+    if (primeraVez){
+        ofImage auxImg;
+        auxImg.loadImage(filename);
 
-    ofBuffer imageBuffer;
-    ofSaveImage(auxImg.getPixelsRef(), imageBuffer, OF_IMAGE_FORMAT_JPEG);
+        ofBuffer imageBuffer;
+        ofSaveImage(auxImg.getPixelsRef(), imageBuffer, OF_IMAGE_FORMAT_JPEG);
 
-    FIMEMORY* stream = FreeImage_OpenMemory((unsigned char*) imageBuffer.getBinaryBuffer(), imageBuffer.size());
+        FIMEMORY* stream = FreeImage_OpenMemory((unsigned char*) imageBuffer.getBinaryBuffer(), imageBuffer.size());
 
-    FREE_IMAGE_FORMAT fif   = FreeImage_GetFileTypeFromMemory( stream, 0 );
+        FREE_IMAGE_FORMAT fif   = FreeImage_GetFileTypeFromMemory( stream, 0 );
 
-    FIBITMAP *dib(0);
-    dib = FreeImage_LoadFromMemory(fif, stream);
+        FIBITMAP *dib(0);
+        dib = FreeImage_LoadFromMemory(fif, stream);
 
-    Pixels = (unsigned char*)FreeImage_GetBits(dib);
+        Pixels = (unsigned char*)FreeImage_GetBits(dib);
 
-    Width = FreeImage_GetWidth(dib);
-    Height = FreeImage_GetHeight(dib);
-    Id++;
+        Width = FreeImage_GetWidth(dib);
+        Height = FreeImage_GetHeight(dib);
+        Id++;
+        primeraVez = false;
+        cout << "DISCOOOOO!!!!!" << endl;
+    }
+    else
+        cout << "MEMORIA" << endl;
 }
 
 int sizeToPowerTwoLessInt(int n) {

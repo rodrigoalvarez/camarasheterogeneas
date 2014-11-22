@@ -17,6 +17,8 @@ class Model_IMG
         bool isConnectedWPixels;
         bool isConnectedHPixels;
 
+        bool primeraVez;
+
         HINSTANCE shareImageLibrary;
 
 	public:

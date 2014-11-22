@@ -25,5 +25,6 @@ class Model_SET
 		float* Values;
 		int* IdsValues;
 		int NValues;
+        float alfaCoord;
 };
 

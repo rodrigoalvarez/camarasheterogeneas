@@ -51,11 +51,35 @@ void Model_SET::FileLoad() {
 
     NValues = gdata->getTotal2D();//Total de camaras 2D
 
-    IdsValues = new int[NValues];
+    IdsValues = new int[NValues+1];
 
-    Values = new float[NValues * 16];
+    Values = new float[NValues * 16+16];
 
     int count2DCameras = 0;
+
+    Values[count2DCameras*16] = 1;
+    Values[count2DCameras*16+1] = 0;
+    Values[count2DCameras*16+2] = 0;
+    Values[count2DCameras*16+3] = 0;
+
+    Values[count2DCameras*16+4] = 0;
+    Values[count2DCameras*16+5] = 1;
+    Values[count2DCameras*16+6] = 0;
+    Values[count2DCameras*16+7] = 0;
+
+    Values[count2DCameras*16+8] = 0;
+    Values[count2DCameras*16+9] = 0;
+    Values[count2DCameras*16+10] = 1;
+    Values[count2DCameras*16+11] = 0;
+
+    Values[count2DCameras*16+12] = 0;
+    Values[count2DCameras*16+13] = 0;
+    Values[count2DCameras*16+14] = 0;
+    Values[count2DCameras*16+15] = 1;
+
+    IdsValues[count2DCameras] = 0;
+
+    count2DCameras+= 1;
 
     for (int i = 0 ; i < gdata->nClientes ; i++){// recorro los clientes
 
@@ -68,29 +92,52 @@ void Model_SET::FileLoad() {
 
                 cout << "Id de camara: " << IdsValues[count2DCameras] << endl;
 
-                Values[count2DCameras*16] = gdata->sys_data[i].camera[j].row1[0];
-                Values[count2DCameras*16+1] = gdata->sys_data[i].camera[j].row1[1];
-                Values[count2DCameras*16+2] = gdata->sys_data[i].camera[j].row1[2];
-                Values[count2DCameras*16+3] = gdata->sys_data[i].camera[j].row1[3];
+                Values[count2DCameras*16] = gdata->sys_data[i].camera[j].imgrow1[0];
+                Values[count2DCameras*16+1] = gdata->sys_data[i].camera[j].imgrow1[1];
+                Values[count2DCameras*16+2] = gdata->sys_data[i].camera[j].imgrow1[2];
+                Values[count2DCameras*16+3] = gdata->sys_data[i].camera[j].imgrow1[3];
 
-                Values[count2DCameras*16+4] = gdata->sys_data[i].camera[j].row2[0];
-                Values[count2DCameras*16+5] = gdata->sys_data[i].camera[j].row2[1];
-                Values[count2DCameras*16+6] = gdata->sys_data[i].camera[j].row2[2];
-                Values[count2DCameras*16+7] = gdata->sys_data[i].camera[j].row2[3];
+                Values[count2DCameras*16+4] = gdata->sys_data[i].camera[j].imgrow2[0];
+                Values[count2DCameras*16+5] = gdata->sys_data[i].camera[j].imgrow2[1];
+                Values[count2DCameras*16+6] = gdata->sys_data[i].camera[j].imgrow2[2];
+                Values[count2DCameras*16+7] = gdata->sys_data[i].camera[j].imgrow2[3];
 
-                Values[count2DCameras*16+8] = gdata->sys_data[i].camera[j].row3[0];
-                Values[count2DCameras*16+9] = gdata->sys_data[i].camera[j].row3[1];
-                Values[count2DCameras*16+10] = gdata->sys_data[i].camera[j].row3[2];
-                Values[count2DCameras*16+11] = gdata->sys_data[i].camera[j].row3[3];
+                Values[count2DCameras*16+8] = gdata->sys_data[i].camera[j].imgrow3[0];
+                Values[count2DCameras*16+9] = gdata->sys_data[i].camera[j].imgrow3[1];
+                Values[count2DCameras*16+10] = gdata->sys_data[i].camera[j].imgrow3[2];
+                Values[count2DCameras*16+11] = gdata->sys_data[i].camera[j].imgrow3[3];
 
-                Values[count2DCameras*16+12] = gdata->sys_data[i].camera[j].row4[0];
-                Values[count2DCameras*16+13] = gdata->sys_data[i].camera[j].row4[1];
-                Values[count2DCameras*16+14] = gdata->sys_data[i].camera[j].row4[2];
-                Values[count2DCameras*16+15] = gdata->sys_data[i].camera[j].row4[3];
+                Values[count2DCameras*16+12] = gdata->sys_data[i].camera[j].imgrow4[0];
+                Values[count2DCameras*16+13] = gdata->sys_data[i].camera[j].imgrow4[1];
+                Values[count2DCameras*16+14] = gdata->sys_data[i].camera[j].imgrow4[2];
+                Values[count2DCameras*16+15] = gdata->sys_data[i].camera[j].imgrow4[3];
 
+//                Values[count2DCameras*16] = 0.207577;
+//                Values[count2DCameras*16+1] = 0.137059;
+//                Values[count2DCameras*16+2] = -0.968569;
+//                Values[count2DCameras*16+3] = 0;
+//
+//                Values[count2DCameras*16+4] = -0.00485707;
+//                Values[count2DCameras*16+5] = 0.990268;
+//                Values[count2DCameras*16+6] = 0.139088;
+//                Values[count2DCameras*16+7] = 0;
+//
+//                Values[count2DCameras*16+8] = 0.978207;
+//                Values[count2DCameras*16+9] = -0.0241672;
+//                Values[count2DCameras*16+10] = 0.206223;
+//                Values[count2DCameras*16+11] = 0;
+//
+//                Values[count2DCameras*16+12] = 0;
+//                Values[count2DCameras*16+13] = 0;
+//                Values[count2DCameras*16+14] = 0;
+//                Values[count2DCameras*16+15] = 1;
                 count2DCameras++;
 
             }
         }
+        for (int i = 0; i< 16; i++){
+            cout << i << ": "<< Values[i]<< endl;
+        }
+        alfaCoord = gdata->sys_data[i].alfaCoord;
     }
 }

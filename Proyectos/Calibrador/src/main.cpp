@@ -12,123 +12,126 @@
 
 using namespace std;
 
-bool REAL_TIME = true;
 int REAL_TIME_FPS = 10;
 int REAL_TIME_PORT = 3232;
+int CLI_PORT = 15000;
+string SERVER_IP = "127.0.0.1";
+int SERVER_PORT = 11969;
+int REAL_TIME = 1;
+int PERSISTENCE = 0;
+int LOG_LEVEL = 0;
+int FPS = 4;
+int MAX_PACKAGE_SIZE = 60000;
 
 MeshMain* mMain;
 TextureMain* tMain;
 
 bool modeMesh = true;
 
+vector<MasterClient*> clients;
 
-void saveXmlFile() {
-	ofxXmlSettings settings;
+void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
 
-	settings.addTag("settings");
-	settings.pushTag("settings");
+    ofxXmlSettings settings = *pSettings;
+    settings.setValue("cliId", client->idClient);
+    settings.setValue("cliPort", CLI_PORT);
+    settings.setValue("serverIp", SERVER_IP);
+    settings.setValue("serverPort", SERVER_PORT);
+    settings.setValue("realTime", REAL_TIME);
+    settings.setValue("persistence", PERSISTENCE);
+    settings.setValue("logLevel", LOG_LEVEL);
+    settings.setValue("fps", FPS);
+    settings.setValue("maxPackageSize", MAX_PACKAGE_SIZE);
+    settings.setValue("alfaCoord", tMain->textureModel->AlfaCoord);
 
-	settings.setValue("realTime", REAL_TIME);
-	settings.setValue("realTimeFPS", REAL_TIME_FPS);
-	settings.setValue("realTimePort", REAL_TIME_PORT);
+    settings.addTag("cameras");
+    settings.pushTag("cameras");
 
-	settings.addTag("cameras");
-	settings.pushTag("cameras");
+    for(int i = 0; i < client->cameras.size(); i++) {
+        MasterCamera* camera = client->cameras[i];
+        settings.addTag("camera");
+        settings.pushTag("camera", i);
 
-	for(int i = 0; i < mMain->meshCount; i++) {
-		settings.addTag("camera");
-		settings.pushTag("camera", i);
+        settings.addValue("id", camera->idCamera);
+        settings.addValue("resolutionX", 640);//800
+        settings.addValue("resolutionY", 480);//600
+        settings.addValue("resolutionDownSample", 1);
+        settings.addValue("FPS", 30);// camera i fps
+        settings.addValue("colorRGB", true);// camera i color rgb
+        settings.addValue("use2D", camera->is2D);// camera i use2d
+        settings.addValue("use3D", camera->is3D);// camera i use 3d
+        settings.addValue("dataContext", "");// data context
 
-		settings.addValue("id", i);
-		settings.addValue("resolutionX", 800);//800
-		settings.addValue("resolutionY", 600);//600
-		settings.addValue("resolutionDownSample", 1);
-		settings.addValue("FPS", 30);// camera i fps
-		settings.addValue("colorRGB", true);// camera i color rgb
-		settings.addValue("use2D", false);// camera i use2d
-		settings.addValue("use3D", true);// camera i use 3d
-		settings.addValue("dataContext", "");// data context
+        settings.addTag("depthSettings");
+        settings.pushTag("depthSettings");
+        settings.addValue("near", 10);
+        settings.addValue("far", 100);
+        settings.addValue("pointsDownSample", 1);
+        settings.popTag();
 
-		settings.addTag("depthSettings");
-		settings.pushTag("depthSettings");
-		settings.addValue("near", 10);
-		settings.addValue("far", 100);
-		settings.addValue("pointsDownSample", 1);
+        if (camera->is2D) {
+            settings.addTag("matrix2D");
+            settings.pushTag("matrix2D");
+            MasterTexture* master = camera->masterTexture;
+            GLdouble m[16];
+            MasterSettings::CalculateMatrix(master->history, m);
+            for(int j = 0; j < 16; j++) {
+                std::stringstream cellM;
+                cellM << "m" << j / 4 << j % 4;
+                settings.addValue(cellM.str(), (float)m[j]);
+            }
+            settings.popTag();
+        }
+        if (camera->is3D) {
+            settings.addTag("matrix3D");
+            settings.pushTag("matrix3D");
+            MasterMesh* master = camera->masterMesh;
+            GLdouble m[16];
+            MasterSettings::CalculateMatrix(*master, m);
+            for(int j = 0; j < 16; j++) {
+                std::stringstream cellM;
+                cellM << "m" << j / 4 << j % 4;
+                settings.addValue(cellM.str(), (float)m[j]);
+            }
+            settings.popTag();
+        }
 
-		settings.popTag();
+        settings.popTag();
+    }
 
-		settings.addTag("matrix");
-		settings.pushTag("matrix");
-
-
-        GLdouble m[16];
-        MasterSettings::CalculateMatrix(mMain->cloudMaster[i], m);
-
-		for(int j = 0; j < 16; j++) {
-            std::stringstream cellM;
-            cellM << "r" << j / 4 << j % 4;
-            settings.addValue(cellM.str(), m[j]);
-		}
-
-		settings.popTag();
-		settings.popTag();
-	}
-
-	for(int i = 0; i < tMain->textureCount; i++) {
-		settings.addTag("camera");
-		settings.pushTag("camera",  tMain->textureCount+i);
-
-		settings.addValue("id", i);
-		settings.addValue("resolutionX", 800);//800
-		settings.addValue("resolutionY", 600);//600
-		settings.addValue("resolutionDownSample", 1);
-		settings.addValue("FPS", 30);// camera i fps
-		settings.addValue("colorRGB", true);// camera i color rgb
-		settings.addValue("use2D", true);// camera i use2d
-		settings.addValue("use3D", false);// camera i use 3d
-		settings.addValue("dataContext", "");// data context
-
-		settings.addTag("depthSettings");
-		settings.pushTag("depthSettings");
-		settings.addValue("near", 10);
-		settings.addValue("far", 100);
-		settings.addValue("pointsDownSample", 1);
-
-		settings.popTag();
-
-		settings.addTag("matrix");
-		settings.pushTag("matrix");
-
-
-        GLdouble m[16];
-        MasterSettings::CalculateMatrix(mMain->cloudMaster[i], m);
-
-        MasterTexture* masterNow = &(tMain->textureMaster[i+1]);
-
-		for(int j = 0; j < 16; j++) {
-            std::stringstream cellM;
-            cellM << "m" << j / 4 << j % 4;
-            settings.addValue(cellM.str(), masterNow->matrix[j]);
-		}
-
-
-        char* v = new char[50];
-        sprintf ( v, "%f %f %f",masterNow->viewer[0], masterNow->viewer[1], masterNow->viewer[2] );
-        char* r = new char[50];
-        sprintf ( r, "%f %f %f",masterNow->rotate[0], masterNow->rotate[1], masterNow->rotate[2] );
-        settings.addValue("viewer", v);
-        settings.addValue("rotate", r);
-
-		settings.popTag();
-		settings.popTag();
-	}
-
-	settings.popTag();
-	settings.popTag();
-
-	settings.saveFile("settings.xml");
+    settings.popTag();
 }
 
+void saveXmlFiles(vector<MasterClient*> clients) {
+
+    if (clients.size() > 0) {
+        ofxXmlSettings settings;
+        settings.addTag("settings");
+        settings.pushTag("settings");
+        for (int k = 0; k < clients.size(); k++) {
+            settings.addTag("client");
+            settings.pushTag("client", k);
+            saveXmlClient(&settings, clients[k]);
+            settings.popTag();
+        }
+        settings.popTag();
+
+        std::stringstream fileName;
+        fileName << "settings.xml";
+        settings.saveFile(fileName.str());
+    }
+    for (int k = 0; k < clients.size(); k++) {
+        ofxXmlSettings settings;
+        settings.addTag("settings");
+        settings.pushTag("settings");
+        saveXmlClient(&settings, clients[k]);
+        settings.popTag();
+
+        std::stringstream fileName;
+        fileName << "settings" << k << ".xml";
+        settings.saveFile(fileName.str());
+    }
+}
 void IncludeMesh (Model_XYZ* model, Model_XYZ* newModel, MasterMesh master) {
     GLdouble m[16];
     MasterSettings::CalculateMatrix(master, m);
@@ -147,6 +150,8 @@ void keys(unsigned char key, int x, int y) {
         if (mMain->faces != NULL){
             modeMesh = false;
             tMain->textureModel->MemoryLoadCalibrator(mMain->faces,*(mMain->numberFaces));
+            //tMain->textureModel->Load("antMesh.ply");
+
         }
     }
     if (modeMesh)
@@ -154,8 +159,8 @@ void keys(unsigned char key, int x, int y) {
     else
         tMain->keys(key, x, y);
 
-    if (key == 'v' && !modeMesh){
-        saveXmlFile();
+    if (key == 'o' && !modeMesh){
+        saveXmlFiles(clients);
     }
 }
 
@@ -260,6 +265,62 @@ vector<string> getImageFiles() {
     return files;
 }
 
+vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster, int meshCount, MasterMesh* cloudMaster) {
+    vector<MasterClient*> clients;
+    int idClient = 0;
+    int idCamera = 0;
+    ofDirectory directory("C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\Calibrador\\bin\\data");
+
+    directory.listDir();
+    vector<ofFile> allFiles = directory.getFiles();
+    for(int i = 0; i < allFiles.size(); i++){
+        if (allFiles[i].isDirectory()){
+
+            MasterClient* client = new MasterClient();
+
+            ofDirectory clientDirectory(allFiles[i].path());
+            clientDirectory.listDir();
+            vector<ofFile> allClientFiles = clientDirectory.getFiles();
+
+            for(int j = 0; j < allClientFiles.size(); j++){
+                if (allClientFiles[j].isDirectory()){
+
+                    MasterCamera* camera = new MasterCamera();
+
+                    ofDirectory cludDirectory(allClientFiles[j].path());
+                    cludDirectory.allowExt("xyz");
+                    cludDirectory.listDir();
+                    camera->is3D = cludDirectory.numFiles() > 0 && idCamera < meshCount;
+                    if (camera->is3D) {
+                        camera->masterMesh = &cloudMaster[idCamera];
+                    }
+
+                    ofDirectory imageDirectory(allClientFiles[j].path());
+                    imageDirectory.allowExt("png");
+                    imageDirectory.allowExt("bmp");
+                    imageDirectory.allowExt("jpg");
+                    imageDirectory.listDir();
+                    camera->is2D = imageDirectory.numFiles() > 0 && idCamera < textureCount;
+                    if (camera->is2D) {
+                        camera->masterTexture = &textureMaster[idCamera];
+                    }
+
+                    if (camera->is2D || camera->is3D) {
+                        camera->idCamera = idCamera++;
+                        client->cameras.push_back(camera);
+                    }
+                }
+            }
+
+            if (client->cameras.size() > 0) {
+                client->idClient = idClient++;
+                clients.push_back(client);
+            }
+        }
+    }
+    return clients;
+}
+
 int main(int argc, char **argv) {
 
 
@@ -283,7 +344,6 @@ int main(int argc, char **argv) {
 
 
     ///INICIALIZACION CALIBRACION 3D
-
 
     /* Cloud */
     vector<string> files3D = getCloudFiles();
@@ -315,6 +375,7 @@ int main(int argc, char **argv) {
         IncludeMesh(mMain->cloudModel[0], mMain->cloudModel[i], mMain->cloudMaster[i]);
     }
     mMain->meshIndex = 0;
+
     ///FIN
 
     ///INICIALIZACION CALIBRACION 2D
@@ -324,7 +385,9 @@ int main(int argc, char **argv) {
     tMain->textureModel = new Model_PLY();
 
     /* Texture */
+cout << "Paso2.0" << endl;
     vector<string> files2D = getImageFiles();
+cout << "Paso2.1" << endl;
     tMain->textureCount = files2D.size();
     tMain->textureMaster = new MasterTexture[tMain->textureCount + 1];
     tMain->faces = new int*[tMain->textureCount + 1];
@@ -342,6 +405,7 @@ int main(int argc, char **argv) {
     }
 
     /* Settings and files */
+    clients = getClients(tMain->textureCount, tMain->textureMaster, mMain->meshCount, mMain->cloudMaster);
     tMain->settings = new MasterSettings(tMain->textureCount, tMain->textureMaster, 0, NULL);
 
     /* Texture config */
@@ -369,7 +433,116 @@ int main(int argc, char **argv) {
     }
     tMain->textureIndex = 0;
     ///FIN
-
+//tMain->textureModel->Load("mallaUnida2.ply");
+//tMain->textureModel->Load("antMesh.ply");
     //writeText();
 	glutMainLoop();
 }
+
+//void saveXmlFile() {
+//	ofxXmlSettings settings;
+//
+//	settings.addTag("settings");
+//	settings.pushTag("settings");
+//
+//	settings.setValue("realTime", REAL_TIME);
+//	settings.setValue("realTimeFPS", REAL_TIME_FPS);
+//	settings.setValue("realTimePort", REAL_TIME_PORT);
+//
+//	settings.addTag("cameras");
+//	settings.pushTag("cameras");
+//
+//	for(int i = 0; i < mMain->meshCount; i++) {
+//		settings.addTag("camera");
+//		settings.pushTag("camera", i);
+//
+//		settings.addValue("id", i);
+//		settings.addValue("resolutionX", 800);//800
+//		settings.addValue("resolutionY", 600);//600
+//		settings.addValue("resolutionDownSample", 1);
+//		settings.addValue("FPS", 30);// camera i fps
+//		settings.addValue("colorRGB", true);// camera i color rgb
+//		settings.addValue("use2D", false);// camera i use2d
+//		settings.addValue("use3D", true);// camera i use 3d
+//		settings.addValue("dataContext", "");// data context
+//
+//		settings.addTag("depthSettings");
+//		settings.pushTag("depthSettings");
+//		settings.addValue("near", 10);
+//		settings.addValue("far", 100);
+//		settings.addValue("pointsDownSample", 1);
+//
+//		settings.popTag();
+//
+//		settings.addTag("matrix");
+//		settings.pushTag("matrix");
+//
+//
+//        GLdouble m[16];
+//        MasterSettings::CalculateMatrix(mMain->cloudMaster[i], m);
+//
+//		for(int j = 0; j < 16; j++) {
+//            std::stringstream cellM;
+//            cellM << "r" << j / 4 << j % 4;
+//            settings.addValue(cellM.str(), m[j]);
+//		}
+//
+//		settings.popTag();
+//		settings.popTag();
+//	}
+//
+//	for(int i = 0; i < tMain->textureCount; i++) {
+//		settings.addTag("camera");
+//		settings.pushTag("camera",  tMain->textureCount+i);
+//
+//		settings.addValue("id", i);
+//		settings.addValue("resolutionX", 800);//800
+//		settings.addValue("resolutionY", 600);//600
+//		settings.addValue("resolutionDownSample", 1);
+//		settings.addValue("FPS", 30);// camera i fps
+//		settings.addValue("colorRGB", true);// camera i color rgb
+//		settings.addValue("use2D", true);// camera i use2d
+//		settings.addValue("use3D", false);// camera i use 3d
+//		settings.addValue("dataContext", "");// data context
+//
+//		settings.addTag("depthSettings");
+//		settings.pushTag("depthSettings");
+//		settings.addValue("near", 10);
+//		settings.addValue("far", 100);
+//		settings.addValue("pointsDownSample", 1);
+//
+//		settings.popTag();
+//
+//		settings.addTag("matrix");
+//		settings.pushTag("matrix");
+//
+//
+//        GLdouble m[16];
+//        MasterSettings::CalculateMatrix(mMain->cloudMaster[i], m);
+//
+//        MasterTexture* masterNow = &(tMain->textureMaster[i+1]);
+//
+//		for(int j = 0; j < 16; j++) {
+//            std::stringstream cellM;
+//            cellM << "m" << j / 4 << j % 4;
+//            settings.addValue(cellM.str(), masterNow->matrix[j]);
+//		}
+//
+//
+//        char* v = new char[50];
+//        sprintf ( v, "%f %f %f",masterNow->viewer[0], masterNow->viewer[1], masterNow->viewer[2] );
+//        char* r = new char[50];
+//        sprintf ( r, "%f %f %f",masterNow->rotate[0], masterNow->rotate[1], masterNow->rotate[2] );
+//        settings.addValue("viewer", v);
+//        settings.addValue("rotate", r);
+//
+//		settings.popTag();
+//		settings.popTag();
+//	}
+//
+//	settings.popTag();
+//	settings.popTag();
+//
+//	settings.saveFile("settings.xml");
+//}
+
