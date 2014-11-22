@@ -45,7 +45,8 @@ void MeshGenerator::processFrame(){
     std::pair <ThreadData *, ThreadData *> frame = buffer->getNextFrame();
     if(frame.first != NULL) { // En first viene un ThreadData con la nube de puntos.
 
-        cout<< "entro!!!" << endl;
+        cout<< "Procesamiento de mallas" << endl;
+        //cout<< "entro!!!" << endl;
         ThreadData* td = ((ThreadData *) frame.first);
         time_t now = time(0);
         tm *ltm = localtime(&now);
@@ -66,21 +67,21 @@ void MeshGenerator::processFrame(){
         ///FIN GENERAR MALLA
 
         ///MEMORIA COMPARTIDA
-        cout<< "entro1" << endl;
+        //cout<< "entro1" << endl;
         f_compartirMalla ShareMesh = (f_compartirMalla)GetProcAddress(memorySharedLibrary, "ShareMesh");
 
-        cout<< "entro2" << endl;
+        //cout<< "entro2" << endl;
         int idMesh = 10000 + nframe;
         ShareMesh(idMesh, *numberFaces, faces);
 
-        cout<< "entro3" << endl;
+        //cout<< "entro3" << endl;
 
         ///FIN MEMORIA COMPARTIDA
 
-//        delete nbIN;
-//        delete numberFaces;
-//        delete [] faces;
-//        delete nbIN;
+        delete nbIN;
+        delete numberFaces;
+        delete [] faces;
+        delete nbIN;
     }
     if(frame.second != NULL) { // En first viene un array de ThreadData con las texturas.
         cout<< "Procesamiento de imagenes" << endl;
@@ -109,8 +110,19 @@ void MeshGenerator::processFrame(){
             idMomento = idMomento*10 + iter->camId;
             idMomento = idMomento*10000 + nframe % 10000;
 
+//            char* nombre = new char[20];
+//            sprintf(nombre,"imagen%d.png",idMomento);
+//
+//            char* nombre2 = new char[20];
+//            sprintf(nombre2,"imagenFI%d",idMomento);
+//
+//            ofImage image;
+//            image.setFromPixels(pixels,width,height,OF_IMAGE_COLOR);
+//            image.saveImage(nombre);
+//            FreeImage_Save(fif,dib,nombre2);
+
+
             cout<< "Id momento: " << idMomento << endl;
-            cout<< "bytepp: " << bpp/8 << endl;
             shareImage(&idMomento, pixels, &width, &height);
             iter = iter->sig;
             j++;
