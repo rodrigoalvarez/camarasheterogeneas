@@ -56,9 +56,9 @@ class Server : public ofBaseApp {
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
         void computeFrames();
-        void generarMalla(ThreadData);
+        //void generarMalla(ThreadData);
         void setupGui(string ip);
-        void setVideoPreview(int cli, int cam, ofImage img);
+        //void setVideoPreview(int cli, int cam, ofImage img);
 
 		ofxUDPManager udpConnection;
 		ofxTCPServer TCP;

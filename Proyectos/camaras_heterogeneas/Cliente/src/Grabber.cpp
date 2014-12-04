@@ -109,6 +109,14 @@ void Grabber::exit() {
     }
 
     if(tData != NULL) {
+        i = 0;
+        for(i; i<gdata->total2D + gdata->total3D; i++) {
+            if(tData[i].xpix != NULL) {
+                delete tData[i].xpix;
+                delete tData[i].ypix;
+                delete tData[i].zpix;
+            }
+        }
         delete tData;
     }
 
@@ -123,7 +131,6 @@ void Grabber::updateThreadData() {
     int di      = 0;
     int i       = 0;
 
-    //tData[i].state = //0-No inited, 1-Only Image, 2-Only Point Cloud, 3-Ambas
     /**
     * ACTUALIZO LA INFO DE LAS CÁMARAS 2D
     */
@@ -135,6 +142,7 @@ void Grabber::updateThreadData() {
         ofLogVerbose() << "[Grabber::updateThreadData] " << " if " << t2D[i].isDeviceInitted() << " " << t2D[i].isDataAllocated() << " " << t2D[i].context->id;
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
+            tData[di].img.clear();
             tData[di].img.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.getWidth(), t2D[i].img.getHeight(), OF_IMAGE_COLOR, true);
 
             tData[di].imgrow1.set(t2D[i].context->imgrow1.x, t2D[i].context->imgrow1.y, t2D[i].context->imgrow1.z, t2D[i].context->imgrow1.w);
@@ -255,6 +263,15 @@ void Grabber::updateThreadData() {
                     }
                 }
 
+                if(tData[di].xpix != NULL) {
+                    delete tData[di].xpix;
+                    delete tData[di].ypix;
+                    delete tData[di].zpix;
+                    tData[di].xpix = NULL;
+                    tData[di].ypix = NULL;
+                    tData[di].zpix = NULL;
+                }
+
                 if(tData[di].nubeLength > 0) {
                     tData[di].xpix = new float[tData[di].nubeLength];
                     tData[di].ypix = new float[tData[di].nubeLength];
@@ -263,7 +280,6 @@ void Grabber::updateThreadData() {
                     memcpy(tData[di].xpix,     tmpX,     sizeof(float) * tData[di].nubeLength);
                     memcpy(tData[di].ypix,     tmpY,     sizeof(float) * tData[di].nubeLength);
                     memcpy(tData[di].zpix,     tmpZ,     sizeof(float) * tData[di].nubeLength);
-
                 }
                 if(tmpX != NULL) {
                     delete tmpX;

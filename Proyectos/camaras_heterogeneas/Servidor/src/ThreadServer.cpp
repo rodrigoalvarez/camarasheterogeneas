@@ -34,7 +34,7 @@ void ThreadServer::threadedFunction() {
 }
 
 void ThreadServer::update() {
-    receiveFrame();
+    //receiveFrame();
 }
 
 void ThreadServer::receiveFrame() {
@@ -94,7 +94,7 @@ void ThreadServer::receiveFrame() {
 
                 ofLogVerbose() << "[ThreadServer::receiveFrame] Estado del buffer de este ThreadServer: fb.tope " << fb.tope  << ", fb.base " << fb.base;
 
-             }
+            }
             unlock();
         }
 
