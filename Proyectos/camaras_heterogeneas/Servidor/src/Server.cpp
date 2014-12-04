@@ -9,6 +9,7 @@
 
 #include <string.h>
 //--------------------------------------------------------------
+
 int      box2;
 int procesar = 0;
 
@@ -22,7 +23,6 @@ ofTexture			videoTexture7;
 ofTexture			videoTexture8;
 ofTexture			videoTexture9;
 ofImage tmp;
-ofVideoGrabber		vidGrabber;
 
 void Server::setupGui(string ip) {
     ServerGlobalData::debug = false;
@@ -57,7 +57,7 @@ void Server::setupGui(string ip) {
     gui.show();
 }
 
-void Server::setVideoPreview(int cli, int cam, ofImage img) {
+/*void Server::setVideoPreview(int cli, int cam, ofImage img) {
 
     string search = ofToString(cli) + "_" + ofToString(cam);
     ofLogVerbose() << "[Server::setVideoPreview] search: " << search;
@@ -91,9 +91,36 @@ void Server::setVideoPreview(int cli, int cam, ofImage img) {
         }
         texture_map.insert ( std::pair< string, ofTexture > (search, txt) );
     }
-
+    txt.clear();
     txt.loadData((unsigned char *)tmpImg.getPixels(), 320, 240, GL_RGB);
+    tmpImg.clear();
+}*/
 
+void Server::exit() {
+    int i = 0;
+    for(i = 0; i < totThreadedServers; i++) {
+        tservers[i]->exit();
+        tservers[i]->stopThread();
+        delete tservers[i];
+    }
+
+    TCP.close();
+
+    videoTexture1.clear();
+    videoTexture2.clear();
+    videoTexture3.clear();
+    videoTexture4.clear();
+    videoTexture5.clear();
+    videoTexture6.clear();
+    videoTexture7.clear();
+    videoTexture8.clear();
+    videoTexture9.clear();
+
+    if(gdata != NULL) {
+        delete gdata;
+    }
+
+    delete mb;
 }
 
 void Server::setup() {
@@ -140,7 +167,6 @@ void Server::setup() {
     mb->sys_data    = gdata->sys_data;
     mb->startBuffer();
 
-    ofShortPixels  spix;
     //ofSetFrameRate(gdata->sys_data->fps);
     TCP.setup(gdata->sys_data->serverPort);
 
@@ -167,7 +193,7 @@ void Server::setup() {
 //--------------------------------------------------------------
 void Server::update() {
     ofSleepMillis(1000/gdata->sys_data->fps);
-    vidGrabber.update();
+    //vidGrabber.update();
     for(int i = 0; i < TCP.getLastID(); i++) { // getLastID is UID of all clients
         if( TCP.isClientConnected(i) ) { // check and see if it's still around
             string str = TCP.receive(i);
@@ -196,6 +222,7 @@ void Server::update() {
 
                 currCliPort         ++;
                 totThreadedServers  ++;
+
             }
         }
     }
@@ -212,7 +239,7 @@ void Server::computeFrames() {
         for(int c = 0; c < head.first; c++) {
             //cout << "head.second[" << c << "].cliId: " << head.second[c].cliId << " , currCam " << endl;
             if(gui.isOn()) {
-                setVideoPreview(head.second[c].cliId, currCam, head.second[c].img);
+                //setVideoPreview(head.second[c].cliId, currCam, head.second[c].img);
             }
 
             currCam ++;
@@ -221,8 +248,8 @@ void Server::computeFrames() {
 
             if((head.second[c].state == 3) && (head.second[c].nubeW > 0) && (procesar == 1)) {
                 procesar = 0;
-                generarMalla(head.second[c]);
-            }/**/
+                //generarMalla(head.second[c]);
+            }
         }
 
         tservers[i]->unlock();
@@ -232,27 +259,16 @@ void Server::computeFrames() {
 //--------------------------------------------------------------
 void Server::draw() {
 
-    if(gui.isOn()) {
+    /*if(gui.isOn()) {
         gui.draw();
-    }
+    }*/
 
     //gui.hide();
     //setVideoPreview(1, tmp);
     //tmp.draw(0, 0);
 
 }
-
-void Server::exit() {
-    int i = 0;
-    for(i = 0; i < totThreadedServers; i++) {
-        tservers[i]->exit();
-        tservers[i]->stopThread();
-        delete tservers[i];
-    }
-    TCP.close();
-    delete mb;
-}
-
+/*
 void Server::generarMalla(ThreadData data) {
     ofLogVerbose() << "[Server::generarMalla] - generarMalla()";
 
@@ -276,13 +292,13 @@ void Server::generarMalla(ThreadData data) {
 
     sprintf (linea, "\"C:\\Program Files\\VCG\\MeshLab\\meshlabserver\" -i %s -o %s -s %s -om vc vn", fileName, outputName, script);
     printf(linea);
-    system(linea);/**/
+    system(linea);
 }
-
+*/
 //--------------------------------------------------------------
 void Server::keyPressed(int key) {
     //procesar = 1;
-    if(key == 'g') {
+    /*if(key == 'g') {
         if(gui.isOn()) {
             gui.hide();
         } else {
@@ -290,7 +306,7 @@ void Server::keyPressed(int key) {
         }
     } else if(key == 'd') {
         ServerGlobalData::debug = !ServerGlobalData::debug;
-    }
+    }*/
 }
 
 //--------------------------------------------------------------
