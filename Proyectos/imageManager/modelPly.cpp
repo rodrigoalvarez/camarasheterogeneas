@@ -11,6 +11,7 @@ int masterMeshIndex = 0;
 Model_PLY::Model_PLY() {
     masterMeshIndex += 100000;
     Id = masterMeshIndex;
+    Faces_Triangles = 0;
 }
 
 bool Model_PLY::MemoryLoad() {
@@ -40,7 +41,7 @@ bool Model_PLY::MemoryLoad() {
     }
 
     if (isConnectedId && isConnectedNFaces && isConnectedFaces &&
-        *id > Id && *numberFaces > 0) {
+        /**id > Id &&*/ *numberFaces > 0) {
 
         Id = *id;
         TotalConnectedTriangles = (*numberFaces) * 3;
@@ -65,6 +66,8 @@ bool Model_PLY::MemoryLoad() {
             //Calcular normales
 
         }
+        delete[] facesAux;
+
         MinCoord = std::numeric_limits<float>::max();
         MaxCoord = std::numeric_limits<float>::min();
         for (int i = 0; i < TotalFaces * 9; i++) {

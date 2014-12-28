@@ -241,14 +241,6 @@ bool PointInFrustum(float x, float y, float z) {
     return true;
 }
 
-
-void SetColorAndBackground(int ForgC, int BackC)
-{
-     WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);;
-     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wColor);
-     return;
-}
-
 void draw2DView() {
     ofstream myfile;
     myfile.open ("mapping.txt");
@@ -394,14 +386,12 @@ void stepTexture() {
     }
 
     if (textureViewMode) {
-        SetColorAndBackground(4,0);
         GLdouble m[16];
         glGetDoublev(GL_MODELVIEW_MATRIX, m);
         for (int p = 0; p < 16; p+=4) {
             cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
         }
         cout << "- - - - " << endl;
-        SetColorAndBackground(15,0);
     }
 
     glGetFloatv(GL_MODELVIEW_MATRIX, textureMaster[textureIndex].MVmatrix);
@@ -448,14 +438,12 @@ void display(void) {
             glTranslatef(0, 0, -20);
             applyTransformations(textureMaster[0].history, true);
 
-            SetColorAndBackground(2,0);
             GLdouble m[16];
             glGetDoublev(GL_MODELVIEW_MATRIX, m);
             for (int p = 0; p < 16; p+=4) {
                 cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
             }
             cout << "- - - - " << endl;
-            SetColorAndBackground(15,0);
 
             draw2DView();
             stepClearTexture();
@@ -470,18 +458,6 @@ void display(void) {
         if (drawFast) {
             draw2DCalibrationFast();
         } else {
-
-
-            SetColorAndBackground(3,0);
-            GLdouble m[16];
-            glGetDoublev(GL_MODELVIEW_MATRIX, m);
-            for (int p = 0; p < 16; p+=4) {
-                cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
-            }
-            cout << "- - - - * * * *" << endl;
-            SetColorAndBackground(15,0);
-
-
             draw2DCalibrationFull();
         }
         glPushMatrix();
