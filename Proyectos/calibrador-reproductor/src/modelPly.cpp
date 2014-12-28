@@ -10,7 +10,7 @@ int masterMeshIndex = 0;
 typedef void (*f_ReadSharedMesh)(int* id, int* numberFaces, FaceStruct** faces);
 
 Model_PLY::Model_PLY() {
-    masterMeshIndex += 100000;
+    masterMeshIndex += 10000;
     Id = masterMeshIndex;
 
     char* dllName = "C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\MemoriaCompartida\\bin\\MemoriaCompartida.dll";
@@ -23,14 +23,19 @@ Model_PLY::Model_PLY() {
 bool Model_PLY::MemoryLoad() {
 
 
-    cout << "test1" << endl;
+    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
 
     f_ReadSharedMesh readMesh = (f_ReadSharedMesh)GetProcAddress(shareMeshLibrary, "ReadSharedMesh");
     numberFaces =  new int;
     *numberFaces = 0;
-    readMesh(&Id, numberFaces, &faces);
+    int id = Id;
+    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
+    readMesh(&id, numberFaces, &faces);
+    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
 
-    if (*numberFaces > 0 && Id >= 0) {
+    if (*numberFaces > 0 && id >= 0) {
+    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
+        Id = id;
         TotalConnectedTriangles = (*numberFaces) * 3;
         TotalPoints = (*numberFaces) / 3;
         TotalFaces = *numberFaces;
@@ -60,11 +65,15 @@ bool Model_PLY::MemoryLoad() {
                 MaxCoord = Faces_Triangles[i];
             }
         }
+        cout << "MinCoord " << MinCoord/AlfaCoord <<endl;
+        cout << "MaxCoord " << MaxCoord/AlfaCoord <<endl;
+        cout << "************AlfaCoord " << AlfaCoord << "************" << endl;
         AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
         for (int i = 0; i < TotalFaces * 9; i++) {
             Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
         }
-        cout << Id << "x2" << endl;
+
+        cout << "RETORNO MALLA" <<endl;
         return true;
     }
     else

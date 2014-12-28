@@ -566,15 +566,6 @@ class FrameUtils {
     * Recorre los totalCams ThreadData y descomprime todas las imágenes.
     */
     static void decompressImages(ThreadData * tData, int totalCams, f_decompress_img decompress_img) {
-//        HINSTANCE hGetProcIDDLL;
-//        //HINSTANCE hGetProcPCIDDLL;
-//
-//        hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
-//        //hGetProcPCIDDLL                     =  LoadLibraryA("pointCloudCompression.dll");
-//
-//        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL,      "decompress_img");
-        //f_decompress_pc     decompress_pc   = (f_decompress_img) GetProcAddress(hGetProcPCIDDLL,    "decompress_pc");
-
         try {
             int i;
             for(i=0; i<totalCams; i++) {
@@ -586,9 +577,10 @@ class FrameUtils {
                             int unc_width   = 0;
                             int unc_height  = 0;
 
-                            const unsigned char * unc_Buff = NULL;
+                            unsigned char * unc_Buff = NULL;
                             decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
                             tData[i].img.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
+                            free(unc_Buff);
                             //tData[i].img.saveImage("decompress_debug.jpg");
                         }
                     }

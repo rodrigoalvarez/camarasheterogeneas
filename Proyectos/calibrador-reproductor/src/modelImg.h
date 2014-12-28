@@ -11,13 +11,13 @@ class Model_IMG
 {
 	private:
         unsigned char* pixels;
-        int* wPixels;
-        int* hPixels;
 
         bool isConnectedId;
         bool isConnectedPixels;
         bool isConnectedWPixels;
         bool isConnectedHPixels;
+
+        bool primeraVez;
 
         HINSTANCE shareImageLibrary;
 

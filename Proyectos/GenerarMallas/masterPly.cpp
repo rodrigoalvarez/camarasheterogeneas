@@ -112,6 +112,7 @@ void MasterPly::loadMesh(float* pointsX, float* pointsY, float* pointsZ, int poi
     m.Clear();
     vcg::tri::Allocator<MyMesh>::AddVertices(m,pointsCount);
     for(int i=0;i<pointsCount;i++){
+            //cout << pointsX[i] << " " << pointsY[i] <<  " " << pointsZ[i] << endl;
         m.vert[i].P()=vcg::Point3f(pointsX[i],pointsY[i],pointsZ[i]);
 
     }

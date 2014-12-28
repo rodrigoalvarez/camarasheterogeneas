@@ -2,8 +2,10 @@ EXPORTS
     DllMain@12 @1
     ReadSharedImage @2
     ReadSharedMesh @3
-    ShareImage @4
-    ShareMesh @5
-    SomeFunction @6
-    compartirMemoria @7
-    leerMemoria @8
+    ReadSharedSetting @4
+    ShareImage @5
+    ShareMesh @6
+    ShareSetting @7
+    SomeFunction @8
+    compartirMemoria @9
+    leerMemoria @10

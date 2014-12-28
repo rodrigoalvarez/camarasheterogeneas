@@ -75,7 +75,9 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
 
     ofLogVerbose()  << "[Transmitter::sendFrame] Por entrar a hacer compressImages " << totalCams;
     FrameUtils::compressImages(tData, totalCams, compress_img);
+
     ofLogVerbose()  << "[Transmitter::sendFrame] Saliendo de hacer compressImages " << totalCams;
+
 
     int frameSize       = FrameUtils::getFrameSize(tData, totalCams);
 
@@ -113,4 +115,12 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     }
 
     free(bytearray);
+    int i = 0;
+    for(i=0; i<totalCams; i++) {
+        if(tData[i].state > 0) {
+            if((tData[i].state == 1) || (tData[i].state == 3)) {
+                free(tData[i].compImg);
+            }
+        }
+    }
 }

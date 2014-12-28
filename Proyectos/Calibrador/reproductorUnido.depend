@@ -1299,14 +1299,14 @@
 	<vcg/complex/algorithms/smooth.h>
 	<vector>
 
-1413926368 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.cpp
+1415833947 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.cpp
 	"masterSettings.h"
 	<stdlib.h>
 	<string>
 	<fstream>
 	<sstream>
 
-1413926437 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.h
+1414890590 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.h
 	<GL/glew.h>
 	<GL/glut.h>
 	<GL/glext.h>
@@ -1397,7 +1397,7 @@
 	<string>
 	<assert.h>
 
-1413932651 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
+1415828971 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
 	"MeshMain.h"
 	"TextureMain.h"
 	<GL/glut.h>
@@ -1513,6 +1513,6 @@
 	"modelXYZ.h"
 	"ofxXmlSettings.h"
 
-1413928379 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\texturemain.cpp
+1415833947 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\texturemain.cpp
 	"TextureMain.h"
 

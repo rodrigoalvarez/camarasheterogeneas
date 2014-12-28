@@ -11,7 +11,7 @@ class ThreadData {
         //fm_key<time_t, int> * key;
         timeval curTime;
         //time_t  timestamp;
-        char *  timestampStr;
+        //char *  timestampStr;
         int     cliId;   // ID de la configuración de Cliente. Puede haber N
         int     camId;   // ID de la cámara en la instalación.
         ofImage img;
@@ -55,10 +55,46 @@ class ThreadData {
             zpix        = NULL;
             compImg     = NULL;
             cameraType  = 0;
+            sig         = NULL;
         }
 
         ~ThreadData() {
             ofLogVerbose() << "[ThreadData::~ThreadData]";
+            if(xpix != NULL) {
+                free(xpix);
+                xpix = NULL;
+            }
+
+            if(ypix != NULL) {
+                free(ypix);
+                ypix = NULL;
+            }
+
+            if(zpix != NULL) {
+                free(zpix);
+                zpix = NULL;
+            }
+
+            if(compImg != NULL) {
+                cout << " eliminando compImg " << endl;
+                free(compImg);
+                compImg = NULL;
+            }
+
+            if(sig != NULL) {
+                delete sig;
+                sig = NULL;
+            }
+            img.clear();
+            spix.clear();
+
+            cvX.clear();
+            cvY.clear();
+            cvZ.clear();
+            encodedCloud.clear();
+            sXpix.clear();
+            sYpix.clear();
+            sZpix.clear();
         }
 
         void mergePointClouds(ThreadData * td) {

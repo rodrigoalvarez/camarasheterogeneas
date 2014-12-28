@@ -55,7 +55,9 @@ void TextureMain::writeText() {
 void TextureMain::setFaceVertex(int index) {
     GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
+
     glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
+    //glNormal3f((rand() % 1000 -500)/1000.0, (rand() % 1000 -500)/1000.0, (rand() % 1000 -500)/1000.0);
 }
 
 void TextureMain::draw2DElement(int index) {
@@ -91,14 +93,15 @@ void TextureMain::draw2DBackground() {
    }
 }
 void TextureMain::draw2DView() {
+    //cout << "textureCount: " << textureCount << endl ;
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         int hits = 0;
-        for (int k = 1; k <= textureCount; k++) {
-            hits = max(hits, faces[k][i]);
-        }
-        if (hits > 0 && faces[textureIndex][i] == hits) {
+//        for (int k = 1; k <= textureCount; k++) {
+//            hits = max(hits, faces[k][i]);
+//        }
+//        if (hits > 0 && faces[textureIndex][i] == hits) {
             draw2DElement(i);
-        }
+//        }
     }
 }
 
@@ -280,7 +283,7 @@ void TextureMain::applyTransformations(vector<MasterTransform*> history, bool fl
         }
     } else {
         for (int i = 0; i < history.size(); i++) {
-            MasterTransform* trans = history[i];
+            MasterTransform* trans = history[history.size()-i-1];
             if (trans->type == 0) { glTranslatef(-trans->value, 0, 0); }
             if (trans->type == 1) { glTranslatef(0, -trans->value, 0); }
             if (trans->type == 2) { glTranslatef(0, 0, -trans->value); }
@@ -359,7 +362,7 @@ void TextureMain::display(void) {
        glEnable(GL_LIGHTING);
        glEnable(GL_LIGHT0);
 
-//       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
        glPushMatrix();
        glLoadIdentity();
@@ -408,6 +411,8 @@ void TextureMain::display(void) {
     }
 
     if (cameraLight) {
+
+       //glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
        glDisable(GL_LIGHT0);
        glDisable(GL_LIGHTING);
     }

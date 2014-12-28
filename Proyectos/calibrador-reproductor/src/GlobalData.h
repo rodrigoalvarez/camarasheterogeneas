@@ -45,6 +45,7 @@ struct t_data {
     int      fps;
     int      maxPackageSize;
     int      nCamaras;
+    float    alfaCoord;
     t_camera    * camera;
 };
 

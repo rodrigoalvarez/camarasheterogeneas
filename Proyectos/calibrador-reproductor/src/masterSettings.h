@@ -29,6 +29,18 @@ struct MasterMesh {
     GLdouble matrix[16];
 };
 
+struct MasterCamera {
+   int idCamera;
+   bool is2D;
+   MasterTexture* masterTexture;
+   bool is3D;
+   MasterMesh* masterMesh;
+};
+
+struct MasterClient {
+   int idClient;
+   vector<MasterCamera*> cameras;
+};
 
 class MasterSettings
 {

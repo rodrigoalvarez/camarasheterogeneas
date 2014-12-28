@@ -107,7 +107,7 @@ void MasterSettings::CalculateMatrix(vector<MasterTransform*> history, GLdouble*
     glPushMatrix();
     glLoadIdentity();
     for (int i = 0; i < history.size(); i++) {
-        MasterTransform* trans = history[i];
+        MasterTransform* trans = history[history.size()-i-1];
         if (trans->type == 0) { glTranslatef(-trans->value, 0, 0); }
         if (trans->type == 1) { glTranslatef(0, -trans->value, 0); }
         if (trans->type == 2) { glTranslatef(0, 0, -trans->value); }

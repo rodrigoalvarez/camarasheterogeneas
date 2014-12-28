@@ -15,10 +15,15 @@ void DLL_EXPORT generarMalla(NubePuntos* nbIN, FaceStruct** faces, int* numberFa
         MasterPly* mply = new MasterPly();
 
         mply->loadMesh(nbIN->x,nbIN->y,nbIN->z,nbIN->largo);
+        cout << "Cargo malla."<< endl;
         mply->poissonDiskSampling(nbIN->largo/4);
-        mply->calculateNormalsVertex();
+        cout << "Aplico poisson sampling" << endl;
+//        mply->calculateNormalsVertex();
+//        cout << "Calculo normales."<< endl;
         mply->buildMeshBallPivoting();
+        cout << "Genero malla." << endl;
         mply->laplacianSmooth(3);
+        cout << "Aplico laplacian smooth." << endl;
         *numberFaces = mply->totalFaces();
         *faces = mply->getFaces();
 
@@ -31,16 +36,16 @@ void DLL_EXPORT generarMallaCalibrador(NubePuntos* nbIN, FaceStruct** faces, int
 {
         MasterPly* mply = new MasterPly();
 
-        mply->loadMesh(nbIN->x,nbIN->y,nbIN->z,nbIN->largo);
         cout << "Cargo malla."<< endl;
-        mply->poissonDiskSampling(100000);
-        cout << "Aplico poisson sampling, cant. puntos: "<< mply->totalFaces() << endl;
-        mply->calculateNormalsVertex();
-        cout << "Calculo normales."<< endl;
-        mply->buildMeshBallPivoting();
+        mply->loadMesh(nbIN->x,nbIN->y,nbIN->z,nbIN->largo);
+        cout << "Aplico poisson sampling, cant. puntos: "<< "alrededor de 50.000" << endl;
+        mply->poissonDiskSampling(50000);
+        //mply->calculateNormalsVertex();
+        //cout << "Calculo normales."<< endl;
         cout << "Genero malla." << endl;
-        mply->laplacianSmooth(3);
+        mply->buildMeshBallPivoting();
         cout << "Aplico laplacian smooth." << endl;
+        mply->laplacianSmooth(3);
         *numberFaces = mply->totalFaces();
         *faces = mply->getFaces();
 
