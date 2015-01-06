@@ -42,7 +42,7 @@ void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
     settings.setValue("logLevel", LOG_LEVEL);
     settings.setValue("fps", FPS);
     settings.setValue("maxPackageSize", MAX_PACKAGE_SIZE);
-    settings.setValue("alfaCoord", tMain->textureModel->AlfaCoord);
+    settings.setValue("alfaCoord", mMain->cloudModel[1]->AlfaCoord);
 
     settings.addTag("cameras");
     settings.pushTag("cameras");
@@ -70,15 +70,27 @@ void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
         settings.popTag();
 
         if (camera->is2D) {
-            settings.addTag("matrix2D");
-            settings.pushTag("matrix2D");
-            MasterTexture* master = camera->masterTexture;
-            GLdouble m[16];
-            MasterSettings::CalculateMatrix(master->history, m);
+            settings.addTag("matrixA2D");
+            settings.pushTag("matrixA2D");
+            GLdouble mA[16];
+            cout << "History SizeA: " << camera->masterTexture->history.size() << endl;
+            MasterSettings::CalculateMatrix(camera->masterTexture->history, mA, true);
             for(int j = 0; j < 16; j++) {
                 std::stringstream cellM;
                 cellM << "m" << j / 4 << j % 4;
-                settings.addValue(cellM.str(), (float)m[j]);
+                settings.addValue(cellM.str(), (float)mA[j]);
+            }
+            settings.popTag();
+
+            settings.addTag("matrixB2D");
+            settings.pushTag("matrixB2D");
+            GLdouble mB[16];
+            cout << "History SizeB: " << camera->masterTexture->history.size() << endl;
+            MasterSettings::CalculateMatrix(camera->masterTexture->history, mB, false);
+            for(int j = 0; j < 16; j++) {
+                std::stringstream cellM;
+                cellM << "m" << j / 4 << j % 4;
+                settings.addValue(cellM.str(), (float)mB[j]);
             }
             settings.popTag();
         }
@@ -160,6 +172,8 @@ void keys(unsigned char key, int x, int y) {
         tMain->keys(key, x, y);
 
     if (key == 'o' && !modeMesh){
+            cout << "History Size1: " << tMain->textureMaster[0].history.size() << endl;
+            cout << "History Size2: " << tMain->textureMaster[1].history.size() << endl;
         saveXmlFiles(clients);
     }
 }
@@ -292,7 +306,7 @@ vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster,
                     cludDirectory.listDir();
                     camera->is3D = cludDirectory.numFiles() > 0 && idCamera < meshCount;
                     if (camera->is3D) {
-                        camera->masterMesh = &cloudMaster[idCamera];
+                        camera->masterMesh = &cloudMaster[idCamera+1];
                     }
 
                     ofDirectory imageDirectory(allClientFiles[j].path());
@@ -302,11 +316,12 @@ vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster,
                     imageDirectory.listDir();
                     camera->is2D = imageDirectory.numFiles() > 0 && idCamera < textureCount;
                     if (camera->is2D) {
-                        camera->masterTexture = &textureMaster[idCamera];
+                        camera->masterTexture = &textureMaster[idCamera+1];
                     }
 
                     if (camera->is2D || camera->is3D) {
                         camera->idCamera = idCamera++;
+                        cout << "idcamera: " << idCamera << endl;
                         client->cameras.push_back(camera);
                     }
                 }

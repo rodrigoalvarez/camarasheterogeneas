@@ -83,6 +83,7 @@ void DLL_EXPORT ReadSharedImage(int* Id/*Id del momento osea camara mas frame*/,
     bool isConnectedWPixels;
     bool isConnectedHPixels;
 
+    cout << "ENTRO READ IMAGE DLL" <<endl;
     std::stringstream key1;
     key1 << "ImageId" << *Id / 10000;
     int* idMomentoNuevo;
@@ -90,8 +91,9 @@ void DLL_EXPORT ReadSharedImage(int* Id/*Id del momento osea camara mas frame*/,
     memoryMappedImageId.setup(key1.str(), sizeof(int), false);
     cout << "2" << endl;
     isConnectedImageId = memoryMappedImageId.connect();
-    cout << "3" << endl;
+    cout << "3.0" << endl;
     if (isConnectedImageId) {
+    cout << "3.1" << endl;
         idMomentoNuevo = memoryMappedImageId.getData();
     cout << "4" << endl;
 
@@ -127,18 +129,18 @@ void DLL_EXPORT ReadSharedImage(int* Id/*Id del momento osea camara mas frame*/,
                     *pixels = memoryMappedImage.getData();
     cout << "15" << endl;
 
-                        cout << "Guardando imagen" << endl;
-                        char* nombre = new char[20];
-                        sprintf(nombre,"imagen%d.png",*Id);
-                        cout << "Guardando imagen1" << endl;
-
-
-                        ofImage image;
-                        cout << "Guardando imagen2" << endl;
-                        image.setFromPixels(*pixels,*wPixels,*hPixels,OF_IMAGE_COLOR);
-                        cout << "Guardando imagen3" << endl;
-                        image.saveImage(nombre);
-                        cout << "Guardando imagen4" << endl;
+//                        cout << "Guardando imagen" << endl;
+//                        char* nombre = new char[20];
+//                        sprintf(nombre,"imagen%d.png",*Id);
+//                        cout << "Guardando imagen1" << endl;
+//
+//
+//                        ofImage image;
+//                        cout << "Guardando imagen2" << endl;
+//                        image.setFromPixels(*pixels,*wPixels,*hPixels,OF_IMAGE_COLOR);
+//                        cout << "Guardando imagen3" << endl;
+//                        image.saveImage(nombre);
+//                        cout << "Guardando imagen4" << endl;
 
                     *Id = *idMomentoNuevo;
                 }
@@ -162,6 +164,28 @@ void DLL_EXPORT ReadSharedImage(int* Id/*Id del momento osea camara mas frame*/,
         *Id = -1;
 }
 
+void MemoryCheck(int* Id) {
+
+    ofxSharedMemory<int*> memoryMappedImageId;
+
+    bool isConnectedImageId;
+
+    std::stringstream key1;
+    key1 << "ImageId" << *Id / 10000;
+    int* idMomentoNuevo;
+
+    memoryMappedImageId.setup(key1.str(), sizeof(int), false);
+
+    isConnectedImageId = memoryMappedImageId.connect();
+
+    if (isConnectedImageId) {
+        idMomentoNuevo = memoryMappedImageId.getData();
+        if (*idMomentoNuevo > *Id)
+            *Id = *idMomentoNuevo;
+    }
+    else
+        *Id = -1;
+}
 //bool isConnectedImageId;
 
 void DLL_EXPORT ShareImage(int* imageId, unsigned char* pixels, int* wPixels, int* hPixels) {
@@ -293,13 +317,13 @@ void DLL_EXPORT ShareMesh(int idMesh, int numberFaces, FaceStruct* faces) {
 
 void DLL_EXPORT ReadSharedMesh(int* Id, int* numberFaces, FaceStruct** faces)
 {
-    ofxSharedMemory<int*> memoryMappedMeshId;
-    ofxSharedMemory<FaceStruct*> memoryMappedMesh;
-    ofxSharedMemory<int*> memoryMappedMeshSize;
-
-    bool isConnectedMeshId;
-    bool isConnectedFaces;
-    bool isConnectedNFaces;
+//    ofxSharedMemory<int*> memoryMappedMeshId;
+//    ofxSharedMemory<FaceStruct*> memoryMappedMesh;
+//    ofxSharedMemory<int*> memoryMappedMeshSize;
+//
+//    bool isConnectedMeshId;
+//    bool isConnectedFaces;
+//    bool isConnectedNFaces;
     std::stringstream key1;
     key1 << "MeshId" << *Id / 10000;
     int* id;
@@ -309,7 +333,7 @@ void DLL_EXPORT ReadSharedMesh(int* Id, int* numberFaces, FaceStruct** faces)
     isConnectedMeshId = memoryMappedMeshId.connect();
     if (isConnectedMeshId) {
 
-    cout << "Entro dll2" << endl;
+        cout << "Entro dll2" << endl;
         id = memoryMappedMeshId.getData();
         cout << "Id dll" << *id << endl;
 
@@ -322,16 +346,16 @@ void DLL_EXPORT ReadSharedMesh(int* Id, int* numberFaces, FaceStruct** faces)
             *numberFaces = *memoryMappedMeshSize.getData();
             cout << "numberFaces " << *numberFaces << endl;
 
-    cout << "Entro dll3" << endl;
+            cout << "Entro dll3" << endl;
             std::stringstream key3;
             key3 << "MeshFaces" << *id; // 10000;
             memoryMappedMesh.setup(key3.str(), sizeof(FaceStruct) * (*numberFaces), false);
             isConnectedFaces = memoryMappedMesh.connect();
 
-    cout << "Entro dll4" << endl;
+            cout << "Entro dll4" << endl;
             if (isConnectedFaces) {
                 *faces = memoryMappedMesh.getData();
-    cout << "Entro dll5" << endl;
+                cout << "Entro dll5" << endl;
                 cout << "*****LEYO MALLA COMPARTIDA******" << endl;
             }
             else

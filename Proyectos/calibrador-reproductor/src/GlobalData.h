@@ -26,10 +26,15 @@ struct t_camera {
     ofVec4f row3;
     ofVec4f row4;
 
-    ofVec4f imgrow1;
-    ofVec4f imgrow2;
-    ofVec4f imgrow3;
-    ofVec4f imgrow4;
+    ofVec4f imgrowA1;
+    ofVec4f imgrowA2;
+    ofVec4f imgrowA3;
+    ofVec4f imgrowA4;
+
+    ofVec4f imgrowB1;
+    ofVec4f imgrowB2;
+    ofVec4f imgrowB3;
+    ofVec4f imgrowB4;
 
 };
 

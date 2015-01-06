@@ -45,6 +45,10 @@ int cameraAxis = -1;
 int cameraMove = -1;
 
 
+HINSTANCE occlusionLibrary;
+
+typedef void (*f_OcclusionCulling)(int textureIndex,int TotalFaces, float* Faces_Triangles, int*** faces);
+
 void writeText() {
     /*system("cls");
     cout << "PLAYER" << endl;
@@ -61,6 +65,13 @@ void writeText() {
         cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
         cout << endl;
     }*/
+}
+
+void SetColorAndBackground(int ForgC, int BackC)
+{
+    WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);;
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wColor);
+    return;
 }
 
 void setFaceVertex(int index) {
@@ -212,41 +223,51 @@ bool PointInFrustum(float x, float y, float z) {
 
 
 void draw2DPlayerFull() {
-    ExtractFrustum();
-    GLuint queries[textureModel->TotalFaces];
-    GLuint sampleCount;
-    glGenQueriesARB(textureModel->TotalFaces, queries);
-    glDisable(GL_BLEND);
-    glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
-    for (int i = 0; i < textureModel->TotalFaces; i++) {
-        int index = i * 3;
-        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
-            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
-            draw2DElement(i);
-            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
-        }
-    }
-    glEnable(GL_BLEND);
-    glDepthFunc(GL_EQUAL);
-    glDepthMask(GL_FALSE);
 
-    for (int i = 0; i < textureModel->TotalFaces; i++) {
-        int index = i * 3;
-        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
-            glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
-            if (sampleCount > 0) {
-                if (textureIndex > 0) {
-                    faces[textureIndex][i] = sampleCount;
-                }
-                //glEnable(GL_CULL_FACE);
-                draw2DElement(i);
-            }
-        }
-    }
-    glDisable(GL_BLEND);
-    glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
+    cout<< "DLL1" << endl;
+    f_OcclusionCulling occlusionCulling = (f_OcclusionCulling)GetProcAddress(occlusionLibrary, "OcclusionCulling");
+    cout<< "DLL2" << endl;
+
+    occlusionCulling(textureIndex,textureModel->TotalFaces, textureModel->Faces_Triangles, &faces);
+    cout<< "DLL3" << endl;
+//    ExtractFrustum();
+//    GLuint* queries = new GLuint[textureModel->TotalFaces];
+//    //GLuint queries = *queriesP;
+//    GLuint sampleCount;
+//    glGenQueriesARB(textureModel->TotalFaces, queries);
+//    glDisable(GL_BLEND);
+//    glDepthFunc(GL_LESS);
+//    glDepthMask(GL_TRUE);
+//    for (int i = 0; i < textureModel->TotalFaces; i++) {
+//        int index = i * 3;
+//        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
+//            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
+//            draw2DElement(i);
+//            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+//        }
+//    }
+//    glEnable(GL_BLEND);
+//    glDepthFunc(GL_EQUAL);
+//    glDepthMask(GL_FALSE);
+//
+//    for (int i = 0; i < textureModel->TotalFaces; i++) {
+//        int index = i * 3;
+//        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
+//            glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
+//            if (sampleCount > 0) {
+//                if (textureIndex > 0) {
+//                    faces[textureIndex][i] = sampleCount;
+//                }
+//                //glEnable(GL_CULL_FACE);
+//                draw2DElement(i);
+//            }
+//        }
+//    }
+//    glDisable(GL_BLEND);
+//    glDepthFunc(GL_LESS);
+//    glDepthMask(GL_TRUE);
+//    delete [] queries;
+    cout<< "DLL FIN" << endl;
 }
 
 void draw2DPlayerFast() {
@@ -305,7 +326,7 @@ void stepTransformTexture() {
     glTranslatef(0, 0, -20);
     //GLdouble m[16];
     //MasterSettings::CalculateMatrix(textureMaster[textureIndex].history, m);
-    glMultMatrixd(textureMaster[textureIndex].matrix);
+    glMultMatrixd(textureMaster[textureIndex].matrixB);
     //applyTransformations(textureMaster[textureIndex].history, false);
     glTranslatef(0, 0, 20);
 }
@@ -318,6 +339,17 @@ void stepTexture() {
         glActiveTextureARB(GL_TEXTURE0 + textureIndex - 1);
         glEnable(GL_TEXTURE_2D);
         stepTransformTexture();
+
+
+           SetColorAndBackground(2,0);
+               GLdouble m[16];
+               glGetDoublev(GL_MODELVIEW_MATRIX, m);
+               for (int p = 0; p < 16; p+=4) {
+                   cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+               }
+               cout << "- - - - " << endl;
+
+           SetColorAndBackground(15,0);
     }
 
     glGetFloatv(GL_MODELVIEW_MATRIX, textureMaster[textureIndex].MVmatrix);
@@ -343,20 +375,63 @@ void display(void) {
         glTranslatef(0, 0, -20);
         if (drawFast) {
             applyTransformations(textureMaster[0].history);
+
+
+            SetColorAndBackground(8,0);
+           GLdouble m[16];
+           glGetDoublev(GL_MODELVIEW_MATRIX, m);
+           for (int p = 0; p < 16; p+=4) {
+               cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+           }
+           cout << "- - - - " << endl;
+           SetColorAndBackground(15,0);
+
             draw2DPlayerFast();
         } else {
-            glMultMatrixd(textureMaster[textureIndex].matrix);
+
+//           SetColorAndBackground(2,0);
+//            GLdouble m[16];
+//            glGetDoublev(GL_MODELVIEW_MATRIX, m);
+//            cout << "Antes- - - - " << endl;
+//            for (int p = 0; p < 16; p+=4) {
+//            cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+//            }
+//            cout << "- - - - " << endl;
+//           SetColorAndBackground(15,0);
+
+            glMultMatrixd(textureMaster[textureIndex].matrixA);
+
+//           SetColorAndBackground(3,0);
+//            cout << "MatrixA- - - - " << endl;
+//            for (int p = 0; p < 16; p+=4) {
+//            cout << textureMaster[textureIndex].matrixA[p] << " "  << textureMaster[textureIndex].matrixA[p+1] << " "  << textureMaster[textureIndex].matrixA[p+2] << " "  << textureMaster[textureIndex].matrixA[p+3] << endl;
+//            }
+//            cout << "- - - - " << endl;
+//           SetColorAndBackground(15,0);
+//
+//           SetColorAndBackground(4,0);
+//            glGetDoublev(GL_MODELVIEW_MATRIX, m);
+//            for (int p = 0; p < 16; p+=4) {
+//            cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+//            }
+//            cout << "- - - - " << endl;
+//           SetColorAndBackground(15,0);
+
             draw2DPlayerFull();
         }
         stepClearTexture();
     }
     textureIndex = 0;
-
-    glFlush();
-    glutSwapBuffers();
+    if (drawFast) {
+        glFlush();
+        glutSwapBuffers();
+    }
 
     writeText();
-    drawFast = true;
+    if (!drawFast) {
+       drawFast = true;
+       display();
+   }
 }
 
 void UpdateHistory (int id) {
@@ -499,7 +574,7 @@ bool loadLightMapTexture(Model_IMG* model) {
     shouldRedraw = model->MemoryLoad();
     //cout << "Salio1!!" << endl;
     //shouldRedraw = false;
-    //model->Load("indice.jpg");
+   // model->Load("depth_device_rgb_1.jpg");
 
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -507,28 +582,65 @@ bool loadLightMapTexture(Model_IMG* model) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812D);
     glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderColor);
     //cout << "TEXTURA ANTES!!" << endl;
+    //glTexImage2D(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_BGR,GL_UNSIGNED_BYTE,model->Pixels);
     gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_BGR,GL_UNSIGNED_BYTE,model->Pixels);
     //cout << "TEXTURA DESPUES!!" << endl;
 
     return shouldRedraw;
 }
 
+//void timerFunction(int arg) {
+//    glutTimerFunc(reDrawRate, timerFunction, 0);
+//    bool shouldRedraw = false;
+//    shouldRedraw = textureModel->MemoryLoad();
+//    for (int i = 0; i < textureCount; i++) {
+//        cout << "textureImage[i].Id " << textureImage[i].Id << endl;
+//        shouldRedraw = shouldRedraw || loadLightMapTexture(&textureImage[i]);//textureImage[i].MemoryLoad();
+//    //cout << "Salio2!!" << endl;
+//    }
+//    if (shouldRedraw) {
+//        drawFast = false;
+//        display();
+//    }
+//}
+
 void timerFunction(int arg) {
     glutTimerFunc(reDrawRate, timerFunction, 0);
-    bool shouldRedraw = false;
+    bool shouldRedraw = true;
     shouldRedraw = textureModel->MemoryLoad();
-    for (int i = 0; i < textureCount; i++) {
-        cout << "textureImage[i].Id " << textureImage[i].Id << endl;
-        shouldRedraw = shouldRedraw || loadLightMapTexture(&textureImage[i]);//textureImage[i].MemoryLoad();
-    //cout << "Salio2!!" << endl;
+
+    //textureModel->Load("mallaUnida.ply");
+    for (int i = 0; !shouldRedraw && i < textureCount; i++) {
+        shouldRedraw = shouldRedraw || textureImage[i].MemoryCheck();
     }
     if (shouldRedraw) {
+
+        glPushMatrix();
+        glLoadIdentity();
+        for (int i = 0; i < textureCount; i++) {
+            glActiveTextureARB(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, textures[i]);
+            glDisable(GL_TEXTURE_2D);
+            textureIndex = i + 1;
+            loadLightMapTexture(&textureImage[i]);
+        }
+        textureIndex = 0;
+        glPopMatrix();
+
+        cout << "test" << endl;
+
         drawFast = false;
         display();
     }
 }
 
 int main(int argc, char **argv) {
+
+    char* dllName = "C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\OcclusionDLL\\bin\\OcclusionDLL.dll";
+    occlusionLibrary =  LoadLibraryA(dllName);
+    if (!occlusionLibrary) {
+        std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
+    }
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
@@ -555,27 +667,38 @@ int main(int argc, char **argv) {
     /* Mesh */
     //cout << "Paso 2.1" << endl;
     textureModel->MemoryLoad();
-    //textureModel->Load("antMesh.ply");
+    //textureModel->Load("mallaUnida.ply");
 
     //cout << "Paso 3" << endl;
     /* Texture */
     textureMaster = new MasterTexture[textureCount + 1];
     faces = new int*[textureCount + 1];
+            cout << "textureCount: " << textureCount<< endl;
     for (int i = 1; i <= textureCount; i++) {
         for (int j = 0; j < 3; j++) {
             textureMaster[0].viewer[j] = 0.0f;
             textureMaster[0].rotate[j] = 0.0f;
         }
-        for (int j = 0; j < 4; j++) {
-            for (int k = 0; k < 4; k++) {
-                textureMaster[i].matrix[j * 4 + k] = textureSetting->Values[i * 16 + j * 4 + k];
-                cout << "textureMaster[i].matrix[j * 4 + k] =  " << i << " " << textureMaster[i].matrix[j * 4 + k] << endl;
-            }
+//        for (int j = 0; j < 4; j++) {
+//            for (int k = 0; k < 4; k++) {
+//                textureMaster[i].matrix[j * 4 + k] = textureSetting->Values[i * 16 + j * 4 + k];
+//                cout << "textureMaster[i].matrix[j * 4 + k] =  " << i << " " << textureMaster[i].matrix[j * 4 + k] << endl;
+//            }
+//        }
+        for (int p = 0; p < 16; p++) {
+           textureMaster[i].matrixA[p] = textureSetting->ValuesA[i * 16 + p];
+           textureMaster[i].matrixB[p] = textureSetting->ValuesB[i * 16 + p];
+           //cout << textureMaster[i].matrix[p] << endl;
         }
         faces[i] = new int[facesCount];
     }
     //cout << "Paso4" << endl;
-
+        for (int i = 0; i< 16; i++){
+            cout << "matrixA: " << textureMaster[1].matrixA[i]<< endl;
+        }
+        for (int i = 0; i< 16; i++){
+            cout << "matrixB: " << textureMaster[1].matrixB[i]<< endl;
+        }
     /* Settings and files */
     settings = new MasterSettings(textureCount, textureMaster, 0, NULL);
 

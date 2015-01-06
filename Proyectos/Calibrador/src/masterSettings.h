@@ -5,6 +5,8 @@
 #include <GL/glext.h>
 #include <vector>
 #include "matrix4x4.h"
+#include <stdlib.h>
+#include <windows.h>
 
 using namespace std;
 
@@ -49,10 +51,10 @@ class MasterSettings
         MasterSettings(int textureCount, MasterTexture* textureMaster, int meshCount, MasterMesh* meshMaster);
         void loadTextureCalibration();
         void loadMeshCalibration();
-        void saveTextureCalibration();
+//        void saveTextureCalibration();
         void saveMeshCalibration();
         static void CalculateMatrix(MasterMesh master, GLdouble* m);
-        static void CalculateMatrix(vector<MasterTransform*> history, GLdouble* m);
+        static void CalculateMatrix(vector<MasterTransform*> history, GLdouble* m, bool flag);
     protected:
     private:
         int textureCount;

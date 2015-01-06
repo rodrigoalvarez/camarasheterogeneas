@@ -18,20 +18,21 @@ Model_PLY::Model_PLY() {
     if (!shareMeshLibrary) {
         std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
     }
+    Faces_Triangles = NULL;
 }
 
 bool Model_PLY::MemoryLoad() {
 
 
-    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
+    cout << "******ENTRO Model_PLY " << Id <<endl;
 
     f_ReadSharedMesh readMesh = (f_ReadSharedMesh)GetProcAddress(shareMeshLibrary, "ReadSharedMesh");
     numberFaces =  new int;
     *numberFaces = 0;
     int id = Id;
-    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
+    cout << "ENTRO Model_PLY 2"<<endl;
     readMesh(&id, numberFaces, &faces);
-    cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
+    cout << "ENTRO Model_PLY 3"<<endl;
 
     if (*numberFaces > 0 && id >= 0) {
     cout << "ENTRO Model_PLY::MemoryLoad" << Id <<endl;
@@ -43,6 +44,7 @@ bool Model_PLY::MemoryLoad() {
         FaceStruct* facesAux = new FaceStruct[*numberFaces];
         memcpy(facesAux, faces, sizeof(FaceStruct) * (*numberFaces));
 
+        float* Faces_TrianglesAux = Faces_Triangles;
         Faces_Triangles = new float[TotalFaces * 9];
         for (int i = 0; i< TotalFaces; i++){
             Faces_Triangles[i*9] = facesAux[i].p1[0];
@@ -55,6 +57,9 @@ bool Model_PLY::MemoryLoad() {
             Faces_Triangles[i*9+7] = facesAux[i].p3[1];
             Faces_Triangles[i*9+8] = facesAux[i].p3[2];
         }
+        delete [] facesAux;
+        if (Faces_TrianglesAux != NULL)
+            delete [] Faces_TrianglesAux;
         MinCoord = std::numeric_limits<float>::max();
         MaxCoord = std::numeric_limits<float>::min();
         for (int i = 0; i < TotalFaces * 9; i++) {
@@ -67,8 +72,8 @@ bool Model_PLY::MemoryLoad() {
         }
         cout << "MinCoord " << MinCoord/AlfaCoord <<endl;
         cout << "MaxCoord " << MaxCoord/AlfaCoord <<endl;
-        cout << "************AlfaCoord " << AlfaCoord << "************" << endl;
-        AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
+        //cout << "************AlfaCoord " << AlfaCoord << "************" << endl;
+        //AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
         for (int i = 0; i < TotalFaces * 9; i++) {
             Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
         }
@@ -76,8 +81,10 @@ bool Model_PLY::MemoryLoad() {
         cout << "RETORNO MALLA" <<endl;
         return true;
     }
-    else
+    else{
+        cout << "*******SALIO Model_PLY "<<endl;
         return false;
+    }
 }
 
 float* calculateNormal( float *coord1, float *coord2, float *coord3 ) {

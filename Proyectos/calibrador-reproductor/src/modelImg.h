@@ -24,6 +24,7 @@ class Model_IMG
 	public:
 		Model_IMG();
 		bool MemoryLoad();
+		bool MemoryCheck();
 		void Load(string filename);
 
         int Id;

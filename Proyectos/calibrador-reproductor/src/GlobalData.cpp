@@ -64,11 +64,18 @@ void GlobalData::loadCalibData(char * xml) {
                             sys_data[k].camera[i].points3DDownSample     = settings.getValue("pointsDownSample", 0.5);
                             settings.popTag();
                         }
-                        if(settings.pushTag("matrix2D")) {
-                            sys_data[k].camera[i].imgrow1.set(settings.getValue("m00", 1.0f), settings.getValue("m01", 1.0f), settings.getValue("m02", 1.0f), settings.getValue("m03", 1.0f));
-                            sys_data[k].camera[i].imgrow2.set(settings.getValue("m10", 1.0f), settings.getValue("m11", 1.0f), settings.getValue("m12", 1.0f), settings.getValue("m13", 1.0f));
-                            sys_data[k].camera[i].imgrow3.set(settings.getValue("m20", 1.0f), settings.getValue("m21", 1.0f), settings.getValue("m22", 1.0f), settings.getValue("m23", 1.0f));
-                            sys_data[k].camera[i].imgrow4.set(settings.getValue("m30", 1.0f), settings.getValue("m31", 1.0f), settings.getValue("m32", 1.0f), settings.getValue("m33", 1.0f));
+                        if(settings.pushTag("matrixA2D")) {
+                            sys_data[k].camera[i].imgrowA1.set(settings.getValue("m00", 1.0f), settings.getValue("m01", 1.0f), settings.getValue("m02", 1.0f), settings.getValue("m03", 1.0f));
+                            sys_data[k].camera[i].imgrowA2.set(settings.getValue("m10", 1.0f), settings.getValue("m11", 1.0f), settings.getValue("m12", 1.0f), settings.getValue("m13", 1.0f));
+                            sys_data[k].camera[i].imgrowA3.set(settings.getValue("m20", 1.0f), settings.getValue("m21", 1.0f), settings.getValue("m22", 1.0f), settings.getValue("m23", 1.0f));
+                            sys_data[k].camera[i].imgrowA4.set(settings.getValue("m30", 1.0f), settings.getValue("m31", 1.0f), settings.getValue("m32", 1.0f), settings.getValue("m33", 1.0f));
+                            settings.popTag();
+                        }
+                        if(settings.pushTag("matrixB2D")) {
+                            sys_data[k].camera[i].imgrowB1.set(settings.getValue("m00", 1.0f), settings.getValue("m01", 1.0f), settings.getValue("m02", 1.0f), settings.getValue("m03", 1.0f));
+                            sys_data[k].camera[i].imgrowB2.set(settings.getValue("m10", 1.0f), settings.getValue("m11", 1.0f), settings.getValue("m12", 1.0f), settings.getValue("m13", 1.0f));
+                            sys_data[k].camera[i].imgrowB3.set(settings.getValue("m20", 1.0f), settings.getValue("m21", 1.0f), settings.getValue("m22", 1.0f), settings.getValue("m23", 1.0f));
+                            sys_data[k].camera[i].imgrowB4.set(settings.getValue("m30", 1.0f), settings.getValue("m31", 1.0f), settings.getValue("m32", 1.0f), settings.getValue("m33", 1.0f));
                             settings.popTag();
                         }
                         if(settings.pushTag("matrix3D")) {

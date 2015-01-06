@@ -1,12 +1,12 @@
 # depslib dependency file v1.0
-1416677379 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\memoriacompartida\src\main.cpp
+1418505335 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\memoriacompartida\src\main.cpp
 	"main.h"
 
-1414268890 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\memoriacompartida\src\main.h
+1416870006 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\memoriacompartida\src\main.h
 	<windows.h>
 	"ofxSharedMemory.h"
 
-1410622777 c:\openframeworks\addons\ofxsharedmemory\src\ofxsharedmemory.h
+1417893879 c:\openframeworks\addons\ofxsharedmemory\src\ofxsharedmemory.h
 	"ofMain.h"
 	<stdio.h>
 	<sys/stat.h>

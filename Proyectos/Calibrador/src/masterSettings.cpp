@@ -29,6 +29,13 @@ void MasterSettings::loadMeshCalibration () {
     }
 }
 
+void SetColorAndBackground1(int ForgC, int BackC)
+{
+    WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);;
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wColor);
+    return;
+}
+
 void MasterSettings::saveMeshCalibration () {
 
     for (int i = 1; i <= meshCount; i++) {
@@ -75,22 +82,22 @@ void MasterSettings::loadTextureCalibration () {
     }
 }
 
-void MasterSettings::saveTextureCalibration () {
-
-    for (int i = 1; i <= textureCount; i++) {
-        MasterTexture* masterNow = &textureMaster[i];
-        std::stringstream fileName;
-        fileName << "texture" << i << ".txt";
-        std::ofstream out(fileName.str().c_str());
-        GLdouble m[16];
-        CalculateMatrix(masterNow->history, m);
-        out << m[0] << " " << m[1] << " " << m[2] << " " << m[3] << " ";
-        out << m[4] << " " << m[5] << " " << m[6] << " " << m[7] << " ";
-        out << m[8] << " " << m[9] << " " << m[10] << " " << m[11] << " ";
-        out << m[12] << " " << m[13] << " " << m[14] << " " << m[15];
-        out.close();
-    }
-}
+//void MasterSettings::saveTextureCalibration () {
+//
+//    for (int i = 1; i <= textureCount; i++) {
+//        MasterTexture* masterNow = &textureMaster[i];
+//        std::stringstream fileName;
+//        fileName << "texture" << i << ".txt";
+//        std::ofstream out(fileName.str().c_str());
+//        GLdouble m[16];
+//        CalculateMatrix(masterNow->history, m);
+//        out << m[0] << " " << m[1] << " " << m[2] << " " << m[3] << " ";
+//        out << m[4] << " " << m[5] << " " << m[6] << " " << m[7] << " ";
+//        out << m[8] << " " << m[9] << " " << m[10] << " " << m[11] << " ";
+//        out << m[12] << " " << m[13] << " " << m[14] << " " << m[15];
+//        out.close();
+//    }
+//}
 
 void MasterSettings::CalculateMatrix(MasterMesh master, GLdouble* m) {
     glPushMatrix();
@@ -103,21 +110,43 @@ void MasterSettings::CalculateMatrix(MasterMesh master, GLdouble* m) {
     glPopMatrix();
 }
 
-void MasterSettings::CalculateMatrix(vector<MasterTransform*> history, GLdouble* m) {
+void MasterSettings::CalculateMatrix(vector<MasterTransform*> history, GLdouble* m, bool flag) {
     glPushMatrix();
     glLoadIdentity();
-    for (int i = 0; i < history.size(); i++) {
-        MasterTransform* trans = history[history.size()-i-1];
-        if (trans->type == 0) { glTranslatef(-trans->value, 0, 0); }
-        if (trans->type == 1) { glTranslatef(0, -trans->value, 0); }
-        if (trans->type == 2) { glTranslatef(0, 0, -trans->value); }
-        if (trans->type == 3) { glRotatef(-trans->value, 1.0f,0.0f,0.0f); }
-        if (trans->type == 4) { glRotatef(-trans->value, 0.0f,1.0f,0.0f); }
-        if (trans->type == 5) { glRotatef(-trans->value, 0.0f,0.0f,1.0f); }
-    }
+    if (flag)
+        for (int i = 0; i < history.size(); i++) {
+            MasterTransform* trans = history[i];
+            if (trans->type == 0) { glTranslatef(trans->value, 0, 0); }
+            if (trans->type == 1) { glTranslatef(0, trans->value, 0); }
+            if (trans->type == 2) { glTranslatef(0, 0, trans->value); }
+            if (trans->type == 3) { glRotatef(trans->value, 1.0f,0.0f,0.0f); }
+            if (trans->type == 4) { glRotatef(trans->value, 0.0f,1.0f,0.0f); }
+            if (trans->type == 5) { glRotatef(trans->value, 0.0f,0.0f,1.0f); }
+        }
+
+    else
+        for (int i = 0; i < history.size(); i++) {
+            MasterTransform* trans = history[history.size()- i -1];
+            if (trans->type == 0) { glTranslatef(-trans->value, 0, 0); }
+            if (trans->type == 1) { glTranslatef(0, -trans->value, 0); }
+            if (trans->type == 2) { glTranslatef(0, 0, -trans->value); }
+            if (trans->type == 3) { glRotatef(-trans->value, 1.0f,0.0f,0.0f); }
+            if (trans->type == 4) { glRotatef(-trans->value, 0.0f,1.0f,0.0f); }
+            if (trans->type == 5) { glRotatef(-trans->value, 0.0f,0.0f,1.0f); }
+        }
+
+
     glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    SetColorAndBackground1(6,0);
+       for (int p = 0; p < 16; p+=4) {
+           cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+       }
+       cout << "- - - - " << endl;
+       SetColorAndBackground1(15,0);
+
     glPopMatrix();
 }
+
 
 MasterSettings::MasterSettings(int _textureCount, MasterTexture* _textureMaster, int _meshCount, MasterMesh* _meshMaster) {
     textureCount = _textureCount;

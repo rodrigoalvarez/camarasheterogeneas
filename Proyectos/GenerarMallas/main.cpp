@@ -27,9 +27,9 @@ void DLL_EXPORT generarMalla(NubePuntos* nbIN, FaceStruct** faces, int* numberFa
         *numberFaces = mply->totalFaces();
         *faces = mply->getFaces();
 
-        /*char nombre[50];
-        sprintf(nombre, "frame%d.ply", nroFrame);
-        mply->savePLY(nombre,true);*/
+//        char nombre[50];
+//        sprintf(nombre, "frame%d.ply", nroFrame);
+//        mply->savePLY(nombre,true);
 }
 
 void DLL_EXPORT generarMallaCalibrador(NubePuntos* nbIN, FaceStruct** faces, int* numberFaces)
