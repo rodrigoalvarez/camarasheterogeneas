@@ -127,12 +127,12 @@ public:
 	// Note you must deallocate bit in the inverse order of the allocation (as in a stack)
 	static inline bool DeleteBitFlag(int bitval)
 	{
-	  if(FirstUnusedBitFlag()>>1==bitval) {
+	  //if(FirstUnusedBitFlag()>>1==bitval) {
 		FirstUnusedBitFlag() = FirstUnusedBitFlag()>>1;
 		return true;
-	  }
+	  /*}
 	  assert(0);
-	  return false;
+	  return false;*/
 	}
 
 	/// This function checks if the given user bit is true
