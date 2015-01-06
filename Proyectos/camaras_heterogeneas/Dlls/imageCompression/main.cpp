@@ -5,8 +5,8 @@
 #include "timer.h"
 #include <ctype.h>
 
-void DLL_EXPORT compress_img(unsigned char ** srcBuff, int width, int height, unsigned char ** destBuff, int * comp_size) {
-    int quality_factor              = 90;
+void DLL_EXPORT compress_img(unsigned char ** srcBuff, int width, int height, unsigned char ** destBuff, int * comp_size, int qfactor) {
+    int quality_factor              = qfactor;
     int subsampling                 = -1;
     bool optimize_huffman_tables    = true;
     int actual_comps                = 3;

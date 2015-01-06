@@ -23,7 +23,7 @@ extern "C"
 {
 #endif
 
-void DLL_EXPORT compress_img(unsigned char **, int, int, unsigned char **, int *);
+void DLL_EXPORT compress_img(unsigned char **, int, int, unsigned char **, int *, int);
 void DLL_EXPORT decompress_img(unsigned char *, int, int*, int*, unsigned char **);
 //void DLL_EXPORT compress_img_greyscale(unsigned char *, int, int*, int*, unsigned char **);
 //void DLL_EXPORT decompress_img_greyscale(unsigned char *, int, int*, int*, unsigned char **);
