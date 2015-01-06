@@ -9,11 +9,14 @@ struct t_camera {
     int id;
     int resolutionX;
     int resolutionY;
-    int resolutionDownSample;
+    int pcDownSample;
+    float resolutionDownSample;
     int fps;
     bool colorRGB;
     bool use2D;
     bool use3D;
+    bool useCompression;
+    int  rgbCompressionQuality;
     float near3D;
     float far3D;
     float points3DDownSample;

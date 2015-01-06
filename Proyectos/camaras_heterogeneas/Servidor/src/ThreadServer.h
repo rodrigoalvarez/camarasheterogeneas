@@ -12,6 +12,18 @@ class ThreadServer : public ofThread {
 
 	public:
         f_decompress_img    decompress_img;
+
+        ThreadServer() {
+            idle                = true;
+            started             = false;
+            connectionClosed    = false;
+        }
+
+        ~ThreadServer() {
+            if(!started) return;
+            //ofRemoveListener(ofEvents().update, this, &ThreadServer::receiveFrame);
+        }
+
 		void threadedFunction();
 		int port;
 		int cliId;
@@ -28,4 +40,8 @@ class ThreadServer : public ofThread {
 		ofstream myfile;
 		FrameBuffer fb;
 		t_data * sys_data;
+		bool idle;
+		bool started;
+		bool connectionClosed;
+		bool checkConnError();
 };

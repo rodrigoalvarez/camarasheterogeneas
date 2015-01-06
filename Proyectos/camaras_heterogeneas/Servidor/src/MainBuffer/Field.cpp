@@ -9,7 +9,9 @@ Field::Field() {
 
 Field::~Field() {
     for (map< long int, ThreadData * >::iterator it = frame_map.begin(); it != frame_map.end(); ++it) {
-        delete ((ThreadData *) it->second);
+        //ThreadData * td = ((ThreadData *) it->second);
+        //td->releaseResources();
+        //delete td;
     }
     ofLogVerbose() << "[Field::~Field]";
 }
@@ -23,4 +25,13 @@ bool Field::hasCam(long int camId) {
 
 void Field::addFrame(ThreadData * frame, long int camId) {
     frame_map.insert ( std::pair<long int , ThreadData * > (camId, frame) );
+}
+
+void Field::releaseResources() {
+    for (map< long int, ThreadData * >::iterator it = frame_map.begin(); it != frame_map.end(); ++it) {
+        ThreadData * td = ((ThreadData *) it->second);
+        //td->releaseResources();
+        //delete td;
+    }
+    //ofLogVerbose() << "[Field::~Field]";
 }

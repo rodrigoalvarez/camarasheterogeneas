@@ -26,4 +26,5 @@ class Field {
 
         bool hasCam(long int camId);
         void addFrame(ThreadData *, long int);
+        void releaseResources();
 };

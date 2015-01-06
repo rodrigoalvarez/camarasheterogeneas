@@ -11,6 +11,7 @@ class Transmitter : public ofThread {
 
 	public:
 		void threadedFunction();
+		void process();
         int camWidth;
         int camHeight;
         IGrabber * grabber;
@@ -25,4 +26,16 @@ class Transmitter : public ofThread {
         t_data * sys_data;
 		void sendFrame(int totalCams, ThreadData * tData);
 
+        bool started;
+        bool idle;
+
+        Transmitter() {
+            idle = true;
+            started = false;
+        }
+
+        ~Transmitter() {
+            if(!started) return;
+            //ofRemoveListener(ofEvents().update, this, &Transmitter::process);
+        }
 };

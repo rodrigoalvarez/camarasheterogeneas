@@ -1,16 +1,5 @@
 #include "Thread3D.h"
 
-Thread3D::Thread3D() {
-    openNIRecorder  = NULL;
-    deviceInited    = false;
-}
-
-Thread3D::~Thread3D() {
-    if(openNIRecorder != NULL) {
-        delete openNIRecorder;
-    }
-}
-
 void Thread3D::threadedFunction() {
     dataAllocated = false;
 
@@ -53,18 +42,31 @@ void Thread3D::threadedFunction() {
         openNIRecorder->start();
     }
 
-	while(isThreadRunning()) {
+    started = true;
+    ofAddListener(ofEvents().update, this, &Thread3D::process);
+
+	/*while(isThreadRunning()) {
 	    ofSleepMillis(1000/sys_data->fps);
-	    openNIRecorder->update();
-	    updateData();
-	}
 
-	openNIRecorder->stop();
-    // done
+	}*/
 
-    if((context->use2D == 1) && (sys_data->goLive == 1)) {
-        img.clear();
+
+}
+
+void Thread3D::process(ofEventArgs &e) {
+    if(!started) return;
+    if(!idle) {
+        ofLogVerbose() << "[Thread3D::process] :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+        return;
     }
+    idle = false;
+
+    ofLogVerbose() << "[Thread3D::process] :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+
+    openNIRecorder->update();
+	updateData();
+
+    idle = true;
 }
 
 void Thread3D::updateData() {
@@ -74,6 +76,7 @@ void Thread3D::updateData() {
     }
 
     if(deviceInited) {
+        lock();
         if(context->use2D) {
             ofPixels&    ipixels    = openNIRecorder->getImagePixels();
             if((context->use2D == 1) && (sys_data->goLive == 1)) {
@@ -91,6 +94,7 @@ void Thread3D::updateData() {
             //Falta aplicarle el downsample.
         }
         dataAllocated = true;
+        unlock();
     }
 }
 

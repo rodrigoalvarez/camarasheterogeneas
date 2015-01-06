@@ -27,12 +27,25 @@ class Grabber : public IGrabber {
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		void updateThreadData();
+		void setupGui();
 		ofVec3f * transformPointDepth(ofVec3f point, ofVec3f vtrans);
         ofVec3f * transformPoint(ofVec3f point, ofMatrix4x4 transform);
         Thread2D * t2D;
 		Thread3D * t3D;
 		GlobalData * gdata;
         Transmitter  transmitter;
-
+        xn::DepthGenerator * Xn_depth;
+        XnDepthPixel*  rawPix;
+        ofVec3f v1;
+        int downsampling;
+        XnPoint3D Point2D, Point3D;
         bool goLive;
+        float * tmpX;
+        float * tmpY;
+        float * tmpZ;
+        ofMatrix4x4 matrix;
+        int y;
+        int x;
+        float d;
+        ofVec3f * vt;
 };

@@ -67,4 +67,8 @@ class FieldManager {
         Field * getNextFilledField();
 
         bool timevalMinorEqualThan(timeval curIndex, timeval maxIndex );
+
+        bool timevalMinorThan(timeval curIndex, timeval maxIndex );
+
+        void removeAllMinorThan(timeval curval);
 };

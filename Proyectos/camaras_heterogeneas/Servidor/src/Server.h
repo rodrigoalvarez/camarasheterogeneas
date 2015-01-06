@@ -38,6 +38,12 @@ struct t_completeFrame {
     t_rotation * arrRotation;
 };
 
+struct DebugTexture {
+    ofTexture * videoTexture;
+    int         cli;
+    int         cam;
+};
+
 class Server : public ofBaseApp {
 
 	public:
@@ -58,11 +64,11 @@ class Server : public ofBaseApp {
         void computeFrames();
         //void generarMalla(ThreadData);
         void setupGui(string ip);
-        //void setVideoPreview(int cli, int cam, ofImage img);
+        void setVideoPreview(int cli, int cam, ofImage img);
 
 		ofxUDPManager udpConnection;
 		ofxTCPServer TCP;
-        ThreadData * tData2;
+
         int currCliPort;
 
         MeshGenerator generator;
@@ -74,5 +80,9 @@ class Server : public ofBaseApp {
         int buffCurrIndex;
         MainBuffer * mb;
         ServerGlobalData * gdata;
+
+        std::list<DebugTexture *> list;
+        std::list<DebugTexture *>::iterator it;
+
         map< string, ofTexture > texture_map;
 };

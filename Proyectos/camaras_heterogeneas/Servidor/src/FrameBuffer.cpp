@@ -15,7 +15,15 @@ FrameBuffer::~FrameBuffer() {
     ofLogVerbose() << "[FrameBuffer::~FrameBuffer]";
     for(int i = 0; i<MAX_BUFF_SIZE; i++) {
         try {
-           delete(buffer[i]);
+            if(buffer[i] != NULL) {
+                ThreadData * prevFrame  = buffer[i];
+                while(prevFrame != NULL) {
+                    ThreadData * td = prevFrame;
+                    prevFrame = prevFrame->sig;
+                    delete td;
+                }
+            }
+            buffer[i]   = NULL;
         } catch (int e) {
             ofLogWarning() << "[FrameBuffer::~FrameBuffer]: An exception occurred. Exception Nr. " << e;
         }
@@ -28,50 +36,27 @@ void FrameBuffer::addFrame(ThreadData * frame, int totalCams) {
 
     if((tope == base) && (buffer[base] != NULL)) {
         try {
-            int i=0;
-            ThreadData * prevFrame = buffer[base];
-            for(i=0; i<totalCameras[base]; i++) {
-                if(prevFrame[i].state > 0) {
-                    cout << "Hago delete" << endl;
-                    /*if((prevFrame[i].state == 1) || (prevFrame[i].state == 3)) {
-                        cout << "delete 1" << endl;
-
-                    }
-                    if((prevFrame[i].state == 2) || (prevFrame[i].state == 3)) {
-                        cout << "delete 2" << endl;
-                        delete prevFrame[i].xpix;
-                        delete prevFrame[i].ypix;
-                        delete prevFrame[i].zpix;
-                    }*/
-                    delete(&prevFrame[i]);
+            ThreadData * prevFrame  = buffer[base];
+            while(prevFrame != NULL) {
+                ThreadData * td = prevFrame;
+                prevFrame = prevFrame->sig;
+                if(td->state > 0) {
+                    //PROBLEMA:
+                    //Si hago delete no debería pasar nada... sin embargo explota. Por eso uso la función
+                    //releaseResources en lugar de delete, para vaciar al menos algo de memoria.
+                    //delete td;
+                    td->releaseResources();
                 }
             }
-            /*for(i=0; i<totalCams; i++) {
-                if(prevFrame[i].state > 0) {
-                    cout << "Hago delete" << endl;
-                    if((prevFrame[i].state == 1) || (prevFrame[i].state == 3)) {
-                        cout << "delete 1" << endl;
-                        delete prevFrame[i].compImg;
-                    }
-                    if((prevFrame[i].state == 2) || (prevFrame[i].state == 3)) {
-                        cout << "delete 2" << endl;
-                        delete prevFrame[i].xpix;
-                        delete prevFrame[i].ypix;
-                        delete prevFrame[i].zpix;
-                    }
-                }
-            }*/
-            delete(buffer[base]);
+            delete buffer[base];
         } catch (int e) {
             ofLogWarning() << "[FrameBuffer::addFrame]: An exception occurred. Exception Nr. " << e;
         }
         buffer[base] = NULL;
         base         = ((base + 1) % MAX_BUFF_SIZE);
     }
-
     buffer[tope]        = frame;
     totalCameras[tope]  = totalCams;
-
     tope         = ((tope + 1) % MAX_BUFF_SIZE);
 }
 

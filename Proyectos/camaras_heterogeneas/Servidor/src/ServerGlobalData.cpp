@@ -16,5 +16,6 @@ void ServerGlobalData::loadCalibData(char * xml) {
 		sys_data->maxThreadedServers    = settings.getValue("maxThreadedServers",       100);
 		sys_data->maxReceiveFrameBuffer = settings.getValue("maxReceiveFrameBuffer",    10);
 		sys_data->processMostRecent     = settings.getValue("processMostRecent",        1);
+		sys_data->totalFreeCores        = settings.getValue("totalFreeCores",           1);
 	}
 }

@@ -20,42 +20,60 @@ void Transmitter::threadedFunction() {
     std::string str =  ofToString(sys_data->cliId) + "|" + ofToString(sys_data->cliPort);
     cliId           = str;
 
+    started = true;
+    //ofAddListener(ofEvents().update, this, &Transmitter::process);
+
     while(isThreadRunning()) {
         ofLogVerbose()  << endl << "[Transmitter::threadedFunction] while(isThreadRunning())";
         ofSleepMillis(1000/sys_data->fps);
 
-        if(state == 0) { // 0 - Todavía no se conectó al servidor
-            try {
-                ofLogVerbose() << "[Transmitter::threadedFunction] state=0, conectando a " << sys_data->serverIp << "-" << sys_data->serverPort;
-                TCP.setup( sys_data->serverIp, sys_data->serverPort );
-                TCPSVR.setup(sys_data->cliPort, true);
-                TCP.send( cliId );
-                TCP.close();
-                state = 2;
-            } catch (int e) {
-                ofLogVerbose() << "[Transmitter::threadedFunction] An exception occurred. Exception Nr. " << e;
-                state       = 3;
-            }
-        } else if(state == 2) { // 2 - Tiene cliente asignado.
-            try {
-                if(TCPSVR.getNumClients() > 0) {
-                    if(TCPSVR.isClientConnected(0)) {
-                        ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Actualizando ultima informacion:";
-                        grabber->updateThreadData();
-                        ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Saliendo de actualizar";
-                        sendFrame((grabber->total2D + grabber->total3D), grabber->tData);
-                    } else {
-                        ofLogVerbose() << "[Transmitter::threadedFunction] El servidor no está conectado.";
-                    }
-                }
-            } catch (int e) {
-                ofLogVerbose() << "[Transmitter::threadedFunction] An exception occurred. Exception Nr. " << e;
-                state       = 3;
-            }
-        } else {
-            ofLogVerbose() << "[Transmitter::threadedFunction] state=3";
-        }
+        process();
     }
+}
+
+void Transmitter::process() {
+    if(!started) return;
+    if(!idle) {
+        ofLogVerbose() << "[Transmitter::process] :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+        return;
+    }
+    idle = false;
+
+    ofLogVerbose() << "[Transmitter::process] :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+
+    if(state == 0) { // 0 - Todavía no se conectó al servidor
+        try {
+            ofLogVerbose() << "[Transmitter::threadedFunction] state=0, conectando a " << sys_data->serverIp << "-" << sys_data->serverPort;
+            TCP.setup( sys_data->serverIp, sys_data->serverPort );
+            TCPSVR.setup(sys_data->cliPort, true);
+            TCP.send( cliId );
+            TCP.close();
+            state = 2;
+        } catch (int e) {
+            ofLogVerbose() << "[Transmitter::threadedFunction] An exception occurred. Exception Nr. " << e;
+            state       = 3;
+        }
+    } else if(state == 2) { // 2 - Tiene cliente asignado.
+        try {
+            if(TCPSVR.getNumClients() > 0) {
+                if(TCPSVR.isClientConnected(0)) {
+                    ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Actualizando ultima informacion:";
+                    grabber->updateThreadData();
+                    ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Saliendo de actualizar";
+                    sendFrame((grabber->total2D + grabber->total3D), grabber->tData);
+                } else {
+                    ofLogVerbose() << "[Transmitter::threadedFunction] El servidor no está conectado.";
+                }
+            }
+        } catch (int e) {
+            ofLogVerbose() << "[Transmitter::threadedFunction] An exception occurred. Exception Nr. " << e;
+            state       = 3;
+        }
+    } else {
+        ofLogVerbose() << "[Transmitter::threadedFunction] state=3";
+    }
+
+    idle = true;
 }
 
 void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
@@ -68,6 +86,7 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
           Para control pensaba agregar por c/bloque: id(No de Frame), total(Total de bloques en los que se partió el bytearray), index (Número de ese bloque en la secuencia)
      3) Calcular algún tipo de checksum de verificación del frame completo para poder verificar que los datos están más o menos bien.
     */
+
     int imageBytesToSend    = 0;
     int totalBytesSent      = 0;
     int messageSize         = 0;
@@ -76,16 +95,19 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     ofLogVerbose()  << "[Transmitter::sendFrame] Por entrar a hacer compressImages " << totalCams;
     FrameUtils::compressImages(tData, totalCams, compress_img);
 
+
     ofLogVerbose()  << "[Transmitter::sendFrame] Saliendo de hacer compressImages " << totalCams;
 
 
     int frameSize       = FrameUtils::getFrameSize(tData, totalCams);
+    ofLogVerbose()  << "[Transmitter::frameSize] frameSize:" << frameSize;
 
     //cout << " al entrar a serdFrame2 " << tData[0].nubeH << endl;
     char * bytearray    = FrameUtils::getFrameByteArray(tData, totalCams, frameSize);
 
     int val0  = floor(frameSize / sys_data->maxPackageSize);   //totMaxRecSize
     int val1  = frameSize - val0 * sys_data->maxPackageSize; //resto
+
     TCPSVR.sendRawBytesToAll((char*) &val0, sizeof(int));
     TCPSVR.sendRawBytesToAll((char*) &val1, sizeof(int));
 

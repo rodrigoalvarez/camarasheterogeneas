@@ -15,6 +15,7 @@ struct t_data {
     int      maxThreadedServers;
     int      maxReceiveFrameBuffer;
     int      processMostRecent;
+    int      totalFreeCores;
 };
 
 class ServerGlobalData {

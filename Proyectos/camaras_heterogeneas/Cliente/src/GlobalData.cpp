@@ -60,7 +60,11 @@ void GlobalData::loadCalibData(char * xml) {
                 currCam->id                     = settings.getValue("id", 0);
 				currCam->resolutionX            = settings.getValue("resolutionX", 640);
 				currCam->resolutionY            = settings.getValue("resolutionY", 480);
-				currCam->resolutionDownSample   = settings.getValue("resolutionDownSample", 1);
+				int useComp                     = settings.getValue("useRGBCompression", 0);
+				currCam->useCompression         = ((useComp == 0) ? false : true);
+				currCam->rgbCompressionQuality  = settings.getValue("RGBCompressionQuality", 90);
+				currCam->pcDownSample           = settings.getValue("pcDownSample", 4);
+				currCam->resolutionDownSample   = settings.getValue("resolutionDownSample", 1.0f);
 				currCam->fps                    = settings.getValue("FPS", 24);
 				currCam->use2D                  = settings.getValue("use2D", true);
 				currCam->use3D                  = settings.getValue("use3D", true);

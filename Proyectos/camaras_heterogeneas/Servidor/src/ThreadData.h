@@ -23,6 +23,12 @@ class ThreadData {
         int nubeLength;
         int nubeW;
         int nubeH;
+
+        int imgWidth;
+        int imgHeight;
+        int qfactor;
+        bool compressed;
+
         int cameraType; //0-Unknown, 1-RGB, 2-Depth Camera
         float *         xpix;
         float *         ypix;
@@ -59,7 +65,11 @@ class ThreadData {
         }
 
         ~ThreadData() {
-            ofLogVerbose() << "[ThreadData::~ThreadData]";
+            releaseResources();
+        }
+
+        void releaseResources() {
+
             if(xpix != NULL) {
                 free(xpix);
                 xpix = NULL;
@@ -76,15 +86,16 @@ class ThreadData {
             }
 
             if(compImg != NULL) {
-                cout << " eliminando compImg " << endl;
+                //cout << " eliminando compImg " << endl;
                 free(compImg);
                 compImg = NULL;
             }
 
-            if(sig != NULL) {
+            /*if(sig != NULL) {
                 delete sig;
-                sig = NULL;
-            }
+                //sig = NULL;
+            }*/
+
             img.clear();
             spix.clear();
 
@@ -95,6 +106,8 @@ class ThreadData {
             sXpix.clear();
             sYpix.clear();
             sZpix.clear();
+
+            ofLogVerbose() << "[ThreadData::~ThreadData] fin";
         }
 
         void mergePointClouds(ThreadData * td) {

@@ -11,7 +11,7 @@ class ThreadData {
         //fm_key<time_t, int> * key;
         timeval curTime;
         //time_t  timestamp;
-        char *  timestampStr;
+        //char *  timestampStr;
         int     cliId;   // ID de la configuración de Cliente. Puede haber N
         int     camId;   // ID de la cámara en la instalación.
         ofImage img;
@@ -23,6 +23,12 @@ class ThreadData {
         int nubeLength;
         int nubeW;
         int nubeH;
+
+        int imgWidth;
+        int imgHeight;
+        int qfactor;
+        bool compressed;
+        bool removeRecursively;
         int cameraType; //0-Unknown, 1-RGB, 2-Depth Camera
         float *         xpix;
         float *         ypix;
@@ -55,10 +61,57 @@ class ThreadData {
             zpix        = NULL;
             compImg     = NULL;
             cameraType  = 0;
+            sig         = NULL;
+            removeRecursively = true;
         }
 
         ~ThreadData() {
-            ofLogVerbose() << "[ThreadData::~ThreadData]";
+            if(removeRecursively && (sig != NULL)) {
+                delete sig;
+            }
+            releaseResources();
+        }
+
+        void releaseResources() {
+
+            if(xpix != NULL) {
+                free(xpix);
+                xpix = NULL;
+            }
+
+            if(ypix != NULL) {
+                free(ypix);
+                ypix = NULL;
+            }
+
+            if(zpix != NULL) {
+                free(zpix);
+                zpix = NULL;
+            }
+
+            if(compImg != NULL) {
+                //cout << " eliminando compImg " << endl;
+                free(compImg);
+                compImg = NULL;
+            }
+
+            /*if(sig != NULL) {
+                delete sig;
+                //sig = NULL;
+            }*/
+
+            img.clear();
+            spix.clear();
+
+            cvX.clear();
+            cvY.clear();
+            cvZ.clear();
+            encodedCloud.clear();
+            sXpix.clear();
+            sYpix.clear();
+            sZpix.clear();
+
+            ofLogVerbose() << "[ThreadData::~ThreadData] fin";
         }
 
         void mergePointClouds(ThreadData * td) {

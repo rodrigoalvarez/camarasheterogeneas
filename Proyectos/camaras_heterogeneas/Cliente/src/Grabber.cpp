@@ -1,12 +1,18 @@
 #include "Grabber.h"
 #include "Thread2D.h"
 
+#include "ofxSimpleGuiToo.h"
+
 //--------------------------------------------------------------
 void Grabber::setup() {
 
     gdata       = new GlobalData();
     gdata->loadCalibData("settings.xml");
+    ofLogLevel(OF_LOG_VERBOSE);
+    //ofLogToFile("client_log.txt", false);
 
+    setupGui();
+    downsampling = 4;
     switch(gdata->sys_data->logLevel) {
         case 0: ofSetLogLevel(OF_LOG_VERBOSE); break;
         case 1: ofSetLogLevel(OF_LOG_NOTICE); break;
@@ -19,12 +25,12 @@ void Grabber::setup() {
 
     FrameUtils::init();
 
-
+    ofSetFrameRate(gdata->sys_data->fps);
 
     total2D     = gdata->total2D;    //Hacer que se cargue dinámico.
     total3D     = gdata->total3D;    //Hacer que se cargue dinámico.
 
-    ofSetFrameRate(gdata->sys_data->fps);
+    //ofSetFrameRate(gdata->sys_data->fps);
 
     if((gdata->total2D + gdata->total3D) > 0) {
         tData = new ThreadData[gdata->total2D + gdata->total3D];
@@ -57,19 +63,24 @@ void Grabber::setup() {
         } else {
             t2D[i2D].sys_data                   = gdata->sys_data;
             t2D[i2D].context                    = camera;
-            t2D[i2D].startThread(true, false);
+            t2D[i2D].startThread(true, true);
             i2D ++;
         }
         camera = camera->sig;
     }
-
+    ofLogVerbose() << "[Grabber::setup] " << gdata->sys_data->goLive;
     if(gdata->sys_data->goLive == 1) { //Si desde el Calibrator se indicó que se debe trasmitir en vivo.
         transmitter.grabber     = this;
         transmitter.sys_data    = gdata->sys_data;
-        transmitter.startThread(true, false);
+        transmitter.startThread(true, true);
     }
     ofVideoGrabber vid;
     vid.listDevices();
+}
+
+void Grabber::setupGui() {
+    gui.addFPSCounter();
+    gui.show();
 }
 
 //--------------------------------------------------------------
@@ -79,7 +90,9 @@ void Grabber::update() {
 
 //--------------------------------------------------------------
 void Grabber::draw() {
-
+    if(gui.isOn()) {
+        gui.draw();
+    }
 }
 
 void Grabber::exit() {
@@ -125,6 +138,9 @@ void Grabber::exit() {
     }
 }
 
+
+//xn::DepthGenerator& Xn_depth;
+
 //Operación invocada por Transmitter para refrezcar la información a trasmitir.
 void Grabber::updateThreadData() {
     ofLogVerbose() << "[Grabber::updateThreadData] " << " entrando. " << gdata->total2D;
@@ -143,7 +159,15 @@ void Grabber::updateThreadData() {
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
             tData[di].img.clear();
+            tData[di].compressed    = t2D[i].context->useCompression;
             tData[di].img.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.getWidth(), t2D[i].img.getHeight(), OF_IMAGE_COLOR, true);
+            tData[di].qfactor       = t2D[i].context->rgbCompressionQuality;
+
+            int imgW                = (int)t2D[i].img.getWidth()*t2D[i].context->resolutionDownSample;
+            int imgH                = (int)t2D[i].img.getHeight()*t2D[i].context->resolutionDownSample;
+            tData[di].imgWidth      = imgW;
+            tData[di].imgHeight     = imgH;
+            tData[di].img.resize(imgW, imgH);
 
             tData[di].imgrow1.set(t2D[i].context->imgrow1.x, t2D[i].context->imgrow1.y, t2D[i].context->imgrow1.z, t2D[i].context->imgrow1.w);
             tData[di].imgrow2.set(t2D[i].context->imgrow2.x, t2D[i].context->imgrow2.y, t2D[i].context->imgrow2.z, t2D[i].context->imgrow2.w);
@@ -177,9 +201,17 @@ void Grabber::updateThreadData() {
             if(t3D[i].context->use2D == 1) {
                 tData[di].state    = DEVICE_2D;
                 //Clono la imágen
-
+                tData[di].compressed    = t3D[i].context->useCompression;
                 tData[di].img.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.getWidth(), t3D[i].img.getHeight(), OF_IMAGE_COLOR, true);
-                tData[di].img.saveImage("desde_kinect.jpg");
+
+                int imgW                = (int)t3D[i].img.getWidth()*t3D[i].context->resolutionDownSample;
+                int imgH                = (int)t3D[i].img.getHeight()*t3D[i].context->resolutionDownSample;
+                tData[di].imgWidth      = imgW;
+                tData[di].imgHeight     = imgH;
+
+                tData[di].img.resize(imgW, imgH);
+                tData[di].qfactor       = t3D[i].context->rgbCompressionQuality;
+
                 tData[di].nubeW = tData[di].nubeH = 0;
             }
 
@@ -187,27 +219,20 @@ void Grabber::updateThreadData() {
                 ((t3D[i].context->use2D == 1) ? tData[di].state = DEVICE_2D_3D : tData[di].state = DEVICE_3D);
                 //Hacer que esta nube de puntos, cuando tela de, ya te la de transformada.
 
-                tData[di].nubeW         = t3D[i].spix.getWidth();
-                tData[di].nubeH         = t3D[i].spix.getHeight();
+                tData[di].nubeW = t3D[i].spix.getWidth();
+                tData[di].nubeH = t3D[i].spix.getHeight();
 
-                XnDepthPixel*  rawPix   = t3D[i].spix.getPixels();
+                rawPix          = t3D[i].spix.getPixels();
+                Xn_depth        = &t3D[i].openNIRecorder->getDepthGenerator();
 
-                xn::DepthGenerator& Xn_depth = t3D[i].openNIRecorder->getDepthGenerator();
-
-                int downsampling = 2;
-                XnPoint3D Point2D, Point3D;
-
-                int y   = 0;
-                int x   = 0;
-                float d = 0;
+                y   = 0;
+                x   = 0;
+                d   = 0;
                 tData[di].nubeLength    = 0;
-                ofVec3f v1;
-                ofVec3f * vt;
-                ofLogVerbose() << di << " tData[di].nubeH " << tData[di].nubeH << " tData[di].nubeW " << tData[di].nubeW;
 
-                float * tmpX = NULL;
-                float * tmpY = NULL;
-                float * tmpZ = NULL;
+                tmpX = NULL;
+                tmpY = NULL;
+                tmpZ = NULL;
 
                 if((tData[di].nubeW > 0) && (tData[di].nubeH > 0)) {
                     tmpX = new float[tData[di].nubeW * tData[di].nubeH];
@@ -220,12 +245,6 @@ void Grabber::updateThreadData() {
                 tData[di].row3.set(t3D[i].context->row3.x, t3D[i].context->row3.y, t3D[i].context->row3.z, t3D[i].context->row3.w);
                 tData[di].row4.set(t3D[i].context->row4.x, t3D[i].context->row4.y, t3D[i].context->row4.z, t3D[i].context->row4.w);
 
-                ofLogVerbose() << "[Grabber::updateThreadData] 3D - row1.x: " << tData[di].row1.x << ", row1.y: " << tData[di].row1.y << ", row1.z: " << tData[di].row1.z << ", row1.w: " << tData[di].row1.w;
-                ofLogVerbose() << "[Grabber::updateThreadData] 3D - row2.x: " << tData[di].row2.x << ", row2.y: " << tData[di].row2.y << ", row2.z: " << tData[di].row2.z << ", row2.w: " << tData[di].row2.w;
-                ofLogVerbose() << "[Grabber::updateThreadData] 3D - row3.x: " << tData[di].row3.x << ", row3.y: " << tData[di].row3.y << ", row3.z: " << tData[di].row3.z << ", row3.w: " << tData[di].row3.w;
-                ofLogVerbose() << "[Grabber::updateThreadData] 3D - row4.x: " << tData[di].row4.x << ", row4.y: " << tData[di].row4.y << ", row4.z: " << tData[di].row4.z << ", row4.w: " << tData[di].row4.w;
-
-                ofMatrix4x4 matrix;
                 matrix.set( t3D[i].context->row1.x, t3D[i].context->row1.y, t3D[i].context->row1.z, t3D[i].context->row1.w,
                             t3D[i].context->row2.x, t3D[i].context->row2.y, t3D[i].context->row2.z, t3D[i].context->row2.w,
                             t3D[i].context->row3.x, t3D[i].context->row3.y, t3D[i].context->row3.z, t3D[i].context->row3.w,
@@ -233,8 +252,8 @@ void Grabber::updateThreadData() {
 
                 ofLogVerbose() << matrix << endl;
 
-                for(y=0; y < tData[di].nubeH; y += downsampling) {
-                    for(x=0; x < tData[di].nubeW; x += downsampling) {
+                for(y=0; y < tData[di].nubeH; y += t3D[i].context->pcDownSample) {
+                    for(x=0; x < tData[di].nubeW; x += t3D[i].context->pcDownSample) {
                         d = rawPix[y * tData[di].nubeW + x];
                         if(d != 0) {
                             Point2D.X   = x;
@@ -242,7 +261,7 @@ void Grabber::updateThreadData() {
                             Point2D.Z   = (float)d;
                             try {
 
-                                Xn_depth.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
+                                Xn_depth->ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
                                 v1.set(Point3D.X, Point3D.Y, Point3D.Z);
 
                                 vt = transformPoint(v1, matrix);
@@ -281,14 +300,15 @@ void Grabber::updateThreadData() {
                     memcpy(tData[di].ypix,     tmpY,     sizeof(float) * tData[di].nubeLength);
                     memcpy(tData[di].zpix,     tmpZ,     sizeof(float) * tData[di].nubeLength);
                 }
+
                 if(tmpX != NULL) {
                     delete tmpX;
                     delete tmpY;
                     delete tmpZ;
                 }
 
-                ofLogVerbose() << "[Grabber::updateThreadData] " << " saliendo del for for.";
-                /**/
+                //ofLogVerbose() << "[Grabber::updateThreadData] " << " saliendo del for for.";
+
             }
         }
         gettimeofday(&tData[di].curTime, NULL);

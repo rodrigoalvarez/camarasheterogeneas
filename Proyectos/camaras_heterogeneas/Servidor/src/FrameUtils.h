@@ -11,7 +11,7 @@
 
 #include <windows.h>
 
-typedef void (*f_compress_img) (void ** srcBuff, int width, int height, void ** destBuff, int * comp_size);
+typedef void (*f_compress_img) (void ** srcBuff, int width, int height, void ** destBuff, int * comp_size, int qfactor);
 typedef void (*f_decompress_img) (void * srcBuff, int comp_size, int* width, int* height, void ** destBuff);
 
 class FrameUtils {
@@ -141,6 +141,8 @@ class FrameUtils {
                         //totSize += p.size();
                         ofLogVerbose() << "[FrameUtils::getFrameSize] sumando el size " << tData[i].compSize << endl;
                         totSize += tData[i].compSize;
+
+                        totSize += sizeof(int)*3; //imgWidth, imgHeight, compressed
                     }
 
                     //Si tiene nube;
@@ -198,6 +200,10 @@ class FrameUtils {
                 char* off_nubeByteArray;
 
                 for(i=0; i<totCameras; i++) {
+                    if(i>0) {
+                        tData[i-1].sig = &tData[i];
+                    }
+                    tData[i].sig = NULL;
                     /*
                      - (int) cliId; // ID de la configuración de Cliente. Puede haber N.
                      - (int) camId; // ID de la cámara en la instalación.
@@ -275,7 +281,19 @@ class FrameUtils {
                             tData[i].compImg    = new char[tData[i].compSize];
                             memcpy((tData[i].compImg), ((unsigned char *) off_imagebytearray), tData[i].compSize);
 
-                            start    = off_imagebytearray + tData[i].compSize;
+                            off_imagebytearray  = off_imagebytearray + tData[i].compSize;
+                            memcpy(&(tData[i].imgWidth),     (off_imagebytearray),     sizeof(int));
+
+                            off_imagebytearray  = off_imagebytearray + sizeof(int);
+                            memcpy(&(tData[i].imgHeight),     (off_imagebytearray),     sizeof(int));
+
+                            int compressed = 0;
+                            off_imagebytearray  = off_imagebytearray + sizeof(int);
+                            memcpy(&compressed,     (off_imagebytearray),     sizeof(int));
+
+                            tData[i].compressed = (compressed == 1);
+
+                            start    = off_imagebytearray + sizeof(int);
                         }
 
                         off_pcWidth = start;
@@ -321,6 +339,7 @@ class FrameUtils {
                     }
                 }
                 std::pair <int, ThreadData *> retVal;
+                tData[totCameras-1].sig = NULL;
                 retVal.first    = totCameras;
                 retVal.second   = tData;
                 return retVal;
@@ -369,7 +388,7 @@ class FrameUtils {
 
             int i=0, totSize = 0;
             for(i=0; i<totalCams; i++) {
-                ofLogVerbose() << "off_imagebytearray size " << tData[i].compSize << endl;
+                //ofLogVerbose() << "off_imagebytearray size " << tData[i].compSize << endl;
 
                 off_cliId           = start;
                 off_camId           = off_cliId      + sizeof(int);
@@ -390,6 +409,7 @@ class FrameUtils {
                 //Si (tData[i].state > 0) = Está inicializado
                 if(tData[i].state > 0) {
                     //Si tiene imágen;
+
                     if((tData[i].state == 1) || (tData[i].state == 3)) {
                         //Reservo lugar para la imágen.
                         off_imgBArrSize      = start;
@@ -433,12 +453,23 @@ class FrameUtils {
 
                         memcpy(off_imagebytearray, tData[i].compImg, tData[i].compSize);
 
-                        start    = off_imagebytearray + tData[i].compSize;
+                        off_imagebytearray  = off_imagebytearray + tData[i].compSize;
+                        memcpy(off_imagebytearray,     (&tData[i].imgWidth),     sizeof(int));
+
+                        off_imagebytearray  = off_imagebytearray + sizeof(int);
+                        memcpy(off_imagebytearray,     (&tData[i].imgHeight),     sizeof(int));
+
+                        int compressed = ((tData[i].compressed) ? 1 : 0);
+                        off_imagebytearray  = off_imagebytearray + sizeof(int);
+                        memcpy(off_imagebytearray,     (&compressed),     sizeof(int));
+
+                        start    = off_imagebytearray + sizeof(int);
                     }
 
                     off_pcWidth = start; //off_curTime + sizeof(timeval);
                     //Si tiene nube;
                     if((tData[i].state == 2) || (tData[i].state == 3)) {
+
                         off_pcHeight         = off_pcWidth  + sizeof(int);
                         off_pcLength         = off_pcHeight + sizeof(int);
                         off_nubeByteArray    = off_pcLength + sizeof(int);
@@ -468,6 +499,7 @@ class FrameUtils {
 
                         start = off_nubeByteArray;
                     }
+
                 }
             }
 
@@ -509,8 +541,15 @@ class FrameUtils {
                 if(tData[i].state > 0) {
                     if((tData[i].state == 1) || (tData[i].state == 3)) {
                         srcBuff           = (void *) tData[i].img.getPixels();
-                        compress_img(&srcBuff, tData[i].img.getWidth(), tData[i].img.getHeight(), &tData[i].compImg, &tData[i].compSize);
-                        ofLogWarning() << "[FrameUtils::compressImages] - tData[i].compSize " << tData[i].compSize;
+                        if(!tData[i].compressed) {
+                            int orig_buf_size       = tData[i].img.getWidth() * tData[i].img.getHeight() * 3;
+                            tData[i].compImg        = malloc(orig_buf_size);
+                            memcpy(tData[i].compImg, srcBuff, orig_buf_size);
+                            tData[i].compSize       = orig_buf_size;
+                        } else {
+                            compress_img(&srcBuff, tData[i].img.getWidth(), tData[i].img.getHeight(), &tData[i].compImg, &tData[i].compSize, tData[i].qfactor);
+                            ofLogWarning() << "[FrameUtils::compressImages] - tData[i].compSize " << tData[i].compSize;
+                        }
                     }
                     if((tData[i].state == 2) || (tData[i].state == 3)) {
                         //@TODO: Acá falta integrar la compresión de la nube.
@@ -566,6 +605,15 @@ class FrameUtils {
     * Recorre los totalCams ThreadData y descomprime todas las imágenes.
     */
     static void decompressImages(ThreadData * tData, int totalCams, f_decompress_img decompress_img) {
+//        HINSTANCE hGetProcIDDLL;
+//        //HINSTANCE hGetProcPCIDDLL;
+//
+//        hGetProcIDDLL                    =  LoadLibraryA("imageCompression.dll");
+//        //hGetProcPCIDDLL                     =  LoadLibraryA("pointCloudCompression.dll");
+//
+//        f_decompress_img    decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL,      "decompress_img");
+        //f_decompress_pc     decompress_pc   = (f_decompress_img) GetProcAddress(hGetProcPCIDDLL,    "decompress_pc");
+
         try {
             int i;
             for(i=0; i<totalCams; i++) {
@@ -574,14 +622,18 @@ class FrameUtils {
                         if(tData[i].compSize == -1) {
                             std::cout << "Error al comprimir la imagen. " << std::endl;
                         } else {
-                            int unc_width   = 0;
-                            int unc_height  = 0;
+                            if(tData[i].compressed) {
+                                int unc_width   = 0;
+                                int unc_height  = 0;
 
-                            unsigned char * unc_Buff = NULL;
-                            decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
-                            tData[i].img.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
-                            free(unc_Buff);
-                            //tData[i].img.saveImage("decompress_debug.jpg");
+                                const unsigned char * unc_Buff = NULL;
+                                decompress_img(tData[i].compImg, tData[i].compSize, &unc_width, &unc_height, (void **)&unc_Buff);
+                                tData[i].img.setFromPixels(unc_Buff, unc_width, unc_height, OF_IMAGE_COLOR, true);
+                                //tData[i].img.saveImage("decompress_debug.jpg");
+                            } else {
+                                tData[i].img.setFromPixels((unsigned char *) tData[i].compImg, tData[i].imgWidth, tData[i].imgHeight, OF_IMAGE_COLOR, true);
+                                //tData[i].img.setFromPixels(tData[i].compImg, tData[i]., unc_height, OF_IMAGE_COLOR, true);
+                            }
                         }
                     }
                     if((tData[i].state == 2) || (tData[i].state == 3)) {

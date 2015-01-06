@@ -7,44 +7,51 @@
 #include "FrameUtils.h"
 #include "MainBuffer/MainBuffer.h"
 #include "ServerGlobalData.h"
-#include "ofxSharedMemory.h"
+#include "MeshThreadedGenerator.h"
+#include "MeshCollector.h"
+//#include "ofxSharedMemory.h"
 
-struct FaceStruct
+/*struct FaceStruct
 {
     float p1[3];
     float p2[3];
     float p3[3];
-};
+};*/
 
 class MeshGenerator : public ofThread {
 	public:
         MeshGenerator() {
             buffer = NULL;
-            char* dllName = "C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\GenerarMallas\\bin\\Release\\GenerarMallas.dll";
-            generateMeshLibrary =  LoadLibraryA(dllName);
-            if (!generateMeshLibrary) {
-                std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
-            }
-
-            dllName = "C:\\CamarasHeterogeneas\\Proyecto\\camarasheterogeneas\\Proyectos\\MemoriaCompartida\\bin\\MemoriaCompartida.dll";
-            memorySharedLibrary =  LoadLibraryA(dllName);
-            if (!memorySharedLibrary) {
-                std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
-            }
+            nframe          = 0;
+            currTProcesor   = 0;
+            idle            = true;
+            started         = false;
         }
 
-        HINSTANCE generateMeshLibrary;
-        HINSTANCE memorySharedLibrary;
+        ~MeshGenerator() {
+            if(!started) return;
+            delete threads;
+            delete collector;
+            ofRemoveListener(ofEvents().update, this, &MeshGenerator::processFrame);
+        }
+
+        //HINSTANCE generateMeshLibrary;
+        //HINSTANCE memorySharedLibrary;
 		void threadedFunction();
-		void processFrame();
+		void processFrame(ofEventArgs &e);
 		MainBuffer * buffer;
+		MeshThreadedGenerator * threads;
+		MeshCollector * collector;
 		t_data * sys_data;
+        int nframe;
+        int currTProcesor;
+        //ofxSharedMemory<int*> nFacesMemoryMappedFile;
+        //int* numberFaces;
 
-        ofxSharedMemory<int*> nFacesMemoryMappedFile;
-        int* numberFaces;
-
-        ofxSharedMemory<FaceStruct*> facesMemoryMappedFile;
-        FaceStruct* faces;
+        //ofxSharedMemory<FaceStruct*> facesMemoryMappedFile;
+        //FaceStruct* faces;
 
         bool isConnected;
+        bool idle;
+        bool started;
 };

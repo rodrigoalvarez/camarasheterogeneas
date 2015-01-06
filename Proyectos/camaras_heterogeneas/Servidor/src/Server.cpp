@@ -8,93 +8,60 @@
 #include <sys/types.h>
 
 #include <string.h>
-//--------------------------------------------------------------
 
-int      box2;
-int procesar = 0;
-
-ofTexture			videoTexture1;
-ofTexture			videoTexture2;
-ofTexture			videoTexture3;
-ofTexture			videoTexture4;
-ofTexture			videoTexture5;
-ofTexture			videoTexture6;
-ofTexture			videoTexture7;
-ofTexture			videoTexture8;
-ofTexture			videoTexture9;
-ofImage tmp;
+bool compare_texture(DebugTexture * first, DebugTexture * second) {
+    if(first->cli == second->cli) {
+        return (first->cam < second->cam);
+    }
+    return (first->cli < second->cli);
+}
 
 void Server::setupGui(string ip) {
     ServerGlobalData::debug = false;
+    gui.addFPSCounter();
     gui.addTitle("IP: " + ip);
     gui.addTitle("Port: " + ofToString(gdata->sys_data->serverPort));
-    gui.addTitle("FPS: " + ofToString(gdata->sys_data->fps));
+    gui.addTitle("Desired FPS: " + ofToString(gdata->sys_data->fps));
     gui.addTitle("Max Package Size: " + ofToString(gdata->sys_data->maxPackageSize));
     gui.addTitle("Sync Factor: " + ofToString(gdata->sys_data->syncFactorValue));
     gui.addTitle("Max Threads: " + ofToString(gdata->sys_data->maxThreadedServers));
     gui.addTitle("Max Cli Buffer: " + ofToString(gdata->sys_data->maxReceiveFrameBuffer));
-
-    videoTexture1.allocate(320, 240, GL_RGB);
-    videoTexture2.allocate(320, 240, GL_RGB);
-    videoTexture3.allocate(320, 240, GL_RGB);
-    videoTexture4.allocate(320, 240, GL_RGB);
-    videoTexture5.allocate(320, 240, GL_RGB);
-    videoTexture6.allocate(320, 240, GL_RGB);
-    videoTexture7.allocate(320, 240, GL_RGB);
-    videoTexture8.allocate(320, 240, GL_RGB);
-    videoTexture9.allocate(320, 240, GL_RGB);
-
-    gui.addContent("Camera 1", videoTexture1);
-    gui.addContent("Camera 2", videoTexture2);
-    gui.addContent("Camera 3", videoTexture3);
-    gui.addContent("Camera 4", videoTexture4);
-    gui.addContent("Camera 5", videoTexture5);
-    gui.addContent("Camera 6", videoTexture6);
-    gui.addContent("Camera 7", videoTexture7);
-    gui.addContent("Camera 8", videoTexture8);
-    gui.addContent("Camera 9", videoTexture9);
-
     gui.show();
 }
 
-/*void Server::setVideoPreview(int cli, int cam, ofImage img) {
-
-    string search = ofToString(cli) + "_" + ofToString(cam);
-    ofLogVerbose() << "[Server::setVideoPreview] search: " << search;
+void Server::setVideoPreview(int cli, int cam, ofImage img) {
 
     if(!img.isAllocated()) return;
-    //img.saveImage("desde_save_video_preview.jpg");
     ofImage tmpImg;
     tmpImg.allocate(img.getWidth(), img.getHeight(), OF_IMAGE_COLOR);
     tmpImg.setFromPixels(img.getPixelsRef());
     tmpImg.resize(320, 240);
 
+    ofTexture * txt = NULL;
+    DebugTexture * dt= NULL;
 
-    ofTexture txt;
-    //txt = videoTexture1;
-
-    //cout << texture_map.size()+1 << endl ;
-    if(texture_map.count(search) == 1) {
-        txt = texture_map[search];
-    } else {
-        switch(texture_map.size()+1) {
-            case 1: txt = videoTexture1;break;
-            case 2: txt = videoTexture2;break;
-            case 3: txt = videoTexture3;break;
-            case 4: txt = videoTexture4;break;
-            case 5: txt = videoTexture5;break;
-            case 6: txt = videoTexture6;break;
-            case 7: txt = videoTexture7;break;
-            case 8: txt = videoTexture8;break;
-            case 9: txt = videoTexture9;break;
-            default:txt = videoTexture1;break;
+    for (it=list.begin(); it!=list.end(); ++it) {
+        if( ((*it)->cli == cli) && ((*it)->cam == cam) ) {
+            dt  = (*it);
         }
-        texture_map.insert ( std::pair< string, ofTexture > (search, txt) );
     }
-    txt.clear();
-    txt.loadData((unsigned char *)tmpImg.getPixels(), 320, 240, GL_RGB);
+
+    if(dt == NULL) {
+        dt                  = new DebugTexture();
+        dt->videoTexture    = new ofTexture();
+        dt->videoTexture->allocate(320, 240, GL_RGB);
+        dt->cli             = cli;
+        dt->cam             = cam;
+        std::string title   = "Cli: " + ofToString(cli) + ", Cam: " + ofToString(cam);
+        gui.addContent(title, *dt->videoTexture);
+        list.push_back(dt);
+        list.sort(compare_texture);
+    }
+
+    dt->videoTexture->loadData((unsigned char *)tmpImg.getPixels(), 320, 240, GL_RGB);
     tmpImg.clear();
-}*/
+    ofLogVerbose() << "[Server::setVideoPreview] end search" << endl;
+}
 
 void Server::exit() {
     int i = 0;
@@ -106,15 +73,12 @@ void Server::exit() {
 
     TCP.close();
 
-    videoTexture1.clear();
-    videoTexture2.clear();
-    videoTexture3.clear();
-    videoTexture4.clear();
-    videoTexture5.clear();
-    videoTexture6.clear();
-    videoTexture7.clear();
-    videoTexture8.clear();
-    videoTexture9.clear();
+    for (it=list.begin(); it!=list.end(); ++it) {
+        DebugTexture * result = list.front();
+        delete result->videoTexture;
+        list.remove(result);
+        delete result;
+    }
 
     if(gdata != NULL) {
         delete gdata;
@@ -148,7 +112,7 @@ void Server::setup() {
            }
         }
     }
-    //
+
     setupGui(ip);
 
     switch(gdata->sys_data->logLevel) {
@@ -163,18 +127,18 @@ void Server::setup() {
 
     ofLogToFile("server_log.txt", false);
 
-    mb              = new MainBuffer();
-    mb->sys_data    = gdata->sys_data;
-    mb->startBuffer();
-
-    //ofSetFrameRate(gdata->sys_data->fps);
     TCP.setup(gdata->sys_data->serverPort);
 
-	tData2              = NULL;
 	currCliPort         = gdata->sys_data->serverPort + 1;
 	totThreadedServers  = 0;
     buffLastIndex       = 0;
     buffCurrIndex       = 0;
+
+    ofSetFrameRate(gdata->sys_data->fps);
+
+    mb              = new MainBuffer();
+    mb->sys_data    = gdata->sys_data;
+    mb->startBuffer();
 
     for(int i = 0; i < gdata->sys_data->maxThreadedServers; i++) {
         tservers[i] = NULL;
@@ -192,8 +156,7 @@ void Server::setup() {
         //Le retorno al cliente el puerto (PUERTO_X) asignado.
 //--------------------------------------------------------------
 void Server::update() {
-    ofSleepMillis(1000/gdata->sys_data->fps);
-    //vidGrabber.update();
+    ofLogVerbose() << "Server :: FPS " << ofToString(ofGetFrameRate()) << endl;
     for(int i = 0; i < TCP.getLastID(); i++) { // getLastID is UID of all clients
         if( TCP.isClientConnected(i) ) { // check and see if it's still around
             string str = TCP.receive(i);
@@ -233,24 +196,32 @@ void Server::computeFrames() {
     ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totThreadedServers;
     for(int i = 0; i < totThreadedServers; i++) {
         int currCam = 1;
+        ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer lock " << endl;
         tservers[i]->lock();
+        ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer getHeadFrame " << endl;
         std::pair <int, ThreadData *> head = tservers[i]->fb.getHeadFrame();
         ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Tope del buffer tiene " << head.first << " vistas de camaras.";
+
         for(int c = 0; c < head.first; c++) {
-            //cout << "head.second[" << c << "].cliId: " << head.second[c].cliId << " , currCam " << endl;
             if(gui.isOn()) {
-                //setVideoPreview(head.second[c].cliId, currCam, head.second[c].img);
+                setVideoPreview(head.second[c].cliId, currCam, head.second[c].img);
             }
 
             currCam ++;
             mb->addFrame(&head.second[c], c, i);
-            ofLogVerbose() << "[Server::computeFrames] - head.second[c].nubeLength " << head.second[c].nubeLength;
+        }
 
-            if((head.second[c].state == 3) && (head.second[c].nubeW > 0) && (procesar == 1)) {
-                procesar = 0;
-                //generarMalla(head.second[c]);
+        /*
+        ThreadData * prevFrame  = head.second;
+        while(prevFrame != NULL) {
+            ThreadData * td = prevFrame;
+            prevFrame = prevFrame->sig;
+            if(td->state > 0) {
+                //PROBLEMA:
+                td->releaseResources();
             }
         }
+        delete prevFrame;*/
 
         tservers[i]->unlock();
     }
@@ -259,46 +230,14 @@ void Server::computeFrames() {
 //--------------------------------------------------------------
 void Server::draw() {
 
-    /*if(gui.isOn()) {
+    if(gui.isOn()) {
         gui.draw();
-    }*/
-
-    //gui.hide();
-    //setVideoPreview(1, tmp);
-    //tmp.draw(0, 0);
-
-}
-/*
-void Server::generarMalla(ThreadData data) {
-    ofLogVerbose() << "[Server::generarMalla] - generarMalla()";
-
-    int downsampling = 4;
-
-    char* fileName      = "frame_i.xyz";
-    char* outputName    = "mallaFrame_i.ply";
-    char* script        = "ScriptProyecto.mlx";
-
-    //Creo el archivo b,n de la nube unida
-    FILE * pFile;
-    pFile = fopen (fileName,"w");
-    //Recorro los frames de cada camara y me quedo solo con los 3D
-    ofLogVerbose() << "[Server::generarMalla] - generarMalla() - data->nubeLength: " << data.nubeLength;
-    for(int i=0; i < data.nubeLength; i ++) {
-        fprintf (pFile, "%f %f %f\n", data.xpix[i], data.ypix[i], data.zpix[i]);
     }
-
-    fclose (pFile);
-    char linea[500];
-
-    sprintf (linea, "\"C:\\Program Files\\VCG\\MeshLab\\meshlabserver\" -i %s -o %s -s %s -om vc vn", fileName, outputName, script);
-    printf(linea);
-    system(linea);
 }
-*/
+
 //--------------------------------------------------------------
 void Server::keyPressed(int key) {
-    //procesar = 1;
-    /*if(key == 'g') {
+    if(key == 'g') {
         if(gui.isOn()) {
             gui.hide();
         } else {
@@ -306,7 +245,7 @@ void Server::keyPressed(int key) {
         }
     } else if(key == 'd') {
         ServerGlobalData::debug = !ServerGlobalData::debug;
-    }*/
+    }
 }
 
 //--------------------------------------------------------------

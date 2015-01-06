@@ -2,6 +2,33 @@
 
 #include <iostream>
 #include <fstream>
+#include <cerrno>
+
+#ifdef TARGET_WIN32
+#define ENOTCONN        WSAENOTCONN
+#define EWOULDBLOCK     WSAEWOULDBLOCK
+#define ENOBUFS         WSAENOBUFS
+#define ECONNRESET      WSAECONNRESET
+#define ESHUTDOWN       WSAESHUTDOWN
+#define EAFNOSUPPORT    WSAEAFNOSUPPORT
+#define EPROTONOSUPPORT WSAEPROTONOSUPPORT
+#define EINPROGRESS     WSAEINPROGRESS
+#define EISCONN         WSAEISCONN
+#define ENOTSOCK        WSAENOTSOCK
+#define EOPNOTSUPP      WSAEOPNOTSUPP
+#define ETIMEDOUT       WSAETIMEDOUT
+#define EADDRNOTAVAIL   WSAEADDRNOTAVAIL
+#define ECONNREFUSED    WSAECONNREFUSED
+#define ENETUNREACH     WSAENETUNREACH
+#define EADDRINUSE      WSAEADDRINUSE
+#define EADDRINUSE      WSAEADDRINUSE
+#define EALREADY        WSAEALREADY
+#define ENOPROTOOPT     WSAENOPROTOOPT
+#define EMSGSIZE        WSAEMSGSIZE
+#define ECONNABORTED    WSAECONNABORTED
+#endif
+
+
 using namespace std;
 
 void ThreadServer::threadedFunction() {
@@ -17,16 +44,18 @@ void ThreadServer::threadedFunction() {
     TCPCLI.setup(this->ip, this->port, true);
 
     currBytearray = NULL;
-    while(isThreadRunning()) {
-        ofSleepMillis(1000/sys_data->fps);
+    started = true;
+    //ofAddListener(ofEvents().update, this, &ThreadServer::receiveFrame);
 
-        timeval curTime;
+    while(isThreadRunning()) {
+
+        /*timeval curTime;
         gettimeofday(&curTime, NULL);
         int milli = curTime.tv_usec / 1000;
         char buffer [80];
         strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", localtime(&curTime.tv_sec));
         char currentTime[84] = "";
-        sprintf(currentTime, "%s:%d", buffer, milli);
+        sprintf(currentTime, "%s:%d", buffer, milli);*/
 
         ofLogVerbose() << "[ThreadServer::threadedFunction] Hago polling - (FPS) " << ofToString(ofGetFrameRate());
         receiveFrame();
@@ -37,7 +66,29 @@ void ThreadServer::update() {
     //receiveFrame();
 }
 
+bool ThreadServer::checkConnError() {
+    #ifdef TARGET_WIN32
+    int	err	= WSAGetLastError();
+    #else
+    int err = errno;
+    #endif
+    if(err == ECONNRESET) {
+        connectionClosed = true;
+        return true;
+    }
+    return false;
+}
+
 void ThreadServer::receiveFrame() {
+    if(connectionClosed) return;
+    if(!started) return;
+    if(!idle) {
+        ofLogVerbose() << "[ThreadServer::receiveFrame] :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+        return;
+    }
+    idle = false;
+
+    ofLogVerbose() << "[ThreadServer::receiveFrame] :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
     try {
         if(TCPCLI.isConnected()) {
 
@@ -52,8 +103,12 @@ void ThreadServer::receiveFrame() {
 
             int v0 = 0;
             int v1 = 0;
-            TCPCLI.receiveRawBytes((char*) &v0, sizeof(int));
-            TCPCLI.receiveRawBytes((char*) &v1, sizeof(int));
+            int recSize = 0;
+            int	err = 0;
+            recSize = TCPCLI.receiveRawBytes((char*) &v0, sizeof(int));
+            if(checkConnError()) return;
+            recSize = TCPCLI.receiveRawBytes((char*) &v1, sizeof(int));
+            if(checkConnError()) return;
 
             ofLogVerbose() << "" << endl;
 
@@ -73,6 +128,8 @@ void ThreadServer::receiveFrame() {
                 if(numBytes > 0 ) {
                     currBytearray        = FrameUtils::addToBytearray(recBytearray, numBytes, currBytearray, currTotal);
                     currTotal           += numBytes;
+                } else {
+                    if(checkConnError()) return;
                 }
                 delete recBytearray;
             } while(currTotal < (v0*sys_data->maxPackageSize + v1));
@@ -86,14 +143,26 @@ void ThreadServer::receiveFrame() {
 
                 std::pair <int, ThreadData *>  tPair = FrameUtils::getThreadDataFromByteArray( currBytearray );
 
-                ThreadData * td = tPair.second;
+                /*
+                ThreadData * prevFrame  = tPair.second;
+                while(prevFrame != NULL) {
+                    ThreadData * td = prevFrame;
+                    prevFrame = prevFrame->sig;
+                    if(td->state > 0) {
+                        //PROBLEMA:
+                        td->releaseResources();
+                    }
+                }
+                delete prevFrame;
+                */
+
                 ofLogVerbose() << "[ThreadServer::receiveFrame] Por agregar frame a buffer con " << tPair.first;
 
                 FrameUtils::decompressImages(tPair.second, tPair.first, decompress_img);
+
                 fb.addFrame(tPair.second, tPair.first);
 
                 ofLogVerbose() << "[ThreadServer::receiveFrame] Estado del buffer de este ThreadServer: fb.tope " << fb.tope  << ", fb.base " << fb.base;
-
             }
             unlock();
         }
@@ -102,6 +171,7 @@ void ThreadServer::receiveFrame() {
         ofLogVerbose() << "[ThreadServer::receiveFrame] CATCH " << e.what();
         ofLogVerbose() << "[ThreadServer::receiveFrame] An exception occurred. ";
     }
+    idle = true;
 }
 
 char * ThreadServer::getFrame() {

@@ -110,9 +110,9 @@ Field * FieldManager::getNextFilledField() {
 
     if(sys_data->processMostRecent == 1) {
         curIndex    = maxIndex;
+        removeAllMinorThan(curIndex);
     }
     while((!encontro) && timevalMinorEqualThan(curIndex, maxIndex )) {
-        //milli   = curIndex.tv_usec / 1000;
         step    = (curIndex.tv_usec / minUnit);
 
         //Buscar
@@ -140,10 +140,32 @@ Field * FieldManager::getNextFilledField() {
     return fi;
 }
 
+void FieldManager::removeAllMinorThan(timeval curval) {
+    return;
+    for (std::map< std::pair <time_t, int>, Field * >::iterator it = field_map.begin(); it != field_map.end(); ++it) {
+        std::pair <time_t, int> key = it->first;
+        timeval itVal;
+        itVal.tv_sec    = key.first;
+        itVal.tv_usec   = key.second;
+        if(timevalMinorThan(itVal, curval)) {
+            ((Field *) it->second)->releaseResources();
+            //delete ((Field *) it->second);
+        }
+    }
+}
+
 bool FieldManager::timevalMinorEqualThan(timeval curIndex, timeval maxIndex ) {
     if(curIndex.tv_sec < maxIndex.tv_sec) return true;
     if(curIndex.tv_sec == maxIndex.tv_sec) {
         if(curIndex.tv_usec <= maxIndex.tv_usec) return true;
+    }
+    return false;
+}
+
+bool FieldManager::timevalMinorThan(timeval curIndex, timeval maxIndex ) {
+    if(curIndex.tv_sec < maxIndex.tv_sec) return true;
+    if(curIndex.tv_sec == maxIndex.tv_sec) {
+        if(curIndex.tv_usec < maxIndex.tv_usec) return true;
     }
     return false;
 }

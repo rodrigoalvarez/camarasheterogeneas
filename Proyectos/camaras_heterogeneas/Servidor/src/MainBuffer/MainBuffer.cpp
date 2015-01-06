@@ -36,6 +36,11 @@ void MainBuffer::addFrame( ThreadData * frame , int cam, int cli) {
     if(!fm->hasFrameFromCam(fi, camId)) {
         fm->addFrameFromCam(frame, camId, fi);
         return;
+    } else {
+        ThreadData * prevFrame  = frame;
+        //frame->removeRecursively = false;
+        frame->releaseResources();
+        //delete frame;
     }
 
     ofLogVerbose() << endl;
