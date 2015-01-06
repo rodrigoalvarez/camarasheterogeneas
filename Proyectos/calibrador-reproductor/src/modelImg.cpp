@@ -8,6 +8,7 @@ using namespace std;
 int masterImageIndex = 0;
 
 typedef void (*f_ReadSharedImage)(int* Id, int* Width, int* Height, unsigned char** Pixels);
+typedef void (*f_MemoryCheck)(int* Id);
 
 Model_IMG::Model_IMG() {
     //masterImageIndex += 100000;
@@ -29,7 +30,7 @@ bool Model_IMG::MemoryLoad() {
     f_ReadSharedImage readImage = (f_ReadSharedImage)GetProcAddress(shareImageLibrary, "ReadSharedImage");
     int* wPixels = new int;
     int* hPixels = new int;
-    *wPixels = 44;
+    *wPixels = 0;
     *hPixels = 0;
     //cout << "Id1++++++  "<< Id <<endl;
 
@@ -44,6 +45,13 @@ bool Model_IMG::MemoryLoad() {
 
             Width = *wPixels;
             Height = *hPixels;
+
+            delete wPixels;
+            delete hPixels;
+
+            //Pixels = pixels;
+            unsigned char* pixelsAux;
+            pixelsAux = Pixels;
             Pixels = new unsigned char[Width * Height * 3];
 //            char* nombre = new char[20];
 //            sprintf(nombre,"imagenReproductor%d.png",Id);
@@ -58,7 +66,8 @@ bool Model_IMG::MemoryLoad() {
 //            image.setFromPixels(Pixels,Width,Height,OF_IMAGE_COLOR);
 //            image.saveImage(nombre);
             cout << "OBTUVO IMAGEN++++++"<< endl;
-            //delete pixels;
+
+            delete [] pixelsAux;
             return true;
         }
         else
@@ -68,6 +77,16 @@ bool Model_IMG::MemoryLoad() {
         Id = idAux;
         return false;
     }
+}
+
+bool Model_IMG::MemoryCheck() {
+    f_MemoryCheck memoryCheck = (f_MemoryCheck)GetProcAddress(shareImageLibrary, "MemoryCheck");
+    int* idAux = new int;
+    *idAux = Id;
+    memoryCheck(idAux);
+    bool newData = *idAux > Id;
+    delete idAux;
+    return newData;
 }
 
 void Model_IMG::Load(string filename) {

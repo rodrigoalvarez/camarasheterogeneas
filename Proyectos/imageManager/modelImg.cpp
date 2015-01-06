@@ -12,7 +12,7 @@ Model_IMG::Model_IMG() {
     Id = masterImageIndex;
 }
 
-bool Model_IMG::MemoryLoad() {
+void Model_IMG::MemoryLoad() {
 
     std::stringstream key1;
     key1 << "ImageId" << Id / 100000;
@@ -47,16 +47,52 @@ bool Model_IMG::MemoryLoad() {
     }
 
     if (isConnectedId && isConnectedWPixels && isConnectedHPixels && isConnectedPixels &&
-        *id > Id && *wPixels > 0 && *hPixels > 0) {
+        /**id > Id &&*/ *wPixels > 0 && *hPixels > 0) {
 
         Id = *id;
         Width = *wPixels;
         Height = *hPixels;
+        //delete[] Pixels;
         Pixels = new unsigned char[Width * Height * 3];
         memcpy(Pixels, pixels, sizeof(unsigned char) * Width * Height * 3);
-        return true;
     }
-    return false;
+}
+
+bool Model_IMG::MemoryCheck() {
+
+    std::stringstream key1;
+    key1 << "ImageId" << Id / 100000;
+    memoryMappedImageId.setup(key1.str(), sizeof(int), false);
+    isConnectedId = memoryMappedImageId.connect();
+    if (isConnectedId) {
+        id = memoryMappedImageId.getData();
+    }
+
+    std::stringstream key2;
+    key2 << "ImagePixelsW" << Id / 100000;
+    memoryMappedImageSizeW.setup(key2.str(), sizeof(int), false);
+    isConnectedWPixels = memoryMappedImageSizeW.connect();
+    if (isConnectedWPixels) {
+        wPixels = memoryMappedImageSizeW.getData();
+    }
+
+    std::stringstream key3;
+    key3 << "ImagePixelsH" << Id / 100000;
+    memoryMappedImageSizeH.setup(key3.str(), sizeof(int), false);
+    isConnectedHPixels = memoryMappedImageSizeH.connect();
+    if (isConnectedHPixels) {
+        hPixels = memoryMappedImageSizeH.getData();
+    }
+
+    std::stringstream key4;
+    key4 << "ImagePixels" << Id / 100000;
+    memoryMappedImage.setup(key4.str(), sizeof(unsigned char) * (*wPixels) * (*hPixels) * 3, false);
+    isConnectedPixels = memoryMappedImage.connect();
+    if (isConnectedPixels) {
+        pixels = memoryMappedImage.getData();
+    }
+
+    return isConnectedId && isConnectedWPixels && isConnectedHPixels && isConnectedPixels && *wPixels > 0 && *hPixels > 0;
 }
 
 void Model_IMG::Load(string filename) {

@@ -1285,7 +1285,7 @@
 	<cmath>
 	<string>
 
-1416678246 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\main.cpp
+1419787989 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\main.cpp
 	"modelImg.h"
 	"modelPly.h"
 	<stdlib.h>
@@ -1339,7 +1339,7 @@
 
 1413638493 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\timer.h
 
-1416520478 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\modelimg.h
+1416869637 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\modelimg.h
 	"ofMain.h"
 	<windows.h>
 	<stdio.h>
@@ -1352,7 +1352,7 @@
 	<wchar.h>
 	<inttypes.h>
 
-1414254309 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\mastersettings.h
+1418495987 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\mastersettings.h
 	<GL/glew.h>
 	<GL/glut.h>
 	<GL/glext.h>
@@ -1368,7 +1368,7 @@
 1411848359 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\masterply.cpp
 	"masterPly.h"
 
-1413929074 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\mastersettings.cpp
+1418495987 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\mastersettings.cpp
 	"masterSettings.h"
 	<stdlib.h>
 	<string>
@@ -2506,13 +2506,13 @@
 	"ofCamera.h"
 	"ofEvents.h"
 
-1416675225 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\modelimg.cpp
+1418503567 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\modelimg.cpp
 	"modelImg.h"
 	<vector>
 	<limits>
 	<cmath>
 
-1416676070 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\modelply.cpp
+1419690037 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\modelply.cpp
 	"modelPly.h"
 	<vector>
 	<limits>
@@ -2557,7 +2557,7 @@
 1411848360 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\testapp.h
 	"ofMain.h"
 
-1415148010 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\modelsetting.h
+1418495564 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\modelsetting.h
 	<windows.h>
 	<stdio.h>
 	<string.h>
@@ -2602,15 +2602,15 @@
 	<string.h>
 	"tinyxml.h"
 
-1415457098 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\globaldata.cpp
+1418504186 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\globaldata.cpp
 	"GlobalData.h"
 
-1415147150 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\globaldata.h
+1418496755 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\globaldata.h
 	"ofxXmlSettings.h"
 	"ofMain.h"
 	"ofMatrix4x4.h"
 
-1416434770 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\modelsetting.cpp
+1418504423 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador-reproductor\src\modelsetting.cpp
 	"modelSetting.h"
 	<vector>
 	<limits>

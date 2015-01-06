@@ -3,42 +3,52 @@
 	<ActiveTarget name="release" />
 	<File name="src\masterSettings.cpp" open="0" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="224" topLine="51" />
+			<Cursor1 position="2209" topLine="52" />
 		</Cursor>
 	</File>
 	<File name="src\masterSettings.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="767" topLine="34" />
+			<Cursor1 position="400" topLine="35" />
 		</Cursor>
 	</File>
-	<File name="src\modelImg.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src\matrix4x4.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="757" topLine="9" />
+			<Cursor1 position="551" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="src\modelImg.h" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src\modelImg.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="240" topLine="6" />
+			<Cursor1 position="1651" topLine="43" />
 		</Cursor>
 	</File>
-	<File name="src\modelPly.cpp" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src\modelImg.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="4007" topLine="112" />
+			<Cursor1 position="477" topLine="3" />
 		</Cursor>
 	</File>
-	<File name="src\modelPly.h" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src\modelPly.cpp" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="387" topLine="8" />
+			<Cursor1 position="5915" topLine="205" />
 		</Cursor>
 	</File>
-	<File name="src\modelSetting.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src\modelPly.h" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="4294" topLine="32" />
+			<Cursor1 position="409" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="src\modelSetting.h" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src\modelSetting.cpp" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="374" topLine="3" />
+			<Cursor1 position="7712" topLine="160" />
+		</Cursor>
+	</File>
+	<File name="src\modelSetting.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="417" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="src\plylib.cpp" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1948" topLine="0" />
 		</Cursor>
 	</File>
 	<File name="..\..\..\..\..\openframeworks\addons\ofxXmlSettings\src\ofxXmlSettings.h" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -46,19 +56,24 @@
 			<Cursor1 position="3532" topLine="81" />
 		</Cursor>
 	</File>
-	<File name="src\GlobalData.cpp" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src\GlobalData.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3273" topLine="61" />
+			<Cursor1 position="4064" topLine="64" />
 		</Cursor>
 	</File>
 	<File name="src\GlobalData.h" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="525" topLine="0" />
+			<Cursor1 position="832" topLine="18" />
 		</Cursor>
 	</File>
-	<File name="src\main.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="src\main.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2798" topLine="83" />
+			<Cursor1 position="21596" topLine="604" />
+		</Cursor>
+	</File>
+	<File name="src\masterPly.cpp" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

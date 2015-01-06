@@ -125,12 +125,12 @@ void MasterSettings::CalculateMatrix(vector<MasterTransform*> history, GLdouble*
     glLoadIdentity();
     for (int i = 0; i < history.size(); i++) {
         MasterTransform* trans = history[i];
-        if (trans->type == 0) { glTranslatef(-trans->value, 0, 0); }
-        if (trans->type == 1) { glTranslatef(0, -trans->value, 0); }
-        if (trans->type == 2) { glTranslatef(0, 0, -trans->value); }
-        if (trans->type == 3) { glRotatef(-trans->value, 1.0f,0.0f,0.0f); }
-        if (trans->type == 4) { glRotatef(-trans->value, 0.0f,1.0f,0.0f); }
-        if (trans->type == 5) { glRotatef(-trans->value, 0.0f,0.0f,1.0f); }
+        if (trans->type == 0) { glTranslatef(trans->value, 0, 0); }
+        if (trans->type == 1) { glTranslatef(0, trans->value, 0); }
+        if (trans->type == 2) { glTranslatef(0, 0, trans->value); }
+        if (trans->type == 3) { glRotatef(trans->value, 1.0f,0.0f,0.0f); }
+        if (trans->type == 4) { glRotatef(trans->value, 0.0f,1.0f,0.0f); }
+        if (trans->type == 5) { glRotatef(trans->value, 0.0f,0.0f,1.0f); }
     }
     glGetDoublev(GL_MODELVIEW_MATRIX, m);
     glPopMatrix();

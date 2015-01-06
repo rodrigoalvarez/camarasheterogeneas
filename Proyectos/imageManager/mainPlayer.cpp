@@ -45,7 +45,7 @@ int cameraMove = -1;
 
 
 void writeText() {
-    system("cls");
+    /*system("cls");
     cout << "PLAYER" << endl;
     cout << "Triangles: " << textureModel->TotalConnectedTriangles << endl;
     cout << "Points: " << textureModel->TotalPoints << endl;
@@ -59,12 +59,13 @@ void writeText() {
         cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
         cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
         cout << endl;
-    }/**/
+    }*/
 }
 
 void setFaceVertex(int index) {
     GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
+    glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
 }
 
 void draw2DElement(int index) {
@@ -206,6 +207,12 @@ bool PointInFrustum(float x, float y, float z) {
     return true;
 }
 
+void SetColorAndBackground(int ForgC, int BackC)
+{
+     WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);;
+     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wColor);
+     return;
+}
 
 void draw2DPlayerFull() {
     ExtractFrustum();
@@ -245,6 +252,11 @@ void draw2DPlayerFull() {
 }
 
 void draw2DPlayerFast() {
+
+    ofstream myfile;
+    myfile.open ("mapping.txt");
+    ofstream myfile2;
+    myfile2.open ("points.txt");
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         int hits = 0;
         for (int k = 1; k <= textureCount; k++) {
@@ -253,7 +265,18 @@ void draw2DPlayerFast() {
         if (hits > 0 && faces[textureIndex][i] == hits) {
             draw2DElement(i);
         }
+        if (hits == 0) myfile << "0";
+        if (hits == faces[1][i]) myfile << "1";
+        if (hits == faces[2][i]) myfile << "2";
+        if (hits == faces[3][i]) myfile << "3";
+        myfile2 << textureModel->Faces_Triangles[i*9] << textureModel->Faces_Triangles[i*9+1] << textureModel->Faces_Triangles[i*9+2];
+        myfile2 << textureModel->Faces_Triangles[i*9+3] << textureModel->Faces_Triangles[i*9+4] << textureModel->Faces_Triangles[i*9+5];
+        myfile2 << textureModel->Faces_Triangles[i*9+6] << textureModel->Faces_Triangles[i*9+7] << textureModel->Faces_Triangles[i*9+8];
     }
+    myfile << endl;
+    myfile.close();
+    myfile2 << endl;
+    myfile2.close();
 }
 
 /*void draw2DPlayerFast() {
@@ -299,7 +322,7 @@ void stepTransformTexture() {
     glTranslatef(0, 0, 20);
 
     glTranslatef(0, 0, -20);
-    GLdouble m[16];
+    //GLdouble m[16];
     //MasterSettings::CalculateMatrix(textureMaster[textureIndex].history, m);
     glMultMatrixd(textureMaster[textureIndex].matrix);
     //applyTransformations(textureMaster[textureIndex].history, false);
@@ -315,6 +338,15 @@ void stepTexture() {
         glEnable(GL_TEXTURE_2D);
         stepTransformTexture();
     }
+
+    SetColorAndBackground(4,0);
+    GLdouble m[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    for (int p = 0; p < 16; p+=4) {
+        cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+    }
+    cout << "- - - - " << endl;
+    SetColorAndBackground(15,0);
 
     glGetFloatv(GL_MODELVIEW_MATRIX, textureMaster[textureIndex].MVmatrix);
     textureMaster[textureIndex].TextureTransform.setMatrix(textureMaster[textureIndex].MVmatrix);
@@ -335,23 +367,52 @@ void display(void) {
     for (int i = 1; i <= textureCount; i++) {
         textureIndex = i;
         stepTexture();
-        glLoadIdentity();
-        glTranslatef(0, 0, -20);
-        applyTransformations(textureMaster[0].history);
         if (drawFast) {
+            glLoadIdentity();
+            glTranslatef(0, 0, -20);
+
+            //glMultMatrixd(textureMaster[0].matrix);
+            applyTransformations(textureMaster[0].history);
+
+            SetColorAndBackground(2,0);
+            GLdouble m[16];
+            glGetDoublev(GL_MODELVIEW_MATRIX, m);
+            for (int p = 0; p < 16; p+=4) {
+                cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+            }
+            cout << "- - - - " << endl;
+            SetColorAndBackground(15,0);
+
             draw2DPlayerFast();
         } else {
+            glLoadIdentity();
+            glTranslatef(0, 0, -20);
+            glMultMatrixd(textureMaster[textureIndex].matrix);
+
+            SetColorAndBackground(3,0);
+            GLdouble m[16];
+            glGetDoublev(GL_MODELVIEW_MATRIX, m);
+            for (int p = 0; p < 16; p+=4) {
+                cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+            }
+            cout << "- - - - * * * * *" << endl;
+            SetColorAndBackground(15,0);
+
             draw2DPlayerFull();
         }
         stepClearTexture();
     }
     textureIndex = 0;
 
-    glFlush();
-    glutSwapBuffers();
-
+    if (drawFast) {
+        glFlush();
+        glutSwapBuffers();
+    }
     writeText();
-    drawFast = true;
+    if (!drawFast) {
+        drawFast = true;
+        display();
+    }
 }
 
 void UpdateHistory (int id) {
@@ -466,10 +527,10 @@ void myReshape(int w, int h) {
 
 void timerFunction(int arg) {
     glutTimerFunc(reDrawRate, timerFunction, 0);
-    bool shouldRedraw = textureModel->MemoryLoad();
-    for (int i = 0; i < textureCount; i++) {
-        shouldRedraw = shouldRedraw || textureImage[i].MemoryLoad();
-    }
+    bool shouldRedraw = false;//textureModel->MemoryLoad();
+    /*for (int i = 0; i < textureCount; i++) {
+        shouldRedraw = shouldRedraw || textureImage[i].MemoryCheck();
+    }*/
     if (shouldRedraw) {
         drawFast = false;
         display();
@@ -509,7 +570,18 @@ void loadLightMapTexture(Model_IMG* model) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812D);
     glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderColor);
-    gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_RGB,GL_UNSIGNED_BYTE,model->Pixels);
+    gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_BGR,GL_UNSIGNED_BYTE,model->Pixels);
+}
+
+vector<string> getMeshFiles() {
+    vector<string> files;
+    ofDirectory directory("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\mesh");
+    directory.allowExt("ply");
+    directory.listDir();
+    for(int i = 0; i < directory.numFiles(); i++) {
+        files.push_back(directory.getPath(i));
+    }
+    return files;
 }
 
 int main(int argc, char **argv) {
@@ -533,8 +605,12 @@ int main(int argc, char **argv) {
     textureCount = textureSetting->NValues;
 
     /* Mesh */
+    /*textureModel = new Model_PLY();
+    textureModel->MemoryLoad();*/
+    /* Mesh */
     textureModel = new Model_PLY();
-    textureModel->MemoryLoad();
+    vector<string> files3D = getMeshFiles();
+    textureModel->Load(files3D[0]);
 
     /* Texture */
     textureMaster = new MasterTexture[textureCount + 1];
@@ -544,12 +620,12 @@ int main(int argc, char **argv) {
             textureMaster[0].viewer[j] = 0.0f;
             textureMaster[0].rotate[j] = 0.0f;
         }
-        for (int j = 0; j < 4; j++) {
-            for (int k = 0; k < 4; k++) {
-                textureMaster[i].matrix[j * 4 + k] = textureSetting->Values[i * 16 + j * 4 + k];
-            }
-        }
         faces[i] = new int[facesCount];
+
+        for (int p = 0; p < 16; p++) {
+            textureMaster[i].matrix[p] = textureSetting->Values[(i-1) * 16 + p];
+            //cout << textureMaster[i].matrix[p] << endl;
+        }
     }
 
     /* Settings and files */

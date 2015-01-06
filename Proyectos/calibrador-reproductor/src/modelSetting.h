@@ -22,7 +22,8 @@ class Model_SET
 		void MemoryLoad();
 		void FileLoad();
 
-		float* Values;
+		float* ValuesA;
+		float* ValuesB;
 		int* IdsValues;
 		int NValues;
         float alfaCoord;

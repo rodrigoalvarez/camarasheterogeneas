@@ -4,7 +4,6 @@
 #include <GL/glut.h>
 #include "modelXYZ.h"
 #include "modelImg.h"
-#include "modelSetting.h"
 #include "masterPly.h"
 #include "masterSettings.h"
 #include <vector>
@@ -23,51 +22,55 @@ MasterSettings* settings = NULL;
 
 /* Texture */
 
-Model_SET* textureSetting = NULL;
 Model_IMG* textureImage = NULL;
 Model_PLY* textureModel = NULL;
 MasterTexture* textureMaster = NULL;
-bool drawFast = false;
+bool textureViewMode = false;
+bool drawFast = true;
 bool textureWire = true;
 
 int textureCount = 1;
 int textureIndex = 0;
 
-int reDrawRate = 200;
 int facesCount = 200000;
 int** faces;
 float frustum[6][4];
 
 /* Camera */
 
+float cameraFactor = 1.0;
 int cameraAxis = -1;
 int cameraMove = -1;
+bool cameraLight = true;
 
 
 void writeText() {
-    system("cls");
-    cout << "PLAYER" << endl;
+    /*system("cls");
+    cout << "2D CALIBRATION" << endl;
     cout << "Triangles: " << textureModel->TotalConnectedTriangles << endl;
     cout << "Points: " << textureModel->TotalPoints << endl;
     cout << "Faces: " << textureModel->TotalFaces << endl;
     cout << "MinCoord: " << textureModel->MinCoord << endl;
     cout << "MaxCoord: " << textureModel->MaxCoord << endl;
     cout << "AlfaCoord: " << textureModel->AlfaCoord << endl;
+    cout << "Mode: " << (textureIndex == 0 ? "View" : "Calibration") << endl << endl;
     for (int i = 0; i <= textureCount; i++) {
         MasterTexture* masterNow = &textureMaster[i];
         cout << "Texture :: " << i << endl;
         cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
         cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
         cout << endl;
-    }
+    }*/
 }
 
 void setFaceVertex(int index) {
     GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
+    glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
 }
 
 void draw2DElement(int index) {
+
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_POLYGON);
         setFaceVertex(index * 3);
@@ -75,11 +78,43 @@ void draw2DElement(int index) {
         setFaceVertex(index * 3 + 2);
     glEnd();
     if (textureWire) {
+        if (cameraLight) {
+            glDisable(GL_LIGHT0);
+            glDisable(GL_LIGHTING);
+        }
         glColor3f(0.5f, 0.5f, 0.5f);
         glBegin(GL_LINE_LOOP);
             setFaceVertex(index * 3);
             setFaceVertex(index * 3 + 1);
             setFaceVertex(index * 3 + 2);
+        glEnd();
+        if (cameraLight) {
+            glEnable(GL_LIGHTING);
+            glEnable(GL_LIGHT0);
+        }
+    }
+}
+
+void draw2DBackground() {
+
+    if (textureIndex > 0) {
+        float wImg = textureImage[textureIndex-1].Width;
+        float hImg = textureImage[textureIndex-1].Height;
+
+        glColor3f(0.0f, 0.0f, 0.0f);
+        glBegin(GL_POLYGON);
+            GLfloat vert1[3] = { -wImg, -hImg, -20.0 };
+            glVertex3fv(vert1);
+            glNormal3f(0,0,1);
+            GLfloat vert2[3] = { -wImg, hImg, -20.0 };
+            glVertex3fv(vert2);
+            glNormal3f(0,0,1);
+            GLfloat vert3[3] = { wImg, hImg, -20.0 };
+            glVertex3fv(vert3);
+            glNormal3f(0,0,1);
+            GLfloat vert4[3] = { wImg, -hImg, -20.0 };
+            glVertex3fv(vert4);
+            glNormal3f(0,0,1);
         glEnd();
     }
 }
@@ -207,7 +242,41 @@ bool PointInFrustum(float x, float y, float z) {
 }
 
 
-void draw2DPlayerFull() {
+void SetColorAndBackground(int ForgC, int BackC)
+{
+     WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);;
+     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wColor);
+     return;
+}
+
+void draw2DView() {
+    ofstream myfile;
+    myfile.open ("mapping.txt");
+    ofstream myfile2;
+    myfile2.open ("points.txt");
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        int hits = 0;
+        for (int k = 1; k <= textureCount; k++) {
+            hits = max(hits, faces[k][i]);
+        }
+        if (hits > 0 && faces[textureIndex][i] == hits) {
+            draw2DElement(i);
+        }
+        if (hits == 0) myfile << "0";
+        if (hits == faces[1][i]) myfile << "1";
+        if (hits == faces[2][i]) myfile << "2";
+        if (hits == faces[3][i]) myfile << "3";
+        myfile2 << textureModel->Faces_Triangles[i*9] << textureModel->Faces_Triangles[i*9+1] << textureModel->Faces_Triangles[i*9+2];
+        myfile2 << textureModel->Faces_Triangles[i*9+3] << textureModel->Faces_Triangles[i*9+4] << textureModel->Faces_Triangles[i*9+5];
+        myfile2 << textureModel->Faces_Triangles[i*9+6] << textureModel->Faces_Triangles[i*9+7] << textureModel->Faces_Triangles[i*9+8];
+    }
+    myfile << endl;
+    myfile.close();
+    myfile2 << endl;
+    myfile2.close();
+}
+
+void draw2DCalibrationFull() {
     ExtractFrustum();
     GLuint queries[textureModel->TotalFaces];
     GLuint sampleCount;
@@ -244,33 +313,34 @@ void draw2DPlayerFull() {
     glDepthMask(GL_TRUE);
 }
 
-void draw2DPlayerFast() {
-    for (int i = 0; i < textureModel->TotalFaces; i++) {
-        int hits = 0;
-        for (int k = 1; k <= textureCount; k++) {
-            hits = max(hits, faces[k][i]);
-        }
-        if (hits > 0 && faces[textureIndex][i] == hits) {
-            draw2DElement(i);
-        }
-    }
-}
-
-/*void draw2DPlayerFast() {
+void draw2DCalibrationFast() {
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         draw2DElement(i);
     }
-}*/
+}
 
-void applyTransformations(vector<MasterTransform*> history) {
-    for (int i = 0; i < history.size(); i++) {
-        MasterTransform* trans = history[i];
-        if (trans->type == 0) { glTranslatef(trans->value, 0, 0); }
-        if (trans->type == 1) { glTranslatef(0, trans->value, 0); }
-        if (trans->type == 2) { glTranslatef(0, 0, trans->value); }
-        if (trans->type == 3) { glRotatef(trans->value, 1.0f,0.0f,0.0f); }
-        if (trans->type == 4) { glRotatef(trans->value, 0.0f,1.0f,0.0f); }
-        if (trans->type == 5) { glRotatef(trans->value, 0.0f,0.0f,1.0f); }
+
+void applyTransformations(vector<MasterTransform*> history, bool flag) {
+    if (flag) {
+        for (int i = 0; i < history.size(); i++) {
+            MasterTransform* trans = history[i];
+            if (trans->type == 0) { glTranslatef(trans->value, 0, 0); }
+            if (trans->type == 1) { glTranslatef(0, trans->value, 0); }
+            if (trans->type == 2) { glTranslatef(0, 0, trans->value); }
+            if (trans->type == 3) { glRotatef(trans->value, 1.0f,0.0f,0.0f); }
+            if (trans->type == 4) { glRotatef(trans->value, 0.0f,1.0f,0.0f); }
+            if (trans->type == 5) { glRotatef(trans->value, 0.0f,0.0f,1.0f); }
+        }
+    } else {
+        for (int i = 0; i < history.size(); i++) {
+            MasterTransform* trans = history[history.size() - i - 1];
+            if (trans->type == 0) { glTranslatef(-trans->value, 0, 0); }
+            if (trans->type == 1) { glTranslatef(0, -trans->value, 0); }
+            if (trans->type == 2) { glTranslatef(0, 0, -trans->value); }
+            if (trans->type == 3) { glRotatef(-trans->value, 1.0f,0.0f,0.0f); }
+            if (trans->type == 4) { glRotatef(-trans->value, 0.0f,1.0f,0.0f); }
+            if (trans->type == 5) { glRotatef(-trans->value, 0.0f,0.0f,1.0f); }
+        }
     }
 }
 
@@ -294,16 +364,23 @@ void textureProjection(Matrix4x4f &mv) {
 
 
 void stepTransformTexture() {
-    glTranslatef(0, 0, -20);
-    applyTransformations(textureMaster[0].history);
-    glTranslatef(0, 0, 20);
+    if (textureViewMode) {
+        glTranslatef(0, 0, -20);
+        applyTransformations(textureMaster[0].history, true);
+        glTranslatef(0, 0, 20);
 
-    glTranslatef(0, 0, -20);
-    GLdouble m[16];
-    //MasterSettings::CalculateMatrix(textureMaster[textureIndex].history, m);
-    glMultMatrixd(textureMaster[textureIndex].matrix);
-    //applyTransformations(textureMaster[textureIndex].history, false);
-    glTranslatef(0, 0, 20);
+        glTranslatef(0, 0, -20);
+
+        /*GLdouble m[16];
+        MasterSettings::CalculateMatrix(textureMaster[textureIndex].history, m);
+        glMultMatrixd(m);*/
+        applyTransformations(textureMaster[textureIndex].history, false);
+        glTranslatef(0, 0, 20);
+    } else {
+        glRotatef(0, 1.0f,0.0f,0.0f);
+        glRotatef(0, 0.0f,1.0f,0.0f);
+        glRotatef(0, 0.0f,0.0f,1.0f);
+    }
 }
 
 void stepTexture() {
@@ -314,6 +391,17 @@ void stepTexture() {
         glActiveTextureARB(GL_TEXTURE0 + textureIndex - 1);
         glEnable(GL_TEXTURE_2D);
         stepTransformTexture();
+    }
+
+    if (textureViewMode) {
+        /*SetColorAndBackground(4,0);
+        GLdouble m[16];
+        glGetDoublev(GL_MODELVIEW_MATRIX, m);
+        for (int p = 0; p < 16; p+=4) {
+            cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+        }
+        cout << "- - - - " << endl;
+        SetColorAndBackground(15,0);*/
     }
 
     glGetFloatv(GL_MODELVIEW_MATRIX, textureMaster[textureIndex].MVmatrix);
@@ -332,26 +420,86 @@ void stepClearTexture() {
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    for (int i = 1; i <= textureCount; i++) {
-        textureIndex = i;
+    if (cameraLight) {
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+
+        glPushMatrix();
+        glLoadIdentity();
+        GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 0.5 };
+        GLfloat mat_shininess[] = { 50.0 };
+        GLfloat light_color[] = { 1., 1., 1., 0.5 };
+        GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
+
+        glShadeModel (GL_SMOOTH);
+        glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+        glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color);
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+        glPopMatrix();
+    }
+
+    if (textureViewMode) {
+        for (int i = 1; i <= textureCount; i++) {
+            textureIndex = i;
+            stepTexture();
+
+            glLoadIdentity();
+            glTranslatef(0, 0, -20);
+            applyTransformations(textureMaster[0].history, true);
+
+            /*SetColorAndBackground(2,0);
+            GLdouble m[16];
+            glGetDoublev(GL_MODELVIEW_MATRIX, m);
+            for (int p = 0; p < 16; p+=4) {
+                cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+            }
+            cout << "- - - - " << endl;
+            SetColorAndBackground(15,0);*/
+
+            draw2DView();
+            stepClearTexture();
+        }
+        textureIndex = 0;
+
+    } else {
         stepTexture();
         glLoadIdentity();
         glTranslatef(0, 0, -20);
-        applyTransformations(textureMaster[0].history);
+        applyTransformations(textureMaster[textureIndex].history, true);
         if (drawFast) {
-            draw2DPlayerFast();
+            draw2DCalibrationFast();
         } else {
-            draw2DPlayerFull();
+
+
+            /*SetColorAndBackground(3,0);
+            GLdouble m[16];
+            glGetDoublev(GL_MODELVIEW_MATRIX, m);
+            for (int p = 0; p < 16; p+=4) {
+                cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+            }
+            cout << "- - - - * * * *" << endl;
+            SetColorAndBackground(15,0);*/
+
+
+            draw2DCalibrationFull();
         }
+        glPushMatrix();
+        glLoadIdentity();
+        draw2DBackground();
+        glPopMatrix();
         stepClearTexture();
     }
-    textureIndex = 0;
+
+    if (cameraLight) {
+        glDisable(GL_LIGHT0);
+        glDisable(GL_LIGHTING);
+    }
 
     glFlush();
     glutSwapBuffers();
 
     writeText();
-    drawFast = true;
 }
 
 void UpdateHistory (int id) {
@@ -403,16 +551,49 @@ void UpdateHistory (int id) {
 
 void keys(unsigned char key, int x, int y) {
 
+    if (key == 'l') {
+        settings->loadTextureCalibration();
+        for (int i = 1; i <= textureCount; i++) {
+            textureIndex = i;
+            display();
+        }
+        textureViewMode = true;
+        textureIndex = 0;
+    }
+    if (key == 'k') {
+        settings->saveTextureCalibration();
+    }
     if (key == 'm') {
         textureWire = !textureWire;
     }
-    if (key == 'w') textureMaster[0].rotate[0] += 2.0;
-    if (key == 's') textureMaster[0].rotate[0] -= 2.0;
-    if (key == 'a') textureMaster[0].rotate[1] += 2.0;
-    if (key == 'd') textureMaster[0].rotate[1] -= 2.0;
-    if (key == 'e') textureMaster[0].rotate[2] += 2.0;
-    if (key == 'q') textureMaster[0].rotate[2] -= 2.0;
+    if (key == 'n') {
+        cameraLight = !cameraLight;
+    }
+    if (key == 'v') {
+        drawFast = false;
+        display();
+        drawFast = true;
+        textureViewMode = true;
+        textureIndex = 0;
+        settings->saveTextureCalibration();
+    }
+    if (key >= '1' && key <= '9' && (key - 48 <= textureCount)) {
+        drawFast = false;
+        display();
+        drawFast = true;
+        textureViewMode = false;
+        textureIndex = key - 48;
+        display();
+    }
+    if (key == '+') cameraFactor *= 1.25;
+    if (key == '-') cameraFactor *= 0.8;
 
+    if (key == 'w') textureMaster[textureIndex].rotate[0] += 2.0 * cameraFactor;
+    if (key == 's') textureMaster[textureIndex].rotate[0] -= 2.0 * cameraFactor;
+    if (key == 'a') textureMaster[textureIndex].rotate[1] += 2.0 * cameraFactor;
+    if (key == 'd') textureMaster[textureIndex].rotate[1] -= 2.0 * cameraFactor;
+    if (key == 'e') textureMaster[textureIndex].rotate[2] += 2.0 * cameraFactor;
+    if (key == 'q') textureMaster[textureIndex].rotate[2] -= 2.0 * cameraFactor;
     if (key == 'w' || key == 's' || key == 'a' || key == 'd' || key == 'e' || key == 'q') {
         UpdateHistory(textureIndex);
     }
@@ -435,14 +616,14 @@ void mouse(int btn, int state, int x, int y) {
 void mouseMove(int x, int y) {
 
     if (cameraAxis != -1) {
-        float deltaMove = (y - cameraMove) * 0.1f;
+        float deltaMove = (y - cameraMove) * 0.1f * cameraFactor;
         cameraMove = y;
         if (cameraAxis == GLUT_LEFT_BUTTON) {
-            textureMaster[0].viewer[0] += deltaMove;
+            textureMaster[textureIndex].viewer[0] += deltaMove;
         } else if (cameraAxis == GLUT_RIGHT_BUTTON) {
-            textureMaster[0].viewer[1] += deltaMove;
+            textureMaster[textureIndex].viewer[1] += deltaMove;
         } else if (cameraAxis == GLUT_MIDDLE_BUTTON) {
-            textureMaster[0].viewer[2] += deltaMove;
+            textureMaster[textureIndex].viewer[2] += deltaMove;
         }
         if (cameraAxis == GLUT_LEFT_BUTTON || cameraAxis == GLUT_RIGHT_BUTTON || cameraAxis == GLUT_MIDDLE_BUTTON) {
             UpdateHistory(textureIndex);
@@ -464,19 +645,7 @@ void myReshape(int w, int h) {
     glMatrixMode(GL_MODELVIEW);
 }
 
-void timerFunction(int arg) {
-    glutTimerFunc(reDrawRate, timerFunction, 0);
-    bool shouldRedraw = textureModel->MemoryLoad();
-    for (int i = 0; i < textureCount; i++) {
-        shouldRedraw = shouldRedraw || textureImage[i].MemoryLoad();
-    }
-    if (shouldRedraw) {
-        drawFast = false;
-        display();
-    }
-}
-
-void loadLightMapTexture(Model_IMG* model) {
+void loadLightMapTexture(Model_IMG* model, string file) {
 
     GLfloat eyePlaneS[] =  {1.0f, 0.0f, 0.0f, 0.0f};
     GLfloat eyePlaneT[] =  {0.0f, 1.0f, 0.0f, 0.0f};
@@ -502,14 +671,38 @@ void loadLightMapTexture(Model_IMG* model) {
     glEnable(GL_TEXTURE_GEN_R);
     glEnable(GL_TEXTURE_GEN_Q);
 
-    model->MemoryLoad();
+    model->Load(file);
 
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812D);
     glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderColor);
-    gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_RGB,GL_UNSIGNED_BYTE,model->Pixels);
+    gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_BGR,GL_UNSIGNED_BYTE,model->Pixels);
+}
+
+vector<string> getImageFiles() {
+    vector<string> files;
+    ofDirectory directory("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\img");
+    directory.allowExt("png");
+    directory.allowExt("bmp");
+    directory.allowExt("jpg");
+    directory.listDir();
+    for(int i = 0; i < directory.numFiles(); i++) {
+        files.push_back(directory.getPath(i));
+    }
+    return files;
+}
+
+vector<string> getMeshFiles() {
+    vector<string> files;
+    ofDirectory directory("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\mesh");
+    directory.allowExt("ply");
+    directory.listDir();
+    for(int i = 0; i < directory.numFiles(); i++) {
+        files.push_back(directory.getPath(i));
+    }
+    return files;
 }
 
 int main(int argc, char **argv) {
@@ -518,36 +711,34 @@ int main(int argc, char **argv) {
     glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
     glutInitWindowSize(500,500);
     glutInitWindowPosition(300, 300);
-    glutCreateWindow("Player project");
-    glutTimerFunc(reDrawRate,timerFunction,0);
+    glutCreateWindow("Calibration project");
     glutReshapeFunc(myReshape);
     glutDisplayFunc(display);
     glutMouseFunc(mouse);
     glutMotionFunc(mouseMove);
     glutKeyboardFunc(keys);
-    glEnable(GL_DEPTH_TEST);
+    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 
-    /* Settings */
-    textureSetting = new Model_SET();
-    textureSetting->MemoryLoad();
-    textureCount = textureSetting->NValues;
+    glEnable(GL_DEPTH_TEST);
 
     /* Mesh */
     textureModel = new Model_PLY();
-    //textureModel->MemoryLoad();
-    textureModel->Load("C:\\of_v0073_win_cb_release\\apps\\myApps\\reproductorUnido\\mesh\\antMesh.ply");
+    vector<string> files3D = getMeshFiles();
+    textureModel->Load(files3D[0]);
 
     /* Texture */
+    vector<string> files2D = getImageFiles();
+    textureCount = files2D.size();
     textureMaster = new MasterTexture[textureCount + 1];
     faces = new int*[textureCount + 1];
-    for (int i = 1; i <= textureCount; i++) {
+    for (int i = 0; i <= textureCount; i++) {
         for (int j = 0; j < 3; j++) {
-            textureMaster[0].viewer[j] = 0.0f;
-            textureMaster[0].rotate[j] = 0.0f;
+            textureMaster[i].viewer[j] = 0.0;
+            textureMaster[i].rotate[j] = 0.0;
         }
         for (int j = 0; j < 4; j++) {
             for (int k = 0; k < 4; k++) {
-                textureMaster[i].matrix[j * 4 + k] = textureSetting->Values[i * 16 + j * 4 + k];
+                textureMaster[i].matrix[j * 4 + k] = j == k ? 1 : 0;
             }
         }
         faces[i] = new int[facesCount];
@@ -577,12 +768,11 @@ int main(int argc, char **argv) {
         glBindTexture(GL_TEXTURE_2D, textures[i]);
         glDisable(GL_TEXTURE_2D);
         textureIndex = i + 1;
-        loadLightMapTexture(&textureImage[i]);
+        loadLightMapTexture(&textureImage[i], files2D[i]);
     }
     textureIndex = 0;
 
     /* Start windows */
     writeText();
-    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
     glutMainLoop();
 }

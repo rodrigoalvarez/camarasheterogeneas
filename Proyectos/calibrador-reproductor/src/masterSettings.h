@@ -17,7 +17,8 @@ struct MasterTexture {
     float viewer[3];
     float rotate[3];
     vector<MasterTransform*> history;
-    GLdouble matrix[16];
+    GLdouble matrixA[16];
+    GLdouble matrixB[16];
 
     Matrix4x4f TextureTransform;
     float MVmatrix[16];
@@ -49,9 +50,9 @@ class MasterSettings
         void loadTextureCalibration();
         void loadMeshCalibration();
         void saveTextureCalibration();
-        void saveMeshCalibration();
-        static void CalculateMatrix(MasterMesh master, GLdouble* m);
-        static void CalculateMatrix(vector<MasterTransform*> history, GLdouble* m);
+//        void saveMeshCalibration();
+//        static void CalculateMatrix(MasterMesh master, GLdouble* m);
+        static void CalculateMatrix(vector<MasterTransform*> history, GLdouble* m, bool flag);
     protected:
     private:
         int textureCount;

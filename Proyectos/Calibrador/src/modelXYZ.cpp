@@ -83,15 +83,15 @@ int Model_XYZ::Load(string fileName, float alfa) {
     float deltaY = (maxY + minY) / 2;
     float deltaZ = (maxZ + minZ) / 2;
     for (int i = 0; i < TotalPoints * 3; i++) {
-        if (i % 3 == 0) {
-            Points[i] = Points[i] - deltaX;
-        }
-        if (i % 3 == 1) {
-            Points[i] = Points[i] - deltaY;
-        }
-        if (i % 3 == 2) {
-            Points[i] = Points[i] - deltaZ;
-        }
+//        if (i % 3 == 0) {
+//            Points[i] = Points[i] - deltaX;
+//        }
+//        if (i % 3 == 1) {
+//            Points[i] = Points[i] - deltaY;
+//        }
+//        if (i % 3 == 2) {
+//            Points[i] = Points[i] - deltaZ;
+//        }
         Points[i] = (Points[i] / AlfaCoord) * 10;
     }
 

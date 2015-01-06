@@ -1270,7 +1270,7 @@
 	<cstring>
 	<sys/shm.h>
 
-1410622777 c:\openframeworks\addons\ofxsharedmemory\src\ofxsharedmemory.h
+1417893879 c:\openframeworks\addons\ofxsharedmemory\src\ofxsharedmemory.h
 	"ofMain.h"
 	<stdio.h>
 	<sys/stat.h>
@@ -1299,19 +1299,21 @@
 	<vcg/complex/algorithms/smooth.h>
 	<vector>
 
-1415833947 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.cpp
+1418943937 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.cpp
 	"masterSettings.h"
 	<stdlib.h>
 	<string>
 	<fstream>
 	<sstream>
 
-1414890590 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.h
+1418943596 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\mastersettings.h
 	<GL/glew.h>
 	<GL/glut.h>
 	<GL/glext.h>
 	<vector>
 	"matrix4x4.h"
+	<stdlib.h>
+	<windows.h>
 
 1411848360 c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\matrix4x4.h
 	<memory>
@@ -1341,7 +1343,7 @@
 	<wchar.h>
 	<inttypes.h>
 
-1413136849 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelply.cpp
+1417039185 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\modelply.cpp
 	"modelPly.h"
 	<vector>
 	<limits>
@@ -1397,7 +1399,7 @@
 	<string>
 	<assert.h>
 
-1415828971 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
+1419029918 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\main.cpp
 	"MeshMain.h"
 	"TextureMain.h"
 	<GL/glut.h>
@@ -1513,6 +1515,6 @@
 	"modelXYZ.h"
 	"ofxXmlSettings.h"
 
-1415833947 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\texturemain.cpp
+1419193854 source:c:\camarasheterogeneas\proyecto\camarasheterogeneas\proyectos\calibrador\src\texturemain.cpp
 	"TextureMain.h"
 

@@ -45,7 +45,7 @@ bool cameraLight = true;
 
 
 void writeText() {
-    system("cls");
+    /*system("cls");
     cout << "2D CALIBRATION" << endl;
     cout << "Triangles: " << textureModel->TotalConnectedTriangles << endl;
     cout << "Points: " << textureModel->TotalPoints << endl;
@@ -60,7 +60,7 @@ void writeText() {
         cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
         cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
         cout << endl;
-    }/**/
+    }*/
 }
 
 void setFaceVertex(int index) {
@@ -241,7 +241,19 @@ bool PointInFrustum(float x, float y, float z) {
     return true;
 }
 
+
+void SetColorAndBackground(int ForgC, int BackC)
+{
+     WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);;
+     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wColor);
+     return;
+}
+
 void draw2DView() {
+    ofstream myfile;
+    myfile.open ("mapping.txt");
+    ofstream myfile2;
+    myfile2.open ("points.txt");
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         int hits = 0;
         for (int k = 1; k <= textureCount; k++) {
@@ -250,7 +262,18 @@ void draw2DView() {
         if (hits > 0 && faces[textureIndex][i] == hits) {
             draw2DElement(i);
         }
+        if (hits == 0) myfile << "0";
+        if (hits == faces[1][i]) myfile << "1";
+        if (hits == faces[2][i]) myfile << "2";
+        if (hits == faces[3][i]) myfile << "3";
+        myfile2 << textureModel->Faces_Triangles[i*9] << textureModel->Faces_Triangles[i*9+1] << textureModel->Faces_Triangles[i*9+2];
+        myfile2 << textureModel->Faces_Triangles[i*9+3] << textureModel->Faces_Triangles[i*9+4] << textureModel->Faces_Triangles[i*9+5];
+        myfile2 << textureModel->Faces_Triangles[i*9+6] << textureModel->Faces_Triangles[i*9+7] << textureModel->Faces_Triangles[i*9+8];
     }
+    myfile << endl;
+    myfile.close();
+    myfile2 << endl;
+    myfile2.close();
 }
 
 void draw2DCalibrationFull() {
@@ -310,7 +333,7 @@ void applyTransformations(vector<MasterTransform*> history, bool flag) {
         }
     } else {
         for (int i = 0; i < history.size(); i++) {
-            MasterTransform* trans = history[i];
+            MasterTransform* trans = history[history.size() - i - 1];
             if (trans->type == 0) { glTranslatef(-trans->value, 0, 0); }
             if (trans->type == 1) { glTranslatef(0, -trans->value, 0); }
             if (trans->type == 2) { glTranslatef(0, 0, -trans->value); }
@@ -348,10 +371,10 @@ void stepTransformTexture() {
 
         glTranslatef(0, 0, -20);
 
-        GLdouble m[16];
+        /*GLdouble m[16];
         MasterSettings::CalculateMatrix(textureMaster[textureIndex].history, m);
-        glMultMatrixd(m);
-        //applyTransformations(textureMaster[textureIndex].history, false);
+        glMultMatrixd(m);*/
+        applyTransformations(textureMaster[textureIndex].history, false);
         glTranslatef(0, 0, 20);
     } else {
         glRotatef(0, 1.0f,0.0f,0.0f);
@@ -368,6 +391,17 @@ void stepTexture() {
         glActiveTextureARB(GL_TEXTURE0 + textureIndex - 1);
         glEnable(GL_TEXTURE_2D);
         stepTransformTexture();
+    }
+
+    if (textureViewMode) {
+        SetColorAndBackground(4,0);
+        GLdouble m[16];
+        glGetDoublev(GL_MODELVIEW_MATRIX, m);
+        for (int p = 0; p < 16; p+=4) {
+            cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+        }
+        cout << "- - - - " << endl;
+        SetColorAndBackground(15,0);
     }
 
     glGetFloatv(GL_MODELVIEW_MATRIX, textureMaster[textureIndex].MVmatrix);
@@ -409,9 +443,20 @@ void display(void) {
         for (int i = 1; i <= textureCount; i++) {
             textureIndex = i;
             stepTexture();
+
             glLoadIdentity();
             glTranslatef(0, 0, -20);
             applyTransformations(textureMaster[0].history, true);
+
+            SetColorAndBackground(2,0);
+            GLdouble m[16];
+            glGetDoublev(GL_MODELVIEW_MATRIX, m);
+            for (int p = 0; p < 16; p+=4) {
+                cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+            }
+            cout << "- - - - " << endl;
+            SetColorAndBackground(15,0);
+
             draw2DView();
             stepClearTexture();
         }
@@ -425,6 +470,18 @@ void display(void) {
         if (drawFast) {
             draw2DCalibrationFast();
         } else {
+
+
+            SetColorAndBackground(3,0);
+            GLdouble m[16];
+            glGetDoublev(GL_MODELVIEW_MATRIX, m);
+            for (int p = 0; p < 16; p+=4) {
+                cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
+            }
+            cout << "- - - - * * * *" << endl;
+            SetColorAndBackground(15,0);
+
+
             draw2DCalibrationFull();
         }
         glPushMatrix();
@@ -518,6 +575,7 @@ void keys(unsigned char key, int x, int y) {
         drawFast = true;
         textureViewMode = true;
         textureIndex = 0;
+        settings->saveTextureCalibration();
     }
     if (key >= '1' && key <= '9' && (key - 48 <= textureCount)) {
         drawFast = false;

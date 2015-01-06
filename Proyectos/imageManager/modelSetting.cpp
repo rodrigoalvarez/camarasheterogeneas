@@ -30,6 +30,9 @@ bool Model_SET::MemoryLoad() {
         NValues = *nValues;
         Values = new float[NValues * 16];
         memcpy(Values, values, sizeof(float) * NValues * 16);
+        /*for (int i = 0; i < NValues * 16; i++) {
+            cout << Values[i] << endl;
+        }*/
         return true;
     }
     return false;
