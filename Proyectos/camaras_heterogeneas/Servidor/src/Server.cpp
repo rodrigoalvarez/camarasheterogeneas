@@ -66,8 +66,11 @@ void Server::setVideoPreview(int cli, int cam, ofImage img) {
 void Server::exit() {
     int i = 0;
     for(i = 0; i < totThreadedServers; i++) {
-        tservers[i]->exit();
-        tservers[i]->stopThread();
+        if(tservers[i]->isThreadRunning()) {
+            tservers[i]->exit();
+            //tservers[i]->stopThread();
+            tservers[i]->waitForThread();
+        }
         delete tservers[i];
     }
 
@@ -195,35 +198,37 @@ void Server::update() {
 void Server::computeFrames() {
     ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totThreadedServers;
     for(int i = 0; i < totThreadedServers; i++) {
-        int currCam = 1;
-        ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer lock " << endl;
-        tservers[i]->lock();
-        ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer getHeadFrame " << endl;
-        std::pair <int, ThreadData *> head = tservers[i]->fb.getHeadFrame();
-        ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Tope del buffer tiene " << head.first << " vistas de camaras.";
+        if(tservers[i]->isThreadRunning()) {
+            int currCam = 1;
+            ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer lock " << endl;
+            tservers[i]->lock();
+            ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer getHeadFrame " << endl;
+            std::pair <int, ThreadData *> head = tservers[i]->fb.getHeadFrame();
+            ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Tope del buffer tiene " << head.first << " vistas de camaras.";
 
-        for(int c = 0; c < head.first; c++) {
-            if(gui.isOn()) {
-                setVideoPreview(head.second[c].cliId, currCam, head.second[c].img);
+            for(int c = 0; c < head.first; c++) {
+                if(gui.isOn()) {
+                    setVideoPreview(head.second[c].cliId, currCam, head.second[c].img);
+                }
+
+                currCam ++;
+                mb->addFrame(&head.second[c], c, i);
             }
 
-            currCam ++;
-            mb->addFrame(&head.second[c], c, i);
-        }
-
-        /*
-        ThreadData * prevFrame  = head.second;
-        while(prevFrame != NULL) {
-            ThreadData * td = prevFrame;
-            prevFrame = prevFrame->sig;
-            if(td->state > 0) {
-                //PROBLEMA:
-                td->releaseResources();
+            /*
+            ThreadData * prevFrame  = head.second;
+            while(prevFrame != NULL) {
+                ThreadData * td = prevFrame;
+                prevFrame = prevFrame->sig;
+                if(td->state > 0) {
+                    //PROBLEMA:
+                    td->releaseResources();
+                }
             }
-        }
-        delete prevFrame;*/
+            delete prevFrame;*/
 
-        tservers[i]->unlock();
+            tservers[i]->unlock();
+        }
     }
 }
 

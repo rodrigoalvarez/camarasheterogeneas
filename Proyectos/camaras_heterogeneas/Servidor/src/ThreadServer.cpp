@@ -72,11 +72,37 @@ bool ThreadServer::checkConnError() {
     #else
     int err = errno;
     #endif
-    if(err == ECONNRESET) {
-        connectionClosed = true;
-        return true;
+
+    if(connectionClosed) return true;
+    switch(err) {
+        case EBADF:
+        case ECONNRESET:
+        case EINTR: //EINTR: receive interrupted by a signal, before any data available");
+		case ENOTCONN: //ENOTCONN: trying to receive before establishing a connection");
+        case ENOTSOCK: //ENOTSOCK: socket argument is not a socket");
+        case EOPNOTSUPP: //EOPNOTSUPP: specified flags not valid for this socket");
+        case ETIMEDOUT: //ETIMEDOUT: timeout");
+        case EIO: //EIO: io error");
+        case ENOBUFS: //ENOBUFS: insufficient buffers to complete the operation");
+        case ENOMEM: //ENOMEM: insufficient memory to complete the request");
+        case EADDRNOTAVAIL: //EADDRNOTAVAIL: the specified address is not available on the remote machine");
+        case EAFNOSUPPORT: //EAFNOSUPPORT: the namespace of the addr is not supported by this socket");
+        case EISCONN: //EISCONN: the socket is already connected");
+        case ECONNREFUSED: //ECONNREFUSED: the server has actively refused to establish the connection");
+        case ENETUNREACH: //ENETUNREACH: the network of the given addr isn't reachable from this host");
+        case EADDRINUSE: //EADDRINUSE: the socket address of the given addr is already in use");
+        case EINPROGRESS: //EINPROGRESS: the socket is non-blocking and the connection could not be established immediately" );
+        case EALREADY: //EALREADY: the socket is non-blocking and already has a pending connection in progress");
+        case ENOPROTOOPT: //ENOPROTOOPT: The optname doesn't make sense for the given level.");
+        case EPROTONOSUPPORT: //EPROTONOSUPPORT: The protocol or style is not supported by the namespace specified.");
+        case EMFILE: //EMFILE: The process already has too many file descriptors open.");
+        case ENFILE: //ENFILE: The system already has too many file descriptors open.");
+        case EACCES: //EACCES: The process does not have the privilege to create a socket of the specified 	 style or protocol.");
+        case EMSGSIZE: //EMSGSIZE: The socket type requires that the message be sent atomically, but the message is too large for this to be possible.");
+        case EPIPE:         connectionClosed = true;
+                            break;
     }
-    return false;
+    return connectionClosed;
 }
 
 void ThreadServer::receiveFrame() {
@@ -106,9 +132,15 @@ void ThreadServer::receiveFrame() {
             int recSize = 0;
             int	err = 0;
             recSize = TCPCLI.receiveRawBytes((char*) &v0, sizeof(int));
-            if(checkConnError()) return;
+            if(checkConnError()) {
+                exit();
+                return;
+            }
             recSize = TCPCLI.receiveRawBytes((char*) &v1, sizeof(int));
-            if(checkConnError()) return;
+            if(checkConnError()) {
+                exit();
+                return;
+            }
 
             ofLogVerbose() << "" << endl;
 
@@ -129,7 +161,10 @@ void ThreadServer::receiveFrame() {
                     currBytearray        = FrameUtils::addToBytearray(recBytearray, numBytes, currBytearray, currTotal);
                     currTotal           += numBytes;
                 } else {
-                    if(checkConnError()) return;
+                    if(checkConnError()) {
+                        exit();
+                        return;
+                    }
                 }
                 delete recBytearray;
             } while(currTotal < (v0*sys_data->maxPackageSize + v1));
@@ -192,4 +227,5 @@ void ThreadServer::exit() {
     TCPCLI.close();
 
     unlock();
+    stopThread();
 }

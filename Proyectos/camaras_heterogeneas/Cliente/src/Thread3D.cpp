@@ -105,3 +105,8 @@ bool Thread3D::isDeviceInitted() {
 bool Thread3D::isDataAllocated() {
     return dataAllocated;
 }
+
+void Thread3D::exit() {
+    ofLogVerbose() << "[Thread3D::exit]";
+    stopThread();
+}

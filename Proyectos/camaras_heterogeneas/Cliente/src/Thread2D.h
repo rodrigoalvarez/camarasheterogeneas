@@ -12,6 +12,7 @@ class Thread2D : public ofThread {
 		void process(ofEventArgs &e);
 		bool isDeviceInitted();
 		bool isDataAllocated();
+        void exit();
 
         int  device;
         ofImage img;

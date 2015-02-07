@@ -11,7 +11,9 @@ class Transmitter : public ofThread {
 
 	public:
 		void threadedFunction();
-		void process();
+		void process(ofEventArgs &e);
+		bool checkConnError();
+		void exit();
         int camWidth;
         int camHeight;
         IGrabber * grabber;
@@ -25,13 +27,14 @@ class Transmitter : public ofThread {
 		int go;
         t_data * sys_data;
 		void sendFrame(int totalCams, ThreadData * tData);
-
+        bool connectionClosed;
         bool started;
         bool idle;
 
         Transmitter() {
-            idle = true;
-            started = false;
+            idle                = true;
+            started             = false;
+            connectionClosed    = false;
         }
 
         ~Transmitter() {

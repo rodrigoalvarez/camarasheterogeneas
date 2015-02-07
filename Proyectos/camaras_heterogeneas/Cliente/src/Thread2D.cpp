@@ -75,3 +75,8 @@ bool Thread2D::isDeviceInitted() {
 bool Thread2D::isDataAllocated() {
     return isDeviceInitted() && isAllocated;
 }
+
+void Thread2D::exit() {
+    ofLogVerbose() << "[Thread2D::exit]";
+    stopThread();
+}

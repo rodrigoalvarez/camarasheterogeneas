@@ -15,6 +15,7 @@ class Thread3D : public ofThread {
 		void process(ofEventArgs &e);
 		bool	isDeviceInitted();
         bool	isDataAllocated();
+        void exit();
         bool    deviceInited;
 		ofxOpenNI * openNIRecorder;
         bool    dataAllocated;

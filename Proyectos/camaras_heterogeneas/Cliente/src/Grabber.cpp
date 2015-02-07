@@ -99,16 +99,28 @@ void Grabber::exit() {
     //Stop the thread
     int i       = 0;
     for(i; i<gdata->total2D; i++) {
-        t2D[i].stopThread();
+        //t2D[i].stopThread();
+        if(t2D[i].isThreadRunning()) {
+            t2D[i].exit();
+            t2D[i].waitForThread();
+        }
     }
 
     i = 0;
     for(i; i<gdata->total3D; i++) {
-        t3D[i].stopThread();
+        //t3D[i].stopThread();
+        if(t3D[i].isThreadRunning()) {
+            t3D[i].exit();
+            t3D[i].waitForThread();
+        }
     }
 
     if(gdata->sys_data->goLive == 1) {
-        transmitter.stopThread();
+        if(transmitter.isThreadRunning()) {
+            transmitter.exit();
+            transmitter.waitForThread();
+            //transmitter.stopThread();
+        }
     }
 
     ofSleepMillis(1500);

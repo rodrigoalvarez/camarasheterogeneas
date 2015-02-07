@@ -8,10 +8,12 @@ void MeshThreadedGenerator::threadedFunction() {
     state   = GENERATOR_IDLE;
     ofLogVerbose() << "MeshThreadedGenerator :: threadedFunction" << endl;
     generarMalla = (f_generarMalla)GetProcAddress(generateMeshLibrary, "generarMalla");
-    /*while(isThreadRunning()) {
+    /*
+    while(isThreadRunning()) {
         //ofSleepMillis(1000/sys_data->fps);
         processFrame();
-    }*/
+    }
+    */
 
     ofAddListener(ofEvents().update, this, &MeshThreadedGenerator::processFrame);
 }
@@ -68,7 +70,7 @@ void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
         result->hasDepth    = (frame.first != NULL);
         result->hasRGB      = (frame.second != NULL);
         result->nframe      = nframe;
-        result->idMesh      = idMesh;
+        result->idMesh      = 10000 + nframe;
         result->textures    = (ThreadData *) frame.second;
         result->numberFaces = numberFaces;
         result->faces       = faces;

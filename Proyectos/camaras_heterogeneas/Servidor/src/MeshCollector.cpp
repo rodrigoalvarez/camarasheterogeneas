@@ -45,20 +45,19 @@ void MeshCollector::shareNextCompleteFrame() {
     sss ++;
     if(list.size()>0) {
         GeneratedResult * result = list.front();
-        if((currFrame + 1) == result->nframe) {
+        if((result->faces != NULL) && (currFrame + 1) == result->nframe) {
             ofLogVerbose() << "SHARE FRAME " << (currFrame + 1) << "  " << sss << endl;
             currFrame++;
             list.remove(result);
+            /*
             if(result->hasDepth) {
                 delete [] result->faces;
                 delete result->numberFaces;
-                /*
-                delete result->nube->x;
-                delete result->nube->y;
-                delete result->nube->z;
-                */
+
                 delete result->nube;
-            }
+                result->faces       = NULL;
+                result->numberFaces = NULL;
+            }*/
             //return;
             shareFrame(result);
         }
@@ -72,11 +71,29 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
     int height;
 
     if(gresult->hasDepth) {
+        /**
+        * El problema está acá, en este bloque.
+        */
         ofLogVerbose() << "POR SHEREAR LA MAYA GENERADA " << (currFrame) << endl;
-        ofLogVerbose() << "DATOS MAYA GENERADA, idMesh: " << (gresult->idMesh) << ", idnumberFaces: " << (*gresult->numberFaces) << ", faces: " << (gresult->faces) << endl;
+        ofLogVerbose() << "DATOS MAYA GENERADA, idMesh: " << (gresult->idMesh) << ", numberFaces: " << (*gresult->numberFaces) << ", faces: " << (gresult->faces) << endl;
+        if((*gresult->numberFaces) && (gresult->faces)) {
+            for(int i=0; i<(*gresult->numberFaces); i++) {
+                ofLogVerbose() << "faces: " << gresult->faces[i].p1[0] << " " << gresult->faces[i].p1[1] << " " << gresult->faces[i].p1[2] << " " << gresult->faces[i].p2[0] << " " << gresult->faces[i].p2[1] << " " << gresult->faces[i].p2[2] << " " << gresult->faces[i].p3[0] << " " << gresult->faces[i].p3[1] << " " << gresult->faces[i].p3[2] << " " << endl;
+            }
+            ShareMesh(gresult->idMesh, *gresult->numberFaces, gresult->faces);
+            delete [] gresult->faces;
+            delete gresult->numberFaces;
+            delete gresult->nube;
+            gresult->faces       = NULL;
+            gresult->numberFaces = NULL;
+            gresult->nube        = NULL;
+
+        }
+        /*
         ShareMesh(gresult->idMesh, *gresult->numberFaces, gresult->faces);
         delete [] gresult->faces;
         delete gresult->numberFaces;
+        */
     }
 
     if(gresult->hasRGB) { // En first viene un array de ThreadData con las texturas.

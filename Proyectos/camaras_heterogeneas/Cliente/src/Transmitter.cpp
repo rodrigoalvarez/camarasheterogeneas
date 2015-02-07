@@ -3,7 +3,31 @@
 #include "ToHex.h"
 #include "Grabber.h"
 
-#define  CLI_PORT 15000
+#include <cerrno>
+
+#ifdef TARGET_WIN32
+#define ENOTCONN        WSAENOTCONN
+#define EWOULDBLOCK     WSAEWOULDBLOCK
+#define ENOBUFS         WSAENOBUFS
+#define ECONNRESET      WSAECONNRESET
+#define ESHUTDOWN       WSAESHUTDOWN
+#define EAFNOSUPPORT    WSAEAFNOSUPPORT
+#define EPROTONOSUPPORT WSAEPROTONOSUPPORT
+#define EINPROGRESS     WSAEINPROGRESS
+#define EISCONN         WSAEISCONN
+#define ENOTSOCK        WSAENOTSOCK
+#define EOPNOTSUPP      WSAEOPNOTSUPP
+#define ETIMEDOUT       WSAETIMEDOUT
+#define EADDRNOTAVAIL   WSAEADDRNOTAVAIL
+#define ECONNREFUSED    WSAECONNREFUSED
+#define ENETUNREACH     WSAENETUNREACH
+#define EADDRINUSE      WSAEADDRINUSE
+#define EADDRINUSE      WSAEADDRINUSE
+#define EALREADY        WSAEALREADY
+#define ENOPROTOOPT     WSAENOPROTOOPT
+#define EMSGSIZE        WSAEMSGSIZE
+#define ECONNABORTED    WSAECONNABORTED
+#endif
 
 void Transmitter::threadedFunction() {
 
@@ -13,7 +37,6 @@ void Transmitter::threadedFunction() {
         std::cout << "No se pudo cargar la libreria: " << std::endl;
     }
     compress_img    = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
-    //decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
 
     state       = 0;
 
@@ -21,17 +44,60 @@ void Transmitter::threadedFunction() {
     cliId           = str;
 
     started = true;
-    //ofAddListener(ofEvents().update, this, &Transmitter::process);
 
+    /*
     while(isThreadRunning()) {
         ofLogVerbose()  << endl << "[Transmitter::threadedFunction] while(isThreadRunning())";
         ofSleepMillis(1000/sys_data->fps);
 
         process();
     }
+    */
+
+    ofAddListener(ofEvents().update, this, &Transmitter::process);
 }
 
-void Transmitter::process() {
+bool Transmitter::checkConnError() {
+    #ifdef TARGET_WIN32
+    int	err	= WSAGetLastError();
+    #else
+    int err = errno;
+    #endif
+
+    if(connectionClosed) return true;
+    switch(err) {
+        case EBADF:
+        case ECONNRESET:
+        case EINTR: //EINTR: receive interrupted by a signal, before any data available");
+		case ENOTCONN: //ENOTCONN: trying to receive before establishing a connection");
+        case ENOTSOCK: //ENOTSOCK: socket argument is not a socket");
+        case EOPNOTSUPP: //EOPNOTSUPP: specified flags not valid for this socket");
+        case ETIMEDOUT: //ETIMEDOUT: timeout");
+        case EIO: //EIO: io error");
+        case ENOBUFS: //ENOBUFS: insufficient buffers to complete the operation");
+        case ENOMEM: //ENOMEM: insufficient memory to complete the request");
+        case EADDRNOTAVAIL: //EADDRNOTAVAIL: the specified address is not available on the remote machine");
+        case EAFNOSUPPORT: //EAFNOSUPPORT: the namespace of the addr is not supported by this socket");
+        case EISCONN: //EISCONN: the socket is already connected");
+        case ECONNREFUSED: //ECONNREFUSED: the server has actively refused to establish the connection");
+        case ENETUNREACH: //ENETUNREACH: the network of the given addr isn't reachable from this host");
+        case EADDRINUSE: //EADDRINUSE: the socket address of the given addr is already in use");
+        case EINPROGRESS: //EINPROGRESS: the socket is non-blocking and the connection could not be established immediately" );
+        case EALREADY: //EALREADY: the socket is non-blocking and already has a pending connection in progress");
+        case ENOPROTOOPT: //ENOPROTOOPT: The optname doesn't make sense for the given level.");
+        case EPROTONOSUPPORT: //EPROTONOSUPPORT: The protocol or style is not supported by the namespace specified.");
+        case EMFILE: //EMFILE: The process already has too many file descriptors open.");
+        case ENFILE: //ENFILE: The system already has too many file descriptors open.");
+        case EACCES: //EACCES: The process does not have the privilege to create a socket of the specified 	 style or protocol.");
+        case EMSGSIZE: //EMSGSIZE: The socket type requires that the message be sent atomically, but the message is too large for this to be possible.");
+        case EPIPE:         connectionClosed = true;
+                            break;
+    }
+    return connectionClosed;
+}
+
+void Transmitter::process(ofEventArgs &e) {
+    if(connectionClosed) return;
     if(!started) return;
     if(!idle) {
         ofLogVerbose() << "[Transmitter::process] :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
@@ -108,7 +174,9 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     int val0  = floor(frameSize / sys_data->maxPackageSize);   //totMaxRecSize
     int val1  = frameSize - val0 * sys_data->maxPackageSize; //resto
 
+    if(checkConnError()) return;
     TCPSVR.sendRawBytesToAll((char*) &val0, sizeof(int));
+    if(checkConnError()) return;
     TCPSVR.sendRawBytesToAll((char*) &val1, sizeof(int));
 
     ofLogVerbose()  << endl;
@@ -116,6 +184,7 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     ofLogVerbose()  << "[Transmitter::sendFrame] totalCams " << totalCams;
     ofLogVerbose()  << "[Transmitter::sendFrame] frameSize " << frameSize;
     ofLogVerbose()  << "[Transmitter::sendFrame] cantidad de paquetes " << (val0 + val1);
+    if(checkConnError()) return;
     ofLogVerbose()  << "[Transmitter::sendFrame] conexiones " << TCPSVR.getNumClients();
     ofLogVerbose()  << endl;
 
@@ -126,10 +195,12 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     messageSize         = sys_data->maxPackageSize;
     while( imageBytesToSend > 1 ) {
         if(imageBytesToSend > messageSize) {
+            if(checkConnError()) return;
             TCPSVR.sendRawBytesToAll((const char*) &bytearray[totalBytesSent], messageSize);
             imageBytesToSend    -= messageSize;
             totalBytesSent      += messageSize;
         } else {
+            if(checkConnError()) return;
             TCPSVR.sendRawBytesToAll((char*) &bytearray[totalBytesSent], imageBytesToSend);
             totalBytesSent += imageBytesToSend;
             imageBytesToSend = 0;
@@ -145,4 +216,16 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
             }
         }
     }
+}
+
+void Transmitter::exit() {
+    ofLogVerbose() << "[Transmitter::exit]";
+
+    lock();
+
+    TCPSVR.close();
+
+    unlock();
+
+    stopThread();
 }
