@@ -1,0 +1,12 @@
+*.exe
+*.png
+*.jpg
+*.bmp
+*.xyz
+*.ply
+*.oni
+obj/
+ip.txt
+client_log.txt
+server_log.txt
+_settings.xml
