@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="release" />
+	<File name="src\Grabber.cpp" open="0" top="0" tabpos="1">
+		<Cursor position="47" topLine="0" />
+	</File>
+	<File name="src\Thread2D.cpp" open="0" top="0" tabpos="3">
+		<Cursor position="1394" topLine="31" />
+	</File>
+	<File name="src\Thread2D.h" open="0" top="0" tabpos="1">
+		<Cursor position="0" topLine="0" />
+	</File>
+	<File name="src\Thread3D.cpp" open="0" top="0" tabpos="2">
+		<Cursor position="3189" topLine="69" />
+	</File>
+</CodeBlocks_layout_file>

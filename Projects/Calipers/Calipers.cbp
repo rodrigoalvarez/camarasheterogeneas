@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="Calipers" />
+		<Option makefile="makefile" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Option virtualFolders="addons\;addons\ofxXmlSettings\;addons\ofxSharedMemory\src\;src\;addons\ofxXmlSettings\src\;addons\ofxXmlSettings\lib\;" />
+		<Build>
+			<Target title="release">
+				<Option output="bin\$(PROJECT_NAME)" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin" />
+				<Option object_output="obj\release" />
+				<Option external_deps="C:\of_v0073_win_cb_release\libs\openFrameworksCompiled\lib\win_cb\openFrameworks.lib;" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="C:\of_v0073_win_cb_release/libs/openFrameworksCompiled/lib/win_cb/openFrameworks.lib" />
+					<Add library="C:\Program Files (x86)\CodeBlocks\MinGW\lib\libgdi32.a" />
+					<Add library="C:\Program Files (x86)\CodeBlocks\MinGW\lib\libglu32.a" />
+					<Add library="C:\Program Files (x86)\CodeBlocks\MinGW\lib\libglut32.a" />
+					<Add library="C:\Program Files (x86)\CodeBlocks\MinGW\lib\libopengl32.a" />
+					<Add library="C:\Program Files (x86)\CodeBlocks\MinGW\lib\libwinmm.a" />
+					<Add library="lib\FreeImage.lib" />
+				</Linker>
+			</Target>
+			<Target title="debug">
+				<Option output="bin\$(PROJECT_NAME)_DEBUG" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="bin" />
+				<Option object_output="obj\debug\" />
+				<Option external_deps="C:\of_v0073_win_cb_release\libs\openFrameworksCompiled\lib\win_cb\openFrameworksDebug.lib;" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option projectLinkerOptionsRelation="2" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add option="C:\of_v0073_win_cb_release/libs/openFrameworksCompiled/lib/win_cb/openFrameworksDebug.lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wno-multichar" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\glu\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\freetype\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\freetype\include\freetype2" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\FreeImage\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\quicktime\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\rtAudio\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\fmodex\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\videoInput\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\glew\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\glut\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\3d" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\app" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\communication" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\events" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\gl" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\graphics" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\math" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\sound" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\types" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\utils" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\openFrameworks\video" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\poco\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\tess2\include" />
+			<Add directory="C:\of_v0073_win_cb_release\libs\cairo\include\cairo" />
+			<Add directory="C:\of_v0073_win_cb_release\addons\ofxSharedMemory\libs" />
+			<Add directory="C:\of_v0073_win_cb_release\addons\ofxSharedMemory\src" />
+			<Add directory="C:\of_v0073_win_cb_release\addons\ofxXmlSettings\src" />
+			<Add directory="C:\of_v0073_win_cb_release\addons\ofxXmlSettings\libs" />
+		</Compiler>
+		<Linker>
+			<Add library="C:\of_v0073_win_cb_release\libs\FreeImage\lib\win_cb\FreeImage.lib" />
+			<Add library="C:\of_v0073_win_cb_release\libs\rtAudio\lib\win_cb\librtaudio.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\quicktime\lib\win_cb\qtmlClient.lib" />
+			<Add library="C:\of_v0073_win_cb_release\libs\cairo\lib\win_cb\libcairo.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\cairo\lib\win_cb\libpixman-1.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\freetype\lib\win_cb\libfreetype.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\glut\lib\win_cb\libglut.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\videoInput\lib\win_cb\videoInputLib.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\fmodex\lib\win_cb\libfmodex.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\glew\lib\win_cb\glew32s.lib" />
+			<Add library="C:\of_v0073_win_cb_release\libs\glu\lib\win_cb\glu32.lib" />
+			<Add library="C:\of_v0073_win_cb_release\libs\poco\lib\win_cb\libPocoNet.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\poco\lib\win_cb\libPocoUtil.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\poco\lib\win_cb\libPocoXML.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\poco\lib\win_cb\libPocoFoundation.a" />
+			<Add library="C:\of_v0073_win_cb_release\libs\tess2\lib\win_cb\libtess2.a" />
+			<Add library="opengl32" />
+			<Add library="gdi32" />
+			<Add library="msimg32" />
+			<Add library="glu32" />
+			<Add library="dsound" />
+			<Add library="winmm" />
+			<Add library="dxguid" />
+			<Add library="strmbase" />
+			<Add library="strmiids" />
+			<Add library="z" />
+			<Add library="uuid" />
+			<Add library="ole32" />
+			<Add library="oleaut32" />
+			<Add library="setupapi" />
+			<Add library="wsock32" />
+			<Add library="ws2_32" />
+			<Add library="Iphlpapi" />
+			<Add library="Comdlg32" />
+		</Linker>
+		<ExtraCommands>
+			<Add after='xcopy /e /i /y &quot;$(PROJECT_DIR)C:\of_v0073_win_cb_release\export\win_cb\*.dll&quot;  &quot;$(PROJECT_DIR)bin&quot;' />
+			<Add after='cmd /c if not exist &quot;$(PROJECT_DIR)bin/data&quot; mkdir &quot;$(PROJECT_DIR)bin/data&quot;' />
+			<Mode after="always" />
+		</ExtraCommands>
+		<Unit filename="src\FreeImage.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\MeshMain.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\MeshMain.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\TextureMain.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\TextureMain.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\main.cpp">
+			<Option virtualFolder="src" />
+		</Unit>
+		<Unit filename="src\masterPly.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\masterPly.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\masterSettings.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\masterSettings.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\matrix4x4.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\matrix4x4.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\modelImg.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\modelImg.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\modelPly.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\modelPly.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\modelXYZ.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\modelXYZ.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\plylib.cpp">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="src\plylib.h">
+			<Option virtualFolder="src\" />
+		</Unit>
+		<Unit filename="C:\of_v0073_win_cb_release\addons\ofxSharedMemory\src\ofxSharedMemory.h">
+			<Option virtualFolder="addons\ofxSharedMemory\src" />
+		</Unit>
+		<Unit filename="C:\of_v0073_win_cb_release\addons\ofxXmlSettings\libs\tinyxml.cpp">
+			<Option virtualFolder="addons\ofxXmlSettings\lib\" />
+		</Unit>
+		<Unit filename="C:\of_v0073_win_cb_release\addons\ofxXmlSettings\libs\tinyxml.h">
+			<Option virtualFolder="addons\ofxXmlSettings\lib\" />
+		</Unit>
+		<Unit filename="C:\of_v0073_win_cb_release\addons\ofxXmlSettings\libs\tinyxmlerror.cpp">
+			<Option virtualFolder="addons\ofxXmlSettings\lib\" />
+		</Unit>
+		<Unit filename="C:\of_v0073_win_cb_release\addons\ofxXmlSettings\libs\tinyxmlparser.cpp">
+			<Option virtualFolder="addons\ofxXmlSettings\lib\" />
+		</Unit>
+		<Unit filename="C:\of_v0073_win_cb_release\addons\ofxXmlSettings\src\ofxXmlSettings.cpp">
+			<Option virtualFolder="addons\ofxXmlSettings\src\" />
+		</Unit>
+		<Unit filename="C:\of_v0073_win_cb_release\addons\ofxXmlSettings\src\ofxXmlSettings.h">
+			<Option virtualFolder="addons\ofxXmlSettings\src\" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

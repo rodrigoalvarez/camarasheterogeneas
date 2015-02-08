@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="release" />
+	<File name="src\FrameUtils.h" open="0" top="0" tabpos="1">
+		<Cursor position="0" topLine="0" />
+	</File>
+	<File name="src\MeshCollector.h" open="0" top="0" tabpos="0">
+		<Cursor position="881" topLine="16" />
+	</File>
+	<File name="src\MeshThreadedGenerator.h" open="0" top="0" tabpos="0">
+		<Cursor position="867" topLine="31" />
+	</File>
+	<File name="src\ThreadData.h" open="0" top="0" tabpos="2">
+		<Cursor position="0" topLine="0" />
+	</File>
+	<File name="src\main.cpp" open="0" top="0" tabpos="3">
+		<Cursor position="0" topLine="0" />
+	</File>
+</CodeBlocks_layout_file>
