@@ -34,22 +34,22 @@ TextureMain::TextureMain()
 }
 
 void TextureMain::writeText() {
-//    system("cls");
-//    cout << "2D CALIBRATION" << endl;
-//    cout << "Triangles: " << textureModel->TotalConnectedTriangles << endl;
-//    cout << "Points: " << textureModel->TotalPoints << endl;
-//    cout << "Faces: " << textureModel->TotalFaces << endl;
-//    cout << "MinCoord: " << textureModel->MinCoord << endl;
-//    cout << "MaxCoord: " << textureModel->MaxCoord << endl;
-//    cout << "AlfaCoord: " << textureModel->AlfaCoord << endl;
-//    cout << "Mode: " << (textureIndex == 0 ? "View" : "Calibration") << endl << endl;
-//    for (int i = 0; i <= textureCount; i++) {
-//        MasterTexture* masterNow = &textureMaster[i];
-//        cout << "Texture :: " << i << endl;
-//        cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
-//        cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
-//        cout << endl;
-//    }
+    /*system("cls");
+    cout << "2D CALIBRATION" << endl;
+    cout << "Triangles: " << textureModel->TotalConnectedTriangles << endl;
+    cout << "Points: " << textureModel->TotalPoints << endl;
+    cout << "Faces: " << textureModel->TotalFaces << endl;
+    cout << "MinCoord: " << textureModel->MinCoord << endl;
+    cout << "MaxCoord: " << textureModel->MaxCoord << endl;
+    cout << "AlfaCoord: " << textureModel->AlfaCoord << endl;
+    cout << "Mode: " << (textureIndex == 0 ? "View" : "Calibration") << endl << endl;
+    for (int i = 0; i <= textureCount; i++) {
+        MasterTexture* masterNow = &textureMaster[i];
+        cout << "Texture :: " << i << endl;
+        cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
+        cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
+        cout << endl;
+    }*/
 }
 
 void SetColorAndBackground(int ForgC, int BackC)
@@ -463,32 +463,74 @@ void TextureMain::display(void) {
 }
 
 
+void CalculateRotateMatrix(vector<MasterTransform*> history, GLdouble* m) {
+    glPushMatrix();
+    glLoadIdentity();
+    for (int i = 0; i < history.size(); i++) {
+        MasterTransform* trans = history[i];
+        if (trans->type == 3) { glRotatef(trans->value, 1.0f,0.0f,0.0f); }
+        if (trans->type == 4) { glRotatef(trans->value, 0.0f,1.0f,0.0f); }
+        if (trans->type == 5) { glRotatef(trans->value, 0.0f,0.0f,1.0f); }
+    }
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    glPopMatrix();
+}
+
+void CalculateTranslationX(vector<MasterTransform*> history, float v, float &rx, float &ry, float &rz) {
+    GLdouble m[16];
+    CalculateRotateMatrix(history, m);
+    float rw = 1;//m[12] * v + m[15]
+    rx = (m[0] * v + m[3]) / rw;
+    ry = (m[4] * v + m[7]) / rw;
+    rz = (m[8] * v + m[11]) /rw;
+}
+
+void CalculateTranslationY(vector<MasterTransform*> history, float v, float &rx, float &ry, float &rz) {
+    GLdouble m[16];
+    CalculateRotateMatrix(history, m);
+    float rw = 1;//m[13] * v + m[15]
+    rx = (m[1] * v + m[3]) / rw;
+    ry = (m[5] * v + m[7]) / rw;
+    rz = (m[9] * v + m[11]) /rw;
+}
+
+void CalculateTranslationZ(vector<MasterTransform*> history, float v, float &rx, float &ry, float &rz) {
+    GLdouble m[16];
+    CalculateRotateMatrix(history, m);
+    float rw = 1;//m[114] * v + m[15]
+    rx = (m[2] * v + m[3]) / rw;
+    ry = (m[6] * v + m[7]) / rw;
+    rz = (m[10] * v + m[11]) / rw;
+}
+
+
 void TextureMain::UpdateHistory (int id) {
-    int type = 0;
-    float value = 0;
+    float valueX = 0;
+    float valueY = 0;
+    float valueZ = 0;
+    float valueA = 0;
+    float valueB = 0;
+    float valueC = 0;
+
     if (textureMaster[id].viewer[0] != 0) {
-        type = 0;
-        value = textureMaster[id].viewer[0];
-    }
-    if (textureMaster[id].viewer[1] != 0) {
-        type = 1;
-        value = textureMaster[id].viewer[1];
-    }
-    if (textureMaster[id].viewer[2] != 0) {
-        type = 2;
-        value = textureMaster[id].viewer[2];
+        CalculateTranslationX(textureMaster[id].history, textureMaster[id].viewer[0], valueX, valueY, valueZ);
+
+    } else if (textureMaster[id].viewer[1] != 0) {
+        CalculateTranslationY(textureMaster[id].history, textureMaster[id].viewer[1], valueX, valueY, valueZ);
+
+    } else if (textureMaster[id].viewer[2] != 0) {
+        CalculateTranslationZ(textureMaster[id].history, textureMaster[id].viewer[2], valueX, valueY, valueZ);
+
     }
     if (textureMaster[id].rotate[0] != 0) {
-        type = 3;
-        value = textureMaster[id].rotate[0];
-    }
-    if (textureMaster[id].rotate[1] != 0) {
-        type = 4;
-        value = textureMaster[id].rotate[1];
-    }
-    if (textureMaster[id].rotate[2] != 0) {
-        type = 5;
-        value = textureMaster[id].rotate[2];
+        CalculateTranslationX(textureMaster[id].history, textureMaster[id].rotate[0], valueA, valueB, valueC);
+
+    } else if (textureMaster[id].rotate[1] != 0) {
+        CalculateTranslationY(textureMaster[id].history, textureMaster[id].rotate[1], valueA, valueB, valueC);
+
+    } else if (textureMaster[id].rotate[2] != 0) {
+        CalculateTranslationZ(textureMaster[id].history, textureMaster[id].rotate[2], valueA, valueB, valueC);
+
     }
 
     textureMaster[id].viewer[0] = 0;
@@ -498,15 +540,21 @@ void TextureMain::UpdateHistory (int id) {
     textureMaster[id].rotate[1] = 0;
     textureMaster[id].rotate[2] = 0;
 
-    MasterTransform* trans = NULL;
-    if (textureMaster[id].history.size() == 0 || textureMaster[id].history.back()->type != type) {
-        trans = new MasterTransform();
-        trans->value = value;
-        trans->type = type;
-        textureMaster[id].history.push_back(trans);
-    } else {
-        trans = textureMaster[id].history.back();
-        trans->value += value;
+    float values[6] = { valueX, valueY, valueZ, valueA, valueB, valueC };
+
+    for (int i = 0; i < 6; i++) {
+        if (values[i] != 0) {
+            MasterTransform* trans = NULL;
+            if (textureMaster[id].history.size() == 0 || textureMaster[id].history.back()->type != i) {
+                trans = new MasterTransform();
+                trans->value = values[i];
+                trans->type = i;
+                textureMaster[id].history.push_back(trans);
+            } else {
+                trans = textureMaster[id].history.back();
+                trans->value += values[i];
+            }
+        }
     }
 }
 
@@ -553,7 +601,16 @@ void TextureMain::keys(unsigned char key, int x, int y) {
     if(key == 'd') textureMaster[textureIndex].rotate[1] -= 2.0 * cameraFactor;
     if(key == 'e') textureMaster[textureIndex].rotate[2] += 2.0 * cameraFactor;
     if(key == 'q') textureMaster[textureIndex].rotate[2] -= 2.0 * cameraFactor;
-    if (key == 'w' || key == 's' || key == 'a' || key == 'd' || key == 'e' || key == 'q') {
+
+    if(key == 'm') textureMaster[textureIndex].viewer[0] += 0.2 * cameraFactor;
+    if(key == 'b') textureMaster[textureIndex].viewer[0] -= 0.2 * cameraFactor;
+    if(key == 'h') textureMaster[textureIndex].viewer[1] += 0.2 * cameraFactor;
+    if(key == 'n') textureMaster[textureIndex].viewer[1] -= 0.2 * cameraFactor;
+    if(key == 'j') textureMaster[textureIndex].viewer[2] += 0.2 * cameraFactor;
+    if(key == 'g') textureMaster[textureIndex].viewer[2] -= 0.2 * cameraFactor;
+
+    if (key == 'w' || key == 's' || key == 'a' || key == 'd' || key == 'e' || key == 'q' ||
+        key == 'm' || key == 'b' || key == 'h' || key == 'n' || key == 'j' || key == 'g') {
         UpdateHistory(textureIndex);
     }
 

@@ -166,6 +166,9 @@ void keys(unsigned char key, int x, int y) {
 
         }
     }
+    if (key == ' ') {
+        mMain->cameraAll = !mMain->cameraAll;
+    }
     if (modeMesh)
         mMain->keys(key, x, y);
     else
@@ -453,111 +456,4 @@ cout << "Paso2.1" << endl;
     //writeText();
 	glutMainLoop();
 }
-
-//void saveXmlFile() {
-//	ofxXmlSettings settings;
-//
-//	settings.addTag("settings");
-//	settings.pushTag("settings");
-//
-//	settings.setValue("realTime", REAL_TIME);
-//	settings.setValue("realTimeFPS", REAL_TIME_FPS);
-//	settings.setValue("realTimePort", REAL_TIME_PORT);
-//
-//	settings.addTag("cameras");
-//	settings.pushTag("cameras");
-//
-//	for(int i = 0; i < mMain->meshCount; i++) {
-//		settings.addTag("camera");
-//		settings.pushTag("camera", i);
-//
-//		settings.addValue("id", i);
-//		settings.addValue("resolutionX", 800);//800
-//		settings.addValue("resolutionY", 600);//600
-//		settings.addValue("resolutionDownSample", 1);
-//		settings.addValue("FPS", 30);// camera i fps
-//		settings.addValue("colorRGB", true);// camera i color rgb
-//		settings.addValue("use2D", false);// camera i use2d
-//		settings.addValue("use3D", true);// camera i use 3d
-//		settings.addValue("dataContext", "");// data context
-//
-//		settings.addTag("depthSettings");
-//		settings.pushTag("depthSettings");
-//		settings.addValue("near", 10);
-//		settings.addValue("far", 100);
-//		settings.addValue("pointsDownSample", 1);
-//
-//		settings.popTag();
-//
-//		settings.addTag("matrix");
-//		settings.pushTag("matrix");
-//
-//
-//        GLdouble m[16];
-//        MasterSettings::CalculateMatrix(mMain->cloudMaster[i], m);
-//
-//		for(int j = 0; j < 16; j++) {
-//            std::stringstream cellM;
-//            cellM << "r" << j / 4 << j % 4;
-//            settings.addValue(cellM.str(), m[j]);
-//		}
-//
-//		settings.popTag();
-//		settings.popTag();
-//	}
-//
-//	for(int i = 0; i < tMain->textureCount; i++) {
-//		settings.addTag("camera");
-//		settings.pushTag("camera",  tMain->textureCount+i);
-//
-//		settings.addValue("id", i);
-//		settings.addValue("resolutionX", 800);//800
-//		settings.addValue("resolutionY", 600);//600
-//		settings.addValue("resolutionDownSample", 1);
-//		settings.addValue("FPS", 30);// camera i fps
-//		settings.addValue("colorRGB", true);// camera i color rgb
-//		settings.addValue("use2D", true);// camera i use2d
-//		settings.addValue("use3D", false);// camera i use 3d
-//		settings.addValue("dataContext", "");// data context
-//
-//		settings.addTag("depthSettings");
-//		settings.pushTag("depthSettings");
-//		settings.addValue("near", 10);
-//		settings.addValue("far", 100);
-//		settings.addValue("pointsDownSample", 1);
-//
-//		settings.popTag();
-//
-//		settings.addTag("matrix");
-//		settings.pushTag("matrix");
-//
-//
-//        GLdouble m[16];
-//        MasterSettings::CalculateMatrix(mMain->cloudMaster[i], m);
-//
-//        MasterTexture* masterNow = &(tMain->textureMaster[i+1]);
-//
-//		for(int j = 0; j < 16; j++) {
-//            std::stringstream cellM;
-//            cellM << "m" << j / 4 << j % 4;
-//            settings.addValue(cellM.str(), masterNow->matrix[j]);
-//		}
-//
-//
-//        char* v = new char[50];
-//        sprintf ( v, "%f %f %f",masterNow->viewer[0], masterNow->viewer[1], masterNow->viewer[2] );
-//        char* r = new char[50];
-//        sprintf ( r, "%f %f %f",masterNow->rotate[0], masterNow->rotate[1], masterNow->rotate[2] );
-//        settings.addValue("viewer", v);
-//        settings.addValue("rotate", r);
-//
-//		settings.popTag();
-//		settings.popTag();
-//	}
-//
-//	settings.popTag();
-//	settings.popTag();
-//
-//	settings.saveFile("settings.xml");
-//}
 

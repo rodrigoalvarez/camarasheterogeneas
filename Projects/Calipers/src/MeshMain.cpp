@@ -249,6 +249,34 @@ void MeshMain::display(void) {
     writeText();
 }
 
+
+void CalculateTranslationX(float v, float &rx, float &ry, float &rz) {
+    GLdouble m[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    float rw = 1;//m[12] * v + m[15]
+    rx = (m[0] * v + m[3]) / rw;
+    ry = (m[4] * v + m[7]) / rw;
+    rz = (m[8] * v + m[11]) /rw;
+}
+
+void CalculateTranslationY(float v, float &rx, float &ry, float &rz) {
+    GLdouble m[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    float rw = 1;//m[13] * v + m[15]
+    rx = (m[1] * v + m[3]) / rw;
+    ry = (m[5] * v + m[7]) / rw;
+    rz = (m[9] * v + m[11]) /rw;
+}
+
+void CalculateTranslationZ(float v, float &rx, float &ry, float &rz) {
+    GLdouble m[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    float rw = 1;//m[114] * v + m[15]
+    rx = (m[2] * v + m[3]) / rw;
+    ry = (m[6] * v + m[7]) / rw;
+    rz = (m[10] * v + m[11]) / rw;
+}
+
 void MeshMain::mouseMove(int x, int y) {
 	if (cameraAxis != -1) {
 		float deltaMove = (y - cameraMove) * 0.1f * cameraFactor;
@@ -321,6 +349,14 @@ void MeshMain::keys(unsigned char key, int x, int y) {
         if(key == 'D' || key == 'd') cloudMaster[0].rotate[1] -= 2.0 * cameraFactor;
         if(key == 'E' || key == 'e') cloudMaster[0].rotate[2] += 2.0 * cameraFactor;
         if(key == 'Q' || key == 'q') cloudMaster[0].rotate[2] -= 2.0 * cameraFactor;
+
+        if(key == 'M' || key == 'm') cloudMaster[0].viewer[0] += 0.2 * cameraFactor;
+        if(key == 'B' || key == 'b') cloudMaster[0].viewer[0] -= 0.2 * cameraFactor;
+        if(key == 'H' || key == 'h') cloudMaster[0].viewer[1] += 0.2 * cameraFactor;
+        if(key == 'N' || key == 'n') cloudMaster[0].viewer[1] -= 0.2 * cameraFactor;
+        if(key == 'J' || key == 'j') cloudMaster[0].viewer[2] += 0.2 * cameraFactor;
+        if(key == 'G' || key == 'g') cloudMaster[0].viewer[2] -= 0.2 * cameraFactor;
+
     } else {
         if(key == 'w') cloudMaster[meshIndex].rotate[0] += 2.0 * cameraFactor;
         if(key == 's') cloudMaster[meshIndex].rotate[0] -= 2.0 * cameraFactor;
@@ -335,7 +371,60 @@ void MeshMain::keys(unsigned char key, int x, int y) {
         if(key == 'D') cloudMaster[0].rotate[1] -= 2.0 * cameraFactor;
         if(key == 'E') cloudMaster[0].rotate[2] += 2.0 * cameraFactor;
         if(key == 'Q') cloudMaster[0].rotate[2] -= 2.0 * cameraFactor;
+
+        if(key == 'm') cloudMaster[meshIndex].viewer[0] += 0.2 * cameraFactor;
+        if(key == 'b') cloudMaster[meshIndex].viewer[0] -= 0.2 * cameraFactor;
+        if(key == 'h') cloudMaster[meshIndex].viewer[1] += 0.2 * cameraFactor;
+        if(key == 'n') cloudMaster[meshIndex].viewer[1] -= 0.2 * cameraFactor;
+        if(key == 'j') cloudMaster[meshIndex].viewer[2] += 0.2 * cameraFactor;
+        if(key == 'g') cloudMaster[meshIndex].viewer[2] -= 0.2 * cameraFactor;
+
+        if(key == 'M') cloudMaster[0].viewer[0] += 0.2 * cameraFactor;
+        if(key == 'B') cloudMaster[0].viewer[0] -= 0.2 * cameraFactor;
+        if(key == 'H') cloudMaster[0].viewer[1] += 0.2 * cameraFactor;
+        if(key == 'N') cloudMaster[0].viewer[1] -= 0.2 * cameraFactor;
+        if(key == 'J') cloudMaster[0].viewer[2] += 0.2 * cameraFactor;
+        if(key == 'G') cloudMaster[0].viewer[2] -= 0.2 * cameraFactor;
     }
+
+    /*float valueX = 0;
+    float valueY = 0;
+    float valueZ = 0;
+    float valueA = 0;
+    float valueB = 0;
+    float valueC = 0;
+
+    if(key == 'W' || key == 'w') CalculateTranslationX(2.0 * cameraFactor, valueA, valueB, valueC);
+    if(key == 'S' || key == 's') CalculateTranslationX(-2.0 * cameraFactor, valueA, valueB, valueC);
+    if(key == 'A' || key == 'a') CalculateTranslationY(2.0 * cameraFactor, valueA, valueB, valueC);
+    if(key == 'D' || key == 'd') CalculateTranslationY(-2.0 * cameraFactor, valueA, valueB, valueC);
+    if(key == 'E' || key == 'e') CalculateTranslationZ(2.0 * cameraFactor, valueA, valueB, valueC);
+    if(key == 'Q' || key == 'q') CalculateTranslationZ(-2.0 * cameraFactor, valueA, valueB, valueC);
+
+    if(key == 'M' || key == 'm') CalculateTranslationX(0.2 * cameraFactor, valueX, valueY, valueZ);
+    if(key == 'B' || key == 'b') CalculateTranslationX(-0.2 * cameraFactor, valueX, valueY, valueZ);
+    if(key == 'H' || key == 'h') CalculateTranslationY(0.2 * cameraFactor, valueX, valueY, valueZ);
+    if(key == 'N' || key == 'n') CalculateTranslationY(-0.2 * cameraFactor, valueX, valueY, valueZ);
+    if(key == 'J' || key == 'j') CalculateTranslationZ(0.2 * cameraFactor, valueX, valueY, valueZ);
+    if(key == 'G' || key == 'g') CalculateTranslationZ(-0.2 * cameraFactor, valueX, valueY, valueZ);
+
+    bool cameraAllChange = cameraAll || (key >= 'A' && key <= 'Z');
+
+    if (cameraAllChange) {
+        cloudMaster[0].viewer[0] += valueX;
+        cloudMaster[0].viewer[1] += valueY;
+        cloudMaster[0].viewer[2] += valueZ;
+        cloudMaster[0].rotate[0] += valueA;
+        cloudMaster[0].rotate[1] += valueB;
+        cloudMaster[0].rotate[2] += valueC;
+    } else {
+        cloudMaster[meshIndex].viewer[0] += valueX;
+        cloudMaster[meshIndex].viewer[1] += valueY;
+        cloudMaster[meshIndex].viewer[2] += valueZ;
+        cloudMaster[meshIndex].rotate[0] += valueA;
+        cloudMaster[meshIndex].rotate[1] += valueB;
+        cloudMaster[meshIndex].rotate[2] += valueC;
+    }*/
 
 	display();
 }
