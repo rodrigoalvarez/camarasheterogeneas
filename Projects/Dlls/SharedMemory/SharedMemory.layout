@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="release" />
-	<File name="src\main.cpp" open="1" top="1" tabpos="10">
-		<Cursor position="4821" topLine="122" />
+	<File name="src\main.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="753" topLine="18" />
+		</Cursor>
 	</File>
-	<File name="src\main.h" open="0" top="0" tabpos="2">
-		<Cursor position="395" topLine="8" />
-	</File>
-	<File name="..\..\..\..\..\..\..\openframeworks\addons\ofxSharedMemory\src\ofxSharedMemory.h" open="0" top="0" tabpos="0">
-		<Cursor position="2684" topLine="101" />
+	<File name="src\main.cpp" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7511" topLine="212" />
+		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

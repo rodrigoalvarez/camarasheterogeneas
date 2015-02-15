@@ -5,5 +5,3 @@ EXPORTS
     ReadSharedMesh @4
     ShareImage @5
     ShareMesh @6
-    _Z12ShareSettingiPiPf @7
-    _Z17ReadSharedSettingPiPS_PPf @8
