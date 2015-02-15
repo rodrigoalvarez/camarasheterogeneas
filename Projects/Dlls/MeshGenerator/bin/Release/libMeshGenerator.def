@@ -1,0 +1,4 @@
+EXPORTS
+    DllMain@12 @1
+    meshGenerate @2
+    meshGenerateToCaliper @3
