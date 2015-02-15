@@ -6,6 +6,7 @@
 #include "ThreadData.h"
 #include "FrameUtils.h"
 #include "MainBuffer/MainBuffer.h"
+#include "MainBuffer/MainBufferRT.h"
 #include "ServerGlobalData.h"
 #include "MeshThreadedGenerator.h"
 #include "MeshCollector.h"
@@ -24,7 +25,7 @@ class MeshGenerator : public ofThread {
             buffer = NULL;
             nframe          = 0;
             currTProcesor   = 0;
-            idle            = true;
+            __idle            = true;
             started         = false;
         }
 
@@ -39,7 +40,7 @@ class MeshGenerator : public ofThread {
         //HINSTANCE memorySharedLibrary;
 		void threadedFunction();
 		void processFrame(ofEventArgs &e);
-		MainBuffer * buffer;
+		MainBufferRT * buffer;
 		MeshThreadedGenerator * threads;
 		MeshCollector * collector;
 		t_data * sys_data;
@@ -52,6 +53,6 @@ class MeshGenerator : public ofThread {
         //FaceStruct* faces;
 
         bool isConnected;
-        bool idle;
+        bool __idle;
         bool started;
 };

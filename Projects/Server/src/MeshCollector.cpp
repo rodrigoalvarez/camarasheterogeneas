@@ -7,6 +7,7 @@ bool compare_nframe (GeneratedResult * first, GeneratedResult * second) {
 
 void MeshCollector::threadedFunction() {
     ShareMesh  = (f_compartirMalla)GetProcAddress(memorySharedLibrary, "ShareMesh");
+    shareImage = (f_ShareImage)GetProcAddress(memorySharedLibrary, "ShareImage");
     /*
     while(isThreadRunning()) {
         //ofSleepMillis(1000/sys_data->fps);
@@ -24,42 +25,44 @@ void MeshCollector::processFrame(ofEventArgs &e) {
 
             bool esta = false;
             for (it=list.begin(); it!=list.end(); ++it) {
-                if(threads[i].result->nframe == (*it)->nframe) esta = true;
+                if((threads[i].result->nframe == (*it)->nframe)) esta = true;
             }
             if(!esta) {
                 threads[i].setState(GENERATOR_IDLE);
-                //threads[i].nframe = -1;
+
                 list.push_back(threads[i].result);
                 list.sort(compare_nframe);
+
+                /*
+                GeneratedResult * result = threads[i].result;
+                delete [] result->faces;
+                delete result->numberFaces;
+                if(result->textures != NULL) {
+                    while(result->textures != NULL){
+                        ThreadData * curr = result->textures;
+                        result->textures = result->textures->sig;
+                        delete curr;
+                    }
+                    result->textures = NULL;
+                }
+                */
             }
         }
     }
 
-    //for (it=list.begin(); it!=list.end(); ++it)
-    //    ofLogVerbose() << "MeshCollector :: Ordered nframe " << (*it)->nframe << endl;
     shareNextCompleteFrame();
 }
 
-int sss = 0;
 void MeshCollector::shareNextCompleteFrame() {
-    sss ++;
     if(list.size()>0) {
         GeneratedResult * result = list.front();
-        if((result->faces != NULL) && (currFrame + 1) == result->nframe) {
-            ofLogVerbose() << "SHARE FRAME " << (currFrame + 1) << "  " << sss << endl;
+        if((currFrame + 1) == result->nframe) {
+            ofLogVerbose() << "SHARE FRAME " << (currFrame + 1) << endl;
             currFrame++;
             list.remove(result);
-            /*
-            if(result->hasDepth) {
-                delete [] result->faces;
-                delete result->numberFaces;
 
-                delete result->nube;
-                result->faces       = NULL;
-                result->numberFaces = NULL;
-            }*/
-            //return;
             shareFrame(result);
+
         }
     }
 }
@@ -71,34 +74,15 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
     int height;
 
     if(gresult->hasDepth) {
-        /**
-        * El problema está acá, en este bloque.
-        */
-        ofLogVerbose() << "POR SHEREAR LA MAYA GENERADA " << (currFrame) << endl;
-        ofLogVerbose() << "DATOS MAYA GENERADA, idMesh: " << (gresult->idMesh) << ", numberFaces: " << (*gresult->numberFaces) << ", faces: " << (gresult->faces) << endl;
-        if((*gresult->numberFaces) && (gresult->faces)) {
-            for(int i=0; i<(*gresult->numberFaces); i++) {
-                ofLogVerbose() << "faces: " << gresult->faces[i].p1[0] << " " << gresult->faces[i].p1[1] << " " << gresult->faces[i].p1[2] << " " << gresult->faces[i].p2[0] << " " << gresult->faces[i].p2[1] << " " << gresult->faces[i].p2[2] << " " << gresult->faces[i].p3[0] << " " << gresult->faces[i].p3[1] << " " << gresult->faces[i].p3[2] << " " << endl;
-            }
-            ShareMesh(gresult->idMesh, *gresult->numberFaces, gresult->faces);
-            delete [] gresult->faces;
-            delete gresult->numberFaces;
-            delete gresult->nube;
-            gresult->faces       = NULL;
-            gresult->numberFaces = NULL;
-            gresult->nube        = NULL;
-
-        }
-        /*
-        ShareMesh(gresult->idMesh, *gresult->numberFaces, gresult->faces);
+        int numFaces = *gresult->numberFaces;
+        ShareMesh(gresult->idMesh, numFaces, gresult->faces);
         delete [] gresult->faces;
         delete gresult->numberFaces;
-        */
     }
 
-    if(gresult->hasRGB) { // En first viene un array de ThreadData con las texturas.
+    if(gresult->hasRGB) {
         ThreadData * iter = (ThreadData *) gresult->textures;
-        f_ShareImage shareImage = (f_ShareImage)GetProcAddress(memorySharedLibrary, "ShareImage");
+
         do {
             ofBuffer imageBuffer;
             ofSaveImage(iter->img.getPixelsRef(), imageBuffer, OF_IMAGE_FORMAT_JPEG);
@@ -118,7 +102,25 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
             idMomento   = idMomento*10000 + gresult->nframe % 10000;
 
             shareImage(&idMomento, pixels, &width, &height);
+
             iter = iter->sig;
+
+            FreeImage_CloseMemory(stream);
+            imageBuffer.clear();
+            free(pixels);
+            FreeImage_Unload(dib);
         } while(iter != NULL);
     }
+
+    if(gresult->hasRGB) {
+        if(gresult->textures != NULL) {
+            while(gresult->textures != NULL){
+                ThreadData * curr = gresult->textures;
+                gresult->textures = gresult->textures->sig;
+                delete curr;
+            }
+            gresult->textures = NULL;
+        }
+    }
+    delete gresult;
 }

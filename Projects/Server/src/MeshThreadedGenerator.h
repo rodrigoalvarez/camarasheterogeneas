@@ -15,17 +15,17 @@ struct FaceStruct{
     float p3[3];
 };
 
-struct NubePuntos{
+struct PointsCloud{
     float* x;
     float* y;
     float* z;
-    int largo;
+    int length;
 };
 
 struct GeneratedResult{
     int nframe;
     int idMesh;
-    NubePuntos * nube;
+    PointsCloud * nube;
     /*
     int idMomento;
     unsigned char* pixels;
@@ -38,18 +38,19 @@ struct GeneratedResult{
     FaceStruct* faces;
 };
 
-typedef void (*f_generarMalla)(NubePuntos* nbIN, FaceStruct** faces, int* numberFaces, int nroFrame);
+typedef void (*f_meshGenerate)(PointsCloud* nbIN, FaceStruct** faces, int* numberFaces, int nroFrame);
 
 class MeshThreadedGenerator : public ofThread {
 	public:
         MeshThreadedGenerator() {
-            char* dllName = "GenerarMallas.dll";
+            char* dllName = "MeshGenerator.dll";
             generateMeshLibrary =  LoadLibraryA(dllName);
 
             if(!generateMeshLibrary) {
                 std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
             }
             state           = GENERATOR_IDLE;
+            result          = NULL;
         }
 
         HINSTANCE generateMeshLibrary;
@@ -66,5 +67,6 @@ class MeshThreadedGenerator : public ofThread {
 		int* numberFaces;
 		std::pair <ThreadData *, ThreadData *> frame;
 		void processMesh(std::pair <ThreadData *, ThreadData *> frame, int id);
-		f_generarMalla generarMalla;
+		f_meshGenerate meshGenerate;
+		~MeshThreadedGenerator();
 };

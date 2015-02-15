@@ -68,6 +68,41 @@ class ThreadData {
             releaseResources();
         }
 
+        static ThreadData * Clone(ThreadData * oTD) {
+            if(oTD == NULL) return NULL;
+            ThreadData * nTD = new ThreadData();
+            nTD->sig         = oTD->sig;
+            nTD->curTime     = oTD->curTime;
+
+            nTD->cliId       = oTD->cliId;
+            nTD->camId       = oTD->camId;
+            nTD->img.clone(oTD->img);
+            nTD->state       = oTD->state;
+            nTD->nubeLength  = oTD->nubeLength;
+            nTD->nubeW       = oTD->nubeW;
+            nTD->nubeH       = oTD->nubeH;
+            nTD->imgWidth    = oTD->imgWidth;
+            nTD->imgHeight   = oTD->imgHeight;
+            nTD->qfactor     = oTD->qfactor;
+            nTD->compressed  = oTD->compressed;
+            nTD->cameraType  = oTD->cameraType;
+            nTD->imgrow1.set(oTD->imgrow1.x, oTD->imgrow1.y, oTD->imgrow1.z, oTD->imgrow1.w);
+            nTD->imgrow2.set(oTD->imgrow2.x, oTD->imgrow2.y, oTD->imgrow2.z, oTD->imgrow2.w);
+            nTD->imgrow3.set(oTD->imgrow3.x, oTD->imgrow3.y, oTD->imgrow3.z, oTD->imgrow3.w);
+            nTD->imgrow4.set(oTD->imgrow4.x, oTD->imgrow4.y, oTD->imgrow4.z, oTD->imgrow4.w);
+            nTD->row1.set( oTD->row1.x, oTD->row1.y, oTD->row1.z, oTD->row1.w);
+            nTD->row2.set( oTD->row2.x, oTD->row2.y, oTD->row2.z, oTD->row2.w);
+            nTD->row3.set( oTD->row3.x, oTD->row3.y, oTD->row3.z, oTD->row3.w);
+            nTD->row4.set( oTD->row4.x, oTD->row4.y, oTD->row4.z, oTD->row4.w);
+            nTD->xpix = (float*) malloc ( sizeof(float) * (oTD->nubeLength) );
+            nTD->ypix = (float*) malloc ( sizeof(float) * (oTD->nubeLength) );
+            nTD->zpix = (float*) malloc ( sizeof(float) * (oTD->nubeLength) );
+            memcpy(nTD->xpix,  oTD->xpix,  sizeof(float) * oTD->nubeLength);
+            memcpy(nTD->ypix,  oTD->ypix,  sizeof(float) * oTD->nubeLength);
+            memcpy(nTD->zpix,  oTD->zpix,  sizeof(float) * oTD->nubeLength);
+            return nTD;
+        }
+
         void releaseResources() {
 
             if(xpix != NULL) {

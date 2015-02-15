@@ -7,7 +7,8 @@
 void MeshThreadedGenerator::threadedFunction() {
     state   = GENERATOR_IDLE;
     ofLogVerbose() << "MeshThreadedGenerator :: threadedFunction" << endl;
-    generarMalla = (f_generarMalla)GetProcAddress(generateMeshLibrary, "generarMalla");
+    meshGenerate = (f_meshGenerate)GetProcAddress(generateMeshLibrary, "meshGenerate");
+
     /*
     while(isThreadRunning()) {
         //ofSleepMillis(1000/sys_data->fps);
@@ -18,12 +19,16 @@ void MeshThreadedGenerator::threadedFunction() {
     ofAddListener(ofEvents().update, this, &MeshThreadedGenerator::processFrame);
 }
 
+MeshThreadedGenerator::~MeshThreadedGenerator() {
+    //delete result;
+}
+
 void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
     lock();
     if(state == GENERATOR_LOADED) {
 
         int idMesh;
-        NubePuntos* nbIN = NULL;
+        PointsCloud* nbIN = NULL;
 
         ofLogVerbose() << "MeshThreadedGenerator :: state == GENERATOR_LOADED " << nMTG << endl;
         state           = GENERATOR_BUSY;
@@ -40,22 +45,19 @@ void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
             ///GENERAR MALLA
             //f_generarMalla generarMalla = (f_generarMalla)GetProcAddress(generateMeshLibrary, "generarMalla");
 
-            nbIN             = new NubePuntos;
-            nbIN->largo      = td->nubeLength;
+            nbIN             = new PointsCloud;
+            nbIN->length      = td->nubeLength;
             nbIN->x          = td->xpix;
             nbIN->y          = td->ypix;
             nbIN->z          = td->zpix;
+
             faces            = new FaceStruct;
             numberFaces      = new int;
+
             cout << "[MeshThreadedGenerator::processFrame] nubeLength " << td->nubeLength << " " <<  nMTG << endl;
             try {
-                generarMalla(nbIN, &faces, numberFaces, nframe);
-                /*
-                delete nbIN->x;
-                delete nbIN->y;
-                delete nbIN->z;
-                delete nbIN;
-                */
+                meshGenerate(nbIN, &faces, numberFaces, nframe);
+
                 ofLogVerbose() << "[MeshThreadedGenerator::processFrame] Termino de generar " << nframe << endl;
             }  catch (exception& e) {
                 cout << "[MeshThreadedGenerator::processFrame] FALLO EL GENERAR MALLA" << e.what();
@@ -66,7 +68,6 @@ void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
         }
 
         result              = new GeneratedResult();
-        result->nube        = nbIN;
         result->hasDepth    = (frame.first != NULL);
         result->hasRGB      = (frame.second != NULL);
         result->nframe      = nframe;
@@ -74,6 +75,13 @@ void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
         result->textures    = (ThreadData *) frame.second;
         result->numberFaces = numberFaces;
         result->faces       = faces;
+
+        if(frame.first != NULL) {
+            delete frame.first;
+            frame.first = NULL;
+            delete nbIN;
+        }
+
         /**/
         state   = GENERATOR_COMPLETE;
     }
