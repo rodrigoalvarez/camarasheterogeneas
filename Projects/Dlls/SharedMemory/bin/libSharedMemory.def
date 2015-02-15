@@ -1,0 +1,9 @@
+EXPORTS
+    DllMain@12 @1
+    MemoryCheck @2
+    ReadSharedImage @3
+    ReadSharedMesh @4
+    ShareImage @5
+    ShareMesh @6
+    _Z12ShareSettingiPiPf @7
+    _Z17ReadSharedSettingPiPS_PPf @8
