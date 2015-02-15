@@ -135,13 +135,6 @@ void DLL_EXPORT ShareImage(int* imageId, unsigned char* pixels, int* wPixels, in
                     memoryMappedImage.setup(key4.str(), sizeof(unsigned char) * (*wPixels) * (*hPixels) * 3, true);
                     isConnectedPixels = memoryMappedImage.connect();
                     if (isConnectedPixels){
-                        char* nombre = new char[20];
-                        sprintf(nombre,"imagen%d.png",*imageId);
-
-
-                        ofImage image;
-                        image.setFromPixels(pixels,*wPixels,*hPixels,OF_IMAGE_COLOR);
-                        image.saveImage(nombre);
 
                         memoryMappedImage.setData(pixels);
                         shareImage = true;
@@ -202,7 +195,7 @@ void DLL_EXPORT ReadSharedMesh(int* Id, int* numberFaces, FaceStruct** faces)
 {
     std::stringstream key1;
     key1 << "MeshId" << *Id / 10000;
-    int* id;
+    int* id = NULL;
 
     memoryMappedMeshId.setup(key1.str(), sizeof(int), false);
     isConnectedMeshId = memoryMappedMeshId.connect();
@@ -230,73 +223,13 @@ void DLL_EXPORT ReadSharedMesh(int* Id, int* numberFaces, FaceStruct** faces)
         }
     }
 
-    if (*id > *Id && *numberFaces > 0) {
+    if ((id != NULL && *id > *Id) && (numberFaces != NULL && *numberFaces > 0)) {
         *Id = *id;
     }
-    else
+    else{
         *Id = -1;
-
-}
-
-ofxSharedMemory<float*> memoryMappedCameras;
-ofxSharedMemory<int*> memoryMappedCamerasIds;
-ofxSharedMemory<int*> memoryMappedCamerasSize;
-bool isConnectedNValues;
-bool isConnectedIdsValues;
-bool isConnectedValues;
-
-void DLL_EXPORT ShareSetting(int numberValues, int* idsValues, float* values){
-
-	memoryMappedCamerasSize.setup("SettingsNumberValues", sizeof(int), true);
-    isConnectedNValues = memoryMappedCamerasSize.connect();
-    while(!(isConnectedNValues && isConnectedIdsValues && isConnectedValues)){
-        if (isConnectedNValues){
-            memoryMappedCamerasSize.setData(&numberValues);
-
-            memoryMappedCamerasIds.setup("SettingsIdsValues", sizeof(int)*numberValues, true);
-            isConnectedIdsValues = memoryMappedCamerasIds.connect();
-            if (isConnectedIdsValues){
-                memoryMappedCamerasIds.setData(idsValues);
-
-                memoryMappedCameras.setup("SettingsValues", sizeof(float) * numberValues * 16, true);
-                isConnectedValues = memoryMappedCameras.connect();
-                if (isConnectedValues){
-                    memoryMappedCameras.setData(values);
-                }
-            }
-        }
     }
-    isConnectedNValues = false;
-    isConnectedIdsValues = false;
-    isConnectedValues = false;
-}
 
-ofxSharedMemory<float*> memoryMappedValues;
-ofxSharedMemory<int*> memoryMappedIds;
-ofxSharedMemory<int*> memoryMappedNValues;
-
-void DLL_EXPORT ReadSharedSetting(int* numberValues, int** idsValues, float** values){
-
-    memoryMappedNValues.setup("SettingsNumberValues", sizeof(int), false);
-    isConnectedNValues = memoryMappedNValues.connect();
-    while(!(isConnectedNValues && isConnectedIdsValues && isConnectedValues)){
-        if (isConnectedNValues) {
-            numberValues = memoryMappedNValues.getData();
-
-            memoryMappedIds.setup("SettingsIdsValues", sizeof(int) * (*numberValues), true);
-            isConnectedIdsValues = memoryMappedIds.connect();
-            if (isConnectedIdsValues){
-                *idsValues = memoryMappedIds.getData();
-
-                memoryMappedValues.setup("SettingsValues", sizeof(float) * (*numberValues) * 16, false);
-                isConnectedValues = memoryMappedValues.connect();
-                if (isConnectedValues) {
-                    *values = memoryMappedValues.getData();
-
-                }
-            }
-        }
-    }
 }
 
 
