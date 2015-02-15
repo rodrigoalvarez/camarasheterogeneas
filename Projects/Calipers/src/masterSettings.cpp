@@ -75,23 +75,6 @@ void MasterSettings::loadTextureCalibration () {
     }
 }
 
-//void MasterSettings::saveTextureCalibration () {
-//
-//    for (int i = 1; i <= textureCount; i++) {
-//        MasterTexture* masterNow = &textureMaster[i];
-//        std::stringstream fileName;
-//        fileName << "texture" << i << ".txt";
-//        std::ofstream out(fileName.str().c_str());
-//        GLdouble m[16];
-//        CalculateMatrix(masterNow->history, m);
-//        out << m[0] << " " << m[1] << " " << m[2] << " " << m[3] << " ";
-//        out << m[4] << " " << m[5] << " " << m[6] << " " << m[7] << " ";
-//        out << m[8] << " " << m[9] << " " << m[10] << " " << m[11] << " ";
-//        out << m[12] << " " << m[13] << " " << m[14] << " " << m[15];
-//        out.close();
-//    }
-//}
-
 void MasterSettings::CalculateMatrix(MasterMesh master, GLdouble* m) {
     glPushMatrix();
     glLoadIdentity();
@@ -127,6 +110,9 @@ void MasterSettings::CalculateMatrix(vector<MasterTransform*> history, GLdouble*
             if (trans->type == 4) { glRotatef(-trans->value, 0.0f,1.0f,0.0f); }
             if (trans->type == 5) { glRotatef(-trans->value, 0.0f,0.0f,1.0f); }
         }
+
+
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
 
     glPopMatrix();
 }
