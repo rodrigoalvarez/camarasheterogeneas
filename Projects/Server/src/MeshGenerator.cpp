@@ -68,13 +68,12 @@ void MeshGenerator::processFrame(ofEventArgs &e) {
     if(!started) return;
     ofLogVerbose() << "MeshGenerator :: FPS " << ofToString(ofGetFrameRate()) << endl;
 
-    if(!idle) {
+    if(!__idle) {
         ofLogVerbose() << "MeshGenerator :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
         return;
     }
-    idle = false;
+    __idle = false;
     ofLogVerbose() << "MeshGenerator :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
-
     int i = 0;
     for(i=0; i<sys_data->totalFreeCores; i++) {
         proc ++;
@@ -86,7 +85,49 @@ void MeshGenerator::processFrame(ofEventArgs &e) {
                 nframe++;
                 break;
             }
+            /*if(frame.first != NULL) {
+                delete frame.first;
+                frame.first = NULL;
+            }
+            if(frame.second != NULL) {
+                while(frame.second != NULL){
+                    ThreadData * curr = frame.second;
+                    frame.second = frame.second->sig;
+                    delete curr;
+                }
+            }*/
         }
     }
-    idle = true;
+    __idle = true;
+    /*return;
+
+    ofLogVerbose() << "MeshGenerator :: FPS " << ofToString(ofGetFrameRate()) << endl;
+
+    if(!__idle) {
+        ofLogVerbose() << "MeshGenerator :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+        return;
+    }
+    __idle = false;
+    ofLogVerbose() << "MeshGenerator :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+
+    int i = 0;
+    for(i=0; i<sys_data->totalFreeCores; i++) {
+        proc ++;
+        proc = proc % sys_data->totalFreeCores;
+        if(threads[proc].getState() == GENERATOR_IDLE) {
+
+            if(frame.first != NULL) {
+                delete frame.first;
+                frame.first = NULL;
+            }
+            if(frame.second != NULL) {
+                while(frame.second != NULL){
+                    ThreadData * curr = frame.second;
+                    frame.second = frame.second->sig;
+                    delete curr;
+                }
+            }
+        }
+    }
+    __idle = true;*/
 }

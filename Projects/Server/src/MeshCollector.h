@@ -46,6 +46,7 @@ class MeshCollector : public ofThread {
         int currProc;
         int currFrame;
         f_compartirMalla ShareMesh;
+        f_ShareImage shareImage;
         std::list<GeneratedResult *> list;
         std::list<GeneratedResult *>::iterator it;
 

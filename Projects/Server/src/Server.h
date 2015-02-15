@@ -9,6 +9,7 @@
 #include "FrameUtils.h"
 #include "FrameBuffer.h"
 #include "MainBuffer/MainBuffer.h"
+#include "MainBuffer/MainBufferRT.h"
 #include "MeshGenerator.h"
 #include "Constants.h"
 #include "ServerGlobalData.h"
@@ -78,7 +79,7 @@ class Server : public ofBaseApp {
 
         int buffLastIndex;
         int buffCurrIndex;
-        MainBuffer * mb;
+        MainBufferRT * mb;
         ServerGlobalData * gdata;
 
         std::list<DebugTexture *> list;

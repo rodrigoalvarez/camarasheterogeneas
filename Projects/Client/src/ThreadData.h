@@ -116,6 +116,7 @@ class ThreadData {
 
         void mergePointClouds(ThreadData * td) {
             if(td->nubeLength > 0) {
+                /*
                 ofLogVerbose() << "[ThreadData::mergePointClouds] - Mergeando 2 Frames - " << nubeLength << " - " << td->nubeLength;
 
                 int curLength   = nubeLength;
@@ -147,7 +148,7 @@ class ThreadData {
                 zpix = (float *) tmpzPix;
 
                 nubeLength = curLength + td->nubeLength;
-
+                */
             }
         }
 };
