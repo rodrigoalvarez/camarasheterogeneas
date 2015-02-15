@@ -73,7 +73,6 @@ void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
             settings.addTag("matrixA2D");
             settings.pushTag("matrixA2D");
             GLdouble mA[16];
-            cout << "History SizeA: " << camera->masterTexture->history.size() << endl;
             MasterSettings::CalculateMatrix(camera->masterTexture->history, mA, true);
             for(int j = 0; j < 16; j++) {
                 std::stringstream cellM;
@@ -85,7 +84,6 @@ void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
             settings.addTag("matrixB2D");
             settings.pushTag("matrixB2D");
             GLdouble mB[16];
-            cout << "History SizeB: " << camera->masterTexture->history.size() << endl;
             MasterSettings::CalculateMatrix(camera->masterTexture->history, mB, false);
             for(int j = 0; j < 16; j++) {
                 std::stringstream cellM;
@@ -175,8 +173,6 @@ void keys(unsigned char key, int x, int y) {
         tMain->keys(key, x, y);
 
     if (key == 'o' && !modeMesh){
-            cout << "History Size1: " << tMain->textureMaster[0].history.size() << endl;
-            cout << "History Size2: " << tMain->textureMaster[1].history.size() << endl;
         saveXmlFiles(clients);
     }
 }
@@ -200,9 +196,9 @@ void myReshape(int w, int h) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
     if (w <= h) {
-        glFrustum(-2.0, 2.0, -2.0*(GLfloat)h/(GLfloat)w,2.0*(GLfloat)h/(GLfloat)w, 2.0, 20.0);
+        glFrustum(-.5, .5, -.5 * (GLfloat)h / (GLfloat)w, .5 * (GLfloat)h / (GLfloat)w, .5, 20.0);
     } else {
-        glFrustum(-2.0*(GLfloat)w/(GLfloat)h, 2.0*(GLfloat)w/(GLfloat)h, -2.0, 2.0, 2.0, 20.0);
+        glFrustum(-.5 * (GLfloat)w / (GLfloat)h, .5 *(GLfloat)w / (GLfloat)h, -.5, .5, .5, 20.0);
     }
 	glMatrixMode(GL_MODELVIEW);
 }
@@ -239,7 +235,7 @@ vector<string> getCloudFiles() {
                     cameraDirectory.allowExt("xyz");
                     cameraDirectory.listDir();
                     if (cameraDirectory.numFiles() > 0){
-                        cout << cameraDirectory.getPath(0) << endl;
+                        //cout << cameraDirectory.getPath(0) << endl;
                         files.push_back(cameraDirectory.getPath(0));
                     }
                 }
@@ -271,7 +267,7 @@ vector<string> getImageFiles() {
                     cameraDirectory.allowExt("jpg");
                     cameraDirectory.listDir();
                     if (cameraDirectory.numFiles() > 0){
-                        cout << cameraDirectory.getPath(0) << endl;
+                        //cout << cameraDirectory.getPath(0) << endl;
                         files.push_back(cameraDirectory.getPath(0));
                     }
                 }
@@ -324,7 +320,7 @@ vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster,
 
                     if (camera->is2D || camera->is3D) {
                         camera->idCamera = idCamera++;
-                        cout << "idcamera: " << idCamera << endl;
+                        //cout << "idcamera: " << idCamera << endl;
                         client->cameras.push_back(camera);
                     }
                 }
@@ -403,9 +399,7 @@ int main(int argc, char **argv) {
     tMain->textureModel = new Model_PLY();
 
     /* Texture */
-cout << "Paso2.0" << endl;
     vector<string> files2D = getImageFiles();
-cout << "Paso2.1" << endl;
     tMain->textureCount = files2D.size();
     tMain->textureMaster = new MasterTexture[tMain->textureCount + 1];
     tMain->faces = new int*[tMain->textureCount + 1];

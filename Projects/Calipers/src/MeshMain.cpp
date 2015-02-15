@@ -11,6 +11,7 @@ MeshMain::MeshMain()
 
     meshCount = 3;
     meshIndex = 0;
+    generatingMesh = false;
 
     cameraAxis = -1;
     cameraMove = -1;
@@ -20,8 +21,8 @@ MeshMain::MeshMain()
 
     settings = NULL;
 
-    cloudModel = NULL;//tienen la nube y ubicacion cuando fueron cargados
-    cloudMaster = NULL;//tienen la informacion de transformacion y ubicacion
+    cloudModel = NULL;
+    cloudMaster = NULL;
 
     faces = NULL;
     numberFaces = 0;
@@ -42,25 +43,74 @@ MeshMain::MeshMain()
 
 }
 
-void MeshMain::writeText() {
-    /*system("cls");
-    cout << "3D CALIBRATION" << endl;
-    cout << "Mode: " << (meshIndex == 0 ? "View" : "Calibration") << endl << endl;
-    for (int i = 0; i <= meshCount; i++) {
-        MasterMesh* masterNow = &cloudMaster[i];
-        cout << "Mesh :: " << i << endl;
-        cout << "Points... " << cloudModel[i]->TotalPoints << endl;
-        cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
-        cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
-        cout << endl;
-    }*/
+void MeshMain::drawText(const char* text, int length, int x, int y) {
+    glMatrixMode(GL_PROJECTION);
+    double* matrix = new double[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, matrix);
+    glLoadIdentity();
+    int winW = glutGet(GLUT_WINDOW_WIDTH);
+    int winH = glutGet(GLUT_WINDOW_HEIGHT);
+    glOrtho(0, winW, 0, winH, -5, 5);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glPushMatrix();
+    glLoadIdentity();
+    glRasterPos2i(x, y);
+    for (int i = 0; i < length; i++) {
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, (int)text[i]);
+    }
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixd(matrix);
+    glMatrixMode(GL_MODELVIEW);
+}
+
+void MeshMain::drawAllText() {
+
+    int positionY = 10;
+
+    if (generatingMesh) {
+        string textMode = "Generating the mesh ...";
+        drawText(textMode.data(), textMode.size(), 10, positionY);
+        positionY += 20;
+
+    } else {
+        for (int i = 0; i <= meshCount; i++) {
+            MasterMesh* masterNow = &cloudMaster[i];
+            std::ostringstream intIndex; intIndex << i;
+            std::ostringstream intPoints; intPoints << cloudModel[i]->TotalPoints;
+            std::ostringstream intX; intX << masterNow->viewer[0];
+            std::ostringstream intY; intY << masterNow->viewer[1];
+            std::ostringstream intZ; intZ << masterNow->viewer[2];
+            std::ostringstream intA; intA << masterNow->rotate[0];
+            std::ostringstream intB; intB << masterNow->rotate[1];
+            std::ostringstream intC; intC << masterNow->rotate[2];
+
+            string textMesh = "Mesh ";
+            textMesh = textMesh + intIndex.str() + " :: ";
+            textMesh = textMesh + " [ Points: " + intPoints.str() + " ]";
+            textMesh = textMesh + " [ Position: " + intX.str() + " | " + intY.str() + " | " + intZ.str() + " ]";
+            textMesh = textMesh + " [ Rotation: " + intA.str() + " | " + intB.str() + " | " + intC.str() + " ]";
+            drawText(textMesh.data(), textMesh.size(), 10, positionY);
+            positionY += 20;
+        }
+
+        string textMode = "Mode: ";
+        textMode = textMode + (meshIndex == 0 ? "View" : "Calibration");
+        drawText(textMode.data(), textMode.size(), 10, positionY);
+        positionY += 20;
+    }
+
+    string textTitle = "3D CALIBRATION";
+    drawText(textTitle.data(), textTitle.size(), 10, positionY);
+    positionY += 20;
 }
 
 void MeshMain::generarMalla(NubePuntos* nube){
     char* dllName = "C:\\Users\\Rodrigo\\Documents\\GitHub\\camarasheterogeneas\\Proyectos\\GenerarMallas\\bin\\Release\\GenerarMallas.dll";
     HINSTANCE hGetProcIDDLL =  LoadLibraryA(dllName);
     if (!hGetProcIDDLL) {
-        std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
+        std::cout << "Failed to load the library: " << dllName << std::endl;
     }
     f_funci funci = (f_funci)GetProcAddress(hGetProcIDDLL, "generarMallaCalibrador");
 
@@ -78,17 +128,12 @@ void MeshMain::generarNubeUnida(){
     nube->x = new float[cloudModel[0]->TotalPoints];
     nube->y = new float[cloudModel[0]->TotalPoints];
     nube->z = new float[cloudModel[0]->TotalPoints];
-    cout << "Antes, puntos: " << cloudModel[0]->TotalPoints <<endl;
     for (int i = 0; i < cloudModel[0]->TotalPoints; i++){
 
-    /*cout << cloudModel[0]->Points[i*3] << " "
-    << cloudModel[0]->Points[i*3+1] << " "
-    << cloudModel[0]->Points[i*3+2] <<endl;*/
         nube->x[i] = cloudModel[0]->Points[i*3];
         nube->y[i] = cloudModel[0]->Points[i*3+1];
         nube->z[i] = cloudModel[0]->Points[i*3+2];
     }
-    cout << "Despues" << endl;
     generarMalla(nube);
 }
 
@@ -129,7 +174,6 @@ void MeshMain::saveXmlFile() {
 
 		settings.addTag("matrix");
 		settings.pushTag("matrix");
-
 
         GLdouble m[16];
         MasterSettings::CalculateMatrix(cloudMaster[i], m);
@@ -243,10 +287,10 @@ void MeshMain::display(void) {
        glDisable(GL_LIGHTING);
     }
 
+    drawAllText();
+
 	glFlush();
 	glutSwapBuffers();
-
-    writeText();
 }
 
 
@@ -328,7 +372,10 @@ void MeshMain::keys(unsigned char key, int x, int y) {
         for (int i = 1; i <= meshCount; i++) {
             IncludeMesh(cloudModel[0], cloudModel[i], cloudMaster[i]);
         }
+        generatingMesh = true;
+        display();
         generarNubeUnida();
+        generatingMesh = false;
     }
     if(key >= '1' && key <= '9' && (key - 48 <= meshCount)) {
         meshIndex = key - 48;

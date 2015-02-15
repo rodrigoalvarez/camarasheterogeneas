@@ -33,30 +33,69 @@ TextureMain::TextureMain()
     cameraLight = true;
 }
 
-void TextureMain::writeText() {
-    /*system("cls");
-    cout << "2D CALIBRATION" << endl;
-    cout << "Triangles: " << textureModel->TotalConnectedTriangles << endl;
-    cout << "Points: " << textureModel->TotalPoints << endl;
-    cout << "Faces: " << textureModel->TotalFaces << endl;
-    cout << "MinCoord: " << textureModel->MinCoord << endl;
-    cout << "MaxCoord: " << textureModel->MaxCoord << endl;
-    cout << "AlfaCoord: " << textureModel->AlfaCoord << endl;
-    cout << "Mode: " << (textureIndex == 0 ? "View" : "Calibration") << endl << endl;
-    for (int i = 0; i <= textureCount; i++) {
-        MasterTexture* masterNow = &textureMaster[i];
-        cout << "Texture :: " << i << endl;
-        cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
-        cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
-        cout << endl;
-    }*/
+void TextureMain::drawText(const char* text, int length, int x, int y) {
+    glMatrixMode(GL_PROJECTION);
+    double* matrix = new double[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, matrix);
+    glLoadIdentity();
+    int winW = glutGet(GLUT_WINDOW_WIDTH);
+    int winH = glutGet(GLUT_WINDOW_HEIGHT);
+    glOrtho(0, winW, 0, winH, -5, 5);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glPushMatrix();
+    glLoadIdentity();
+    glRasterPos2i(x, y);
+    for (int i = 0; i < length; i++) {
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, (int)text[i]);
+    }
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixd(matrix);
+    glMatrixMode(GL_MODELVIEW);
 }
 
-void SetColorAndBackground(int ForgC, int BackC)
-{
-    WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);;
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wColor);
-    return;
+void TextureMain::drawAllText() {
+
+    int positionY = 10;
+    for (int i = 0; i <= textureCount; i++) {
+        MasterTexture* masterNow = &textureMaster[i];
+        std::ostringstream intIndex; intIndex << i;
+        std::ostringstream intX; intX << masterNow->viewer[0];
+        std::ostringstream intY; intY << masterNow->viewer[1];
+        std::ostringstream intZ; intZ << masterNow->viewer[2];
+        std::ostringstream intA; intA << masterNow->rotate[0];
+        std::ostringstream intB; intB << masterNow->rotate[1];
+        std::ostringstream intC; intC << masterNow->rotate[2];
+
+        string textTexture = "Texture ";
+        textTexture = textTexture + intIndex.str() + " :: ";
+        textTexture = textTexture + " [ Position: " + intX.str() + " | " + intY.str() + " | " + intZ.str() + " ]";
+        textTexture = textTexture + " [ Rotation: " + intA.str() + " | " + intB.str() + " | " + intC.str() + " ]";
+        drawText(textTexture.data(), textTexture.size(), 10, positionY);
+        positionY += 20;
+    }
+
+    std::ostringstream intPoints; intPoints << textureModel->TotalPoints;
+    std::ostringstream intFaces; intFaces << textureModel->TotalFaces;
+    std::ostringstream intCoordMin; intCoordMin << textureModel->MinCoord;
+    std::ostringstream intCoordMax; intCoordMax << textureModel->MaxCoord;
+    std::ostringstream intCoordAlfa; intCoordAlfa << textureModel->AlfaCoord;
+    string textMesh = "Mesh: ";
+    textMesh = textMesh + " [ Points: " + intPoints.str() + " ]";
+    textMesh = textMesh + " [ Faces: " + intFaces.str() + " ]";
+    textMesh = textMesh + " [ Coordinates: " + intCoordMin.str() + " | " + intCoordMax.str() + " | " + intCoordAlfa.str() + " ]";
+    drawText(textMesh.data(), textMesh.size(), 10, positionY);
+    positionY += 20;
+
+    string textMode = "Mode: ";
+    textMode = textMode + (textureIndex == 0 ? "View" : "Calibration");
+    drawText(textMode.data(), textMode.size(), 10, positionY);
+    positionY += 20;
+
+    string textTitle = "2D CALIBRATION";
+    drawText(textTitle.data(), textTitle.size(), 10, positionY);
+    positionY += 20;
 }
 
 void TextureMain::setFaceVertex(int index) {
@@ -64,7 +103,6 @@ void TextureMain::setFaceVertex(int index) {
     glVertex3fv(vert);
 
     glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
-    //glNormal3f((rand() % 1000 -500)/1000.0, (rand() % 1000 -500)/1000.0, (rand() % 1000 -500)/1000.0);
 }
 
 void TextureMain::draw2DElement(int index) {
@@ -100,7 +138,7 @@ void TextureMain::draw2DBackground() {
    }
 }
 void TextureMain::draw2DView() {
-    //cout << "textureCount: " << textureCount << endl ;
+
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         int hits = 0;
 //        for (int k = 1; k <= textureCount; k++) {
@@ -310,11 +348,11 @@ void TextureMain::textureProjection(Matrix4x4f &mv) {
     float wImg = textureImage[textureIndex-1].Width;
     float hImg = textureImage[textureIndex-1].Height;
     if (wImg < hImg) {
-        glScalef(1.0f,(1.f*wImg)/hImg,1.0f);
+        glScalef(1.0f,(1.f*wImg)/hImg,3.0f);
     } else {
-        glScalef((1.f*hImg)/wImg,1.0f,1.0f);
+        glScalef((1.f*hImg)/wImg,1.0f,3.0f);
     }
-    glFrustum(-0.035,0.035,-0.035,0.035,0.02,2.0);
+    glFrustum(-0.035,0.035,-0.035,0.035,0.04,2.0);
     glMultMatrixf(inverseMV.getMatrix());
     glMatrixMode(GL_MODELVIEW);
 }
@@ -348,17 +386,6 @@ void TextureMain::stepTexture() {
         glActiveTextureARB(GL_TEXTURE0 + textureIndex - 1);
         glEnable(GL_TEXTURE_2D);
         stepTransformTexture();
-
-           SetColorAndBackground(2,0);
-
-           cout << "StepTexture- - - - " << endl;
-            GLdouble m[16];
-            glGetDoublev(GL_MODELVIEW_MATRIX, m);
-            for (int p = 0; p < 16; p+=4) {
-            cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
-            }
-            cout << "- - - - " << endl;
-           SetColorAndBackground(15,0);
     }
 
     glGetFloatv(GL_MODELVIEW_MATRIX, textureMaster[textureIndex].MVmatrix);
@@ -405,15 +432,6 @@ void TextureMain::display(void) {
             glTranslatef(0, 0, -20);
             applyTransformations(textureMaster[0].history, true);
 
-            SetColorAndBackground(8,0);
-           cout << "Display- - - - " << endl;
-           GLdouble m[16];
-           glGetDoublev(GL_MODELVIEW_MATRIX, m);
-           for (int p = 0; p < 16; p+=4) {
-               cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
-           }
-           cout << "- - - - " << endl;
-           SetColorAndBackground(15,0);
             draw2DView();
             stepClearTexture();
         }
@@ -430,15 +448,6 @@ void TextureMain::display(void) {
         if (drawFast) {
             draw2DCalibrationFast();
         } else {
-//           SetColorAndBackground(4,0);
-//            GLdouble m[16];
-//            glGetDoublev(GL_MODELVIEW_MATRIX, m);
-//            for (int p = 0; p < 16; p+=4) {
-//            cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
-//            }
-//            cout << "- - - - " << endl;
-//           SetColorAndBackground(15,0);
-
             draw2DCalibrationFull();
         }
 
@@ -456,10 +465,11 @@ void TextureMain::display(void) {
        glDisable(GL_LIGHT0);
        glDisable(GL_LIGHTING);
     }
+
+    drawAllText();
+
     glFlush();
     glutSwapBuffers();
-
-    writeText();
 }
 
 
@@ -570,10 +580,7 @@ void TextureMain::keys(unsigned char key, int x, int y) {
         textureViewMode = true;
         textureIndex = 0;
     }
-//    if (key == 'k') {
-//        settings->saveTextureCalibration();
-//    }
-    if (key == 'n') {
+    if (key == 'p') {
         cameraLight = !cameraLight;
     }
     if(key == 'v') {
