@@ -49,29 +49,64 @@ HINSTANCE occlusionLibrary;
 
 typedef void (*f_OcclusionCulling)(int textureIndex,int TotalFaces, float* Faces_Triangles, int*** faces);
 
-void writeText() {
-    /*system("cls");
-    cout << "PLAYER" << endl;
-    cout << "Triangles: " << textureModel->TotalConnectedTriangles << endl;
-    cout << "Points: " << textureModel->TotalPoints << endl;
-    cout << "Faces: " << textureModel->TotalFaces << endl;
-    cout << "MinCoord: " << textureModel->MinCoord << endl;
-    cout << "MaxCoord: " << textureModel->MaxCoord << endl;
-    cout << "AlfaCoord: " << textureModel->AlfaCoord << endl;
-    for (int i = 0; i <= textureCount; i++) {
-        MasterTexture* masterNow = &textureMaster[i];
-        cout << "Texture :: " << i << endl;
-        cout << "Origin position..." << endl << masterNow->viewer[0]  << " " << masterNow->viewer[1]  << " " << masterNow->viewer[2] << endl;
-        cout << "Object rotate..." << endl << masterNow->rotate[0]  << " " << masterNow->rotate[1]  << " " << masterNow->rotate[2] << endl;
-        cout << endl;
-    }*/
+void drawText(const char* text, int length, int x, int y) {
+    glMatrixMode(GL_PROJECTION);
+    double* matrix = new double[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, matrix);
+    glLoadIdentity();
+    int winW = glutGet(GLUT_WINDOW_WIDTH);
+    int winH = glutGet(GLUT_WINDOW_HEIGHT);
+    glOrtho(0, winW, 0, winH, -5, 5);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glPushMatrix();
+    glLoadIdentity();
+    glRasterPos2i(x, y);
+    for (int i = 0; i < length; i++) {
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, (int)text[i]);
+    }
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixd(matrix);
+    glMatrixMode(GL_MODELVIEW);
 }
 
-void SetColorAndBackground(int ForgC, int BackC)
-{
-    WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);;
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wColor);
-    return;
+void drawAllText() {
+
+    int positionY = 10;
+    for (int i = 0; i <= textureCount; i++) {
+        MasterTexture* masterNow = &textureMaster[i];
+        std::ostringstream intIndex; intIndex << i;
+        std::ostringstream intX; intX << masterNow->viewer[0];
+        std::ostringstream intY; intY << masterNow->viewer[1];
+        std::ostringstream intZ; intZ << masterNow->viewer[2];
+        std::ostringstream intA; intA << masterNow->rotate[0];
+        std::ostringstream intB; intB << masterNow->rotate[1];
+        std::ostringstream intC; intC << masterNow->rotate[2];
+
+        string textTexture = "Texture ";
+        textTexture = textTexture + intIndex.str() + " :: ";
+        textTexture = textTexture + " [ Position: " + intX.str() + " | " + intY.str() + " | " + intZ.str() + " ]";
+        textTexture = textTexture + " [ Rotation: " + intA.str() + " | " + intB.str() + " | " + intC.str() + " ]";
+        drawText(textTexture.data(), textTexture.size(), 10, positionY);
+        positionY += 20;
+    }
+
+    std::ostringstream intPoints; intPoints << textureModel->TotalPoints;
+    std::ostringstream intFaces; intFaces << textureModel->TotalFaces;
+    std::ostringstream intCoordMin; intCoordMin << textureModel->MinCoord;
+    std::ostringstream intCoordMax; intCoordMax << textureModel->MaxCoord;
+    std::ostringstream intCoordAlfa; intCoordAlfa << textureModel->AlfaCoord;
+    string textMesh = "Mesh: ";
+    textMesh = textMesh + " [ Points: " + intPoints.str() + " ]";
+    textMesh = textMesh + " [ Faces: " + intFaces.str() + " ]";
+    textMesh = textMesh + " [ Coordinates: " + intCoordMin.str() + " | " + intCoordMax.str() + " | " + intCoordAlfa.str() + " ]";
+    drawText(textMesh.data(), textMesh.size(), 10, positionY);
+    positionY += 20;
+
+    string textTitle = "PLAYER";
+    drawText(textTitle.data(), textTitle.size(), 10, positionY);
+    positionY += 20;
 }
 
 void setFaceVertex(int index) {
@@ -224,12 +259,9 @@ bool PointInFrustum(float x, float y, float z) {
 
 void draw2DPlayerFull() {
 
-    cout<< "DLL1" << endl;
     f_OcclusionCulling occlusionCulling = (f_OcclusionCulling)GetProcAddress(occlusionLibrary, "OcclusionCulling");
-    cout<< "DLL2" << endl;
 
     occlusionCulling(textureIndex,textureModel->TotalFaces, textureModel->Faces_Triangles, &faces);
-    cout<< "DLL3" << endl;
 //    ExtractFrustum();
 //    GLuint* queries = new GLuint[textureModel->TotalFaces];
 //    //GLuint queries = *queriesP;
@@ -267,7 +299,6 @@ void draw2DPlayerFull() {
 //    glDepthFunc(GL_LESS);
 //    glDepthMask(GL_TRUE);
 //    delete [] queries;
-    cout<< "DLL FIN" << endl;
 }
 
 void draw2DPlayerFast() {
@@ -281,11 +312,6 @@ void draw2DPlayerFast() {
         }
     }
 }
-/*void draw2DPlayerFast() {
-    for (int i = 0; i < textureModel->TotalFaces; i++) {
-        draw2DElement(i);
-    }
-}*/
 
 void applyTransformations(vector<MasterTransform*> history) {
 	for (int i = 0; i < history.size(); i++) {
@@ -339,17 +365,6 @@ void stepTexture() {
         glActiveTextureARB(GL_TEXTURE0 + textureIndex - 1);
         glEnable(GL_TEXTURE_2D);
         stepTransformTexture();
-
-
-           SetColorAndBackground(2,0);
-               GLdouble m[16];
-               glGetDoublev(GL_MODELVIEW_MATRIX, m);
-               for (int p = 0; p < 16; p+=4) {
-                   cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
-               }
-               cout << "- - - - " << endl;
-
-           SetColorAndBackground(15,0);
     }
 
     glGetFloatv(GL_MODELVIEW_MATRIX, textureMaster[textureIndex].MVmatrix);
@@ -375,48 +390,10 @@ void display(void) {
         glTranslatef(0, 0, -20);
         if (drawFast) {
             applyTransformations(textureMaster[0].history);
-
-
-            SetColorAndBackground(8,0);
-           GLdouble m[16];
-           glGetDoublev(GL_MODELVIEW_MATRIX, m);
-           for (int p = 0; p < 16; p+=4) {
-               cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
-           }
-           cout << "- - - - " << endl;
-           SetColorAndBackground(15,0);
-
             draw2DPlayerFast();
         } else {
 
-//           SetColorAndBackground(2,0);
-//            GLdouble m[16];
-//            glGetDoublev(GL_MODELVIEW_MATRIX, m);
-//            cout << "Antes- - - - " << endl;
-//            for (int p = 0; p < 16; p+=4) {
-//            cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
-//            }
-//            cout << "- - - - " << endl;
-//           SetColorAndBackground(15,0);
-
             glMultMatrixd(textureMaster[textureIndex].matrixA);
-
-//           SetColorAndBackground(3,0);
-//            cout << "MatrixA- - - - " << endl;
-//            for (int p = 0; p < 16; p+=4) {
-//            cout << textureMaster[textureIndex].matrixA[p] << " "  << textureMaster[textureIndex].matrixA[p+1] << " "  << textureMaster[textureIndex].matrixA[p+2] << " "  << textureMaster[textureIndex].matrixA[p+3] << endl;
-//            }
-//            cout << "- - - - " << endl;
-//           SetColorAndBackground(15,0);
-//
-//           SetColorAndBackground(4,0);
-//            glGetDoublev(GL_MODELVIEW_MATRIX, m);
-//            for (int p = 0; p < 16; p+=4) {
-//            cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
-//            }
-//            cout << "- - - - " << endl;
-//           SetColorAndBackground(15,0);
-
             draw2DPlayerFull();
         }
         stepClearTexture();
@@ -427,15 +404,108 @@ void display(void) {
         glutSwapBuffers();
     }
 
-    writeText();
+    drawAllText();
+
     if (!drawFast) {
        drawFast = true;
        display();
    }
 }
 
+
+void CalculateRotateMatrix(vector<MasterTransform*> history, GLdouble* m) {
+    glPushMatrix();
+    glLoadIdentity();
+    for (int i = 0; i < history.size(); i++) {
+        MasterTransform* trans = history[i];
+        if (trans->type == 3) { glRotatef(trans->value, 1.0f,0.0f,0.0f); }
+        if (trans->type == 4) { glRotatef(trans->value, 0.0f,1.0f,0.0f); }
+        if (trans->type == 5) { glRotatef(trans->value, 0.0f,0.0f,1.0f); }
+    }
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+    glPopMatrix();
+}
+
+void CalculateTranslationX(vector<MasterTransform*> history, float v, float &rx, float &ry, float &rz) {
+    GLdouble m[16];
+    CalculateRotateMatrix(history, m);
+    float rw = 1;//m[12] * v + m[15]
+    rx = (m[0] * v + m[3]) / rw;
+    ry = (m[4] * v + m[7]) / rw;
+    rz = (m[8] * v + m[11]) /rw;
+}
+
+void CalculateTranslationY(vector<MasterTransform*> history, float v, float &rx, float &ry, float &rz) {
+    GLdouble m[16];
+    CalculateRotateMatrix(history, m);
+    float rw = 1;//m[13] * v + m[15]
+    rx = (m[1] * v + m[3]) / rw;
+    ry = (m[5] * v + m[7]) / rw;
+    rz = (m[9] * v + m[11]) /rw;
+}
+
+void CalculateTranslationZ(vector<MasterTransform*> history, float v, float &rx, float &ry, float &rz) {
+    GLdouble m[16];
+    CalculateRotateMatrix(history, m);
+    float rw = 1;//m[114] * v + m[15]
+    rx = (m[2] * v + m[3]) / rw;
+    ry = (m[6] * v + m[7]) / rw;
+    rz = (m[10] * v + m[11]) / rw;
+}
+
 void UpdateHistory (int id) {
-    int type = 0;
+    float valueX = 0;
+    float valueY = 0;
+    float valueZ = 0;
+    float valueA = 0;
+    float valueB = 0;
+    float valueC = 0;
+
+    if (textureMaster[id].viewer[0] != 0) {
+        CalculateTranslationX(textureMaster[id].history, textureMaster[id].viewer[0], valueX, valueY, valueZ);
+
+    } else if (textureMaster[id].viewer[1] != 0) {
+        CalculateTranslationY(textureMaster[id].history, textureMaster[id].viewer[1], valueX, valueY, valueZ);
+
+    } else if (textureMaster[id].viewer[2] != 0) {
+        CalculateTranslationZ(textureMaster[id].history, textureMaster[id].viewer[2], valueX, valueY, valueZ);
+
+    }
+    if (textureMaster[id].rotate[0] != 0) {
+        CalculateTranslationX(textureMaster[id].history, textureMaster[id].rotate[0], valueA, valueB, valueC);
+
+    } else if (textureMaster[id].rotate[1] != 0) {
+        CalculateTranslationY(textureMaster[id].history, textureMaster[id].rotate[1], valueA, valueB, valueC);
+
+    } else if (textureMaster[id].rotate[2] != 0) {
+        CalculateTranslationZ(textureMaster[id].history, textureMaster[id].rotate[2], valueA, valueB, valueC);
+
+    }
+
+    textureMaster[id].viewer[0] = 0;
+    textureMaster[id].viewer[1] = 0;
+    textureMaster[id].viewer[2] = 0;
+    textureMaster[id].rotate[0] = 0;
+    textureMaster[id].rotate[1] = 0;
+    textureMaster[id].rotate[2] = 0;
+
+    float values[6] = { valueX, valueY, valueZ, valueA, valueB, valueC };
+
+    for (int i = 0; i < 6; i++) {
+        if (values[i] != 0) {
+            MasterTransform* trans = NULL;
+            if (textureMaster[id].history.size() == 0 || textureMaster[id].history.back()->type != i) {
+                trans = new MasterTransform();
+                trans->value = values[i];
+                trans->type = i;
+                textureMaster[id].history.push_back(trans);
+            } else {
+                trans = textureMaster[id].history.back();
+                trans->value += values[i];
+            }
+        }
+    }
+    /*int type = 0;
     float value = 0;
     if (textureMaster[id].viewer[0] != 0) {
         type = 0;
@@ -478,12 +548,12 @@ void UpdateHistory (int id) {
     } else {
         trans = textureMaster[id].history.back();
         trans->value += value;
-    }
+    }*/
 }
 
 void keys(unsigned char key, int x, int y) {
 
-    if (key == 'm') {
+    if (key == 'p') {
         textureWire = !textureWire;
     }
     if (key == 'w') textureMaster[0].rotate[0] += 2.0;
@@ -493,7 +563,15 @@ void keys(unsigned char key, int x, int y) {
     if (key == 'e') textureMaster[0].rotate[2] += 2.0;
     if (key == 'q') textureMaster[0].rotate[2] -= 2.0;
 
-    if (key == 'w' || key == 's' || key == 'a' || key == 'd' || key == 'e' || key == 'q') {
+    if(key == 'm') textureMaster[0].viewer[0] += 0.2;
+    if(key == 'b') textureMaster[0].viewer[0] -= 0.2;
+    if(key == 'h') textureMaster[0].viewer[1] += 0.2;
+    if(key == 'n') textureMaster[0].viewer[1] -= 0.2;
+    if(key == 'j') textureMaster[0].viewer[2] += 0.2;
+    if(key == 'g') textureMaster[0].viewer[2] -= 0.2;
+
+    if (key == 'w' || key == 's' || key == 'a' || key == 'd' || key == 'e' || key == 'q' ||
+        key == 'm' || key == 'b' || key == 'h' || key == 'n' || key == 'j' || key == 'g') {
         UpdateHistory(textureIndex);
     }
 
@@ -537,9 +615,9 @@ void myReshape(int w, int h) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if (w <= h) {
-        glFrustum(-.5, .5, -.5 * (GLfloat)h / (GLfloat)w, .5 * (GLfloat)h / (GLfloat)w, .5, 20.0);
+        glFrustum(-2.0, 2.0, -2.0*(GLfloat)h/(GLfloat)w,2.0*(GLfloat)h/(GLfloat)w, 2.0, 20.0);
     } else {
-        glFrustum(-.5 * (GLfloat)w / (GLfloat)h, .5 *(GLfloat)w / (GLfloat)h, -.5, .5, .5, 20.0);
+        glFrustum(-2.0*(GLfloat)w/(GLfloat)h, 2.0*(GLfloat)w/(GLfloat)h, -2.0, 2.0, 2.0, 20.0);
     }
     glMatrixMode(GL_MODELVIEW);
 }
@@ -572,37 +650,17 @@ bool loadLightMapTexture(Model_IMG* model) {
 
     bool shouldRedraw = true;
     shouldRedraw = model->MemoryLoad();
-    //cout << "Salio1!!" << endl;
-    //shouldRedraw = false;
-   // model->Load("depth_device_rgb_1.jpg");
 
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812D);
     glTexParameterfv(GL_TEXTURE_2D,GL_TEXTURE_BORDER_COLOR,borderColor);
-    //cout << "TEXTURA ANTES!!" << endl;
     //glTexImage2D(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_BGR,GL_UNSIGNED_BYTE,model->Pixels);
     gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_BGR,GL_UNSIGNED_BYTE,model->Pixels);
-    //cout << "TEXTURA DESPUES!!" << endl;
 
     return shouldRedraw;
 }
-
-//void timerFunction(int arg) {
-//    glutTimerFunc(reDrawRate, timerFunction, 0);
-//    bool shouldRedraw = false;
-//    shouldRedraw = textureModel->MemoryLoad();
-//    for (int i = 0; i < textureCount; i++) {
-//        cout << "textureImage[i].Id " << textureImage[i].Id << endl;
-//        shouldRedraw = shouldRedraw || loadLightMapTexture(&textureImage[i]);//textureImage[i].MemoryLoad();
-//    //cout << "Salio2!!" << endl;
-//    }
-//    if (shouldRedraw) {
-//        drawFast = false;
-//        display();
-//    }
-//}
 
 void timerFunction(int arg) {
     glutTimerFunc(reDrawRate, timerFunction, 0);
@@ -627,8 +685,6 @@ void timerFunction(int arg) {
         textureIndex = 0;
         glPopMatrix();
 
-        cout << "test" << endl;
-
         drawFast = false;
         display();
     }
@@ -639,7 +695,7 @@ int main(int argc, char **argv) {
     char* dllName = "C:\\Users\\Rodrigo\\Documents\\GitHub\\camarasheterogeneas\\Proyectos\\OcclusionDLL\\bin\\OcclusionDLL.dll";
     occlusionLibrary =  LoadLibraryA(dllName);
     if (!occlusionLibrary) {
-        std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
+        std::cout << "Failed to load the library" << std::endl;
     }
 
     glutInit(&argc, argv);
@@ -655,50 +711,32 @@ int main(int argc, char **argv) {
     glutKeyboardFunc(keys);
     glEnable(GL_DEPTH_TEST);
 
-    //cout << "Paso 1" << endl;
     /* Settings */
     textureSetting = new Model_SET();
     textureSetting->FileLoad();
     textureCount = textureSetting->NValues;
 
-    //cout << "Paso 2.0" << endl;
     textureModel = new Model_PLY();
     textureModel->AlfaCoord = textureSetting->alfaCoord;
     /* Mesh */
-    //cout << "Paso 2.1" << endl;
     textureModel->MemoryLoad();
     //textureModel->Load("mallaUnida.ply");
 
-    //cout << "Paso 3" << endl;
     /* Texture */
     textureMaster = new MasterTexture[textureCount + 1];
     faces = new int*[textureCount + 1];
-            cout << "textureCount: " << textureCount<< endl;
     for (int i = 1; i <= textureCount; i++) {
         for (int j = 0; j < 3; j++) {
             textureMaster[0].viewer[j] = 0.0f;
             textureMaster[0].rotate[j] = 0.0f;
         }
-//        for (int j = 0; j < 4; j++) {
-//            for (int k = 0; k < 4; k++) {
-//                textureMaster[i].matrix[j * 4 + k] = textureSetting->Values[i * 16 + j * 4 + k];
-//                cout << "textureMaster[i].matrix[j * 4 + k] =  " << i << " " << textureMaster[i].matrix[j * 4 + k] << endl;
-//            }
-//        }
         for (int p = 0; p < 16; p++) {
            textureMaster[i].matrixA[p] = textureSetting->ValuesA[i * 16 + p];
            textureMaster[i].matrixB[p] = textureSetting->ValuesB[i * 16 + p];
-           //cout << textureMaster[i].matrix[p] << endl;
         }
         faces[i] = new int[facesCount];
     }
-    //cout << "Paso4" << endl;
-        for (int i = 0; i< 16; i++){
-            cout << "matrixA: " << textureMaster[1].matrixA[i]<< endl;
-        }
-        for (int i = 0; i< 16; i++){
-            cout << "matrixB: " << textureMaster[1].matrixB[i]<< endl;
-        }
+
     /* Settings and files */
     settings = new MasterSettings(textureCount, textureMaster, 0, NULL);
 
@@ -715,7 +753,6 @@ int main(int argc, char **argv) {
         MessageBox(NULL,"One or more GL_ARB_multitexture functions were not found", "ERROR",MB_OK|MB_ICONEXCLAMATION);
         return -1;
     }
-    //cout << "Paso5" << endl;
 
     /* LoadImages */
     textureImage = new Model_IMG[textureCount];
@@ -724,17 +761,12 @@ int main(int argc, char **argv) {
         glBindTexture(GL_TEXTURE_2D, textures[i]);
         glDisable(GL_TEXTURE_2D);
         textureIndex = i + 1;
-        //cout << "textureSetting->IdsValues[i]: " << textureSetting->IdsValues[i+1] << endl;
         textureImage[i].Id = textureSetting->IdsValues[i+1] * 10000;
-        //cout << "textureImage[i].Id" << textureImage[i].Id << endl;
         loadLightMapTexture(&textureImage[i]);
     }
     textureIndex = 0;
 
-    //cout << "Paso6" << endl;
     /* Start windows */
-    writeText();
     glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
     glutMainLoop();
 }
-

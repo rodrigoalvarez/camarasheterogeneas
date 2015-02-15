@@ -11,13 +11,11 @@ typedef void (*f_ReadSharedImage)(int* Id, int* Width, int* Height, unsigned cha
 typedef void (*f_MemoryCheck)(int* Id);
 
 Model_IMG::Model_IMG() {
-    //masterImageIndex += 100000;
-    //Id = masterImageIndex;
 
     char* dllName = "C:\\Users\\Rodrigo\\Documents\\GitHub\\camarasheterogeneas\\Proyectos\\MemoriaCompartida\\bin\\MemoriaCompartida.dll";
     shareImageLibrary =  LoadLibraryA(dllName);
     if (!shareImageLibrary) {
-        std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
+        std::cout << "Failed to load the library" << std::endl;
     }
     primeraVez = true;
 }
@@ -32,16 +30,12 @@ bool Model_IMG::MemoryLoad() {
     int* hPixels = new int;
     *wPixels = 0;
     *hPixels = 0;
-    //cout << "Id1++++++  "<< Id <<endl;
 
     int idAux = Id;
     readImage(&Id, wPixels, hPixels, &pixels);
 
-            //cout << "Id2++++++  "<< Id <<endl;
     if (Id >= 0){
-            //cout << "Paso2++++++"<< endl;
         if (*wPixels > 0 && *hPixels > 0) {
-            //cout << "Paso3++++++"<< endl;
 
             Width = *wPixels;
             Height = *hPixels;
@@ -53,19 +47,8 @@ bool Model_IMG::MemoryLoad() {
             unsigned char* pixelsAux;
             pixelsAux = Pixels;
             Pixels = new unsigned char[Width * Height * 3];
-//            char* nombre = new char[20];
-//            sprintf(nombre,"imagenReproductor%d.png",Id);
-//            FIBITMAP* bitmap = FreeImage_Allocate(Width, Height, 3);
-//            FreeImage_
-//            FreeImage_Save(FIF_PNG, bitmap , nombre , 0 )
-
 
             memcpy(Pixels, pixels, sizeof(unsigned char) * Width * Height * 3);
-
-//            ofImage image;
-//            image.setFromPixels(Pixels,Width,Height,OF_IMAGE_COLOR);
-//            image.saveImage(nombre);
-            cout << "OBTUVO IMAGEN++++++"<< endl;
 
             delete [] pixelsAux;
             return true;
@@ -111,10 +94,7 @@ void Model_IMG::Load(string filename) {
         Height = FreeImage_GetHeight(dib);
         Id++;
         primeraVez = false;
-        cout << "DISCOOOOO!!!!!" << endl;
     }
-    else
-        cout << "MEMORIA" << endl;
 }
 
 int sizeToPowerTwoLessInt(int n) {
