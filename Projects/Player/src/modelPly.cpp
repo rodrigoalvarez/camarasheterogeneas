@@ -13,7 +13,7 @@ Model_PLY::Model_PLY() {
     masterMeshIndex += 10000;
     Id = masterMeshIndex;
 
-    char* dllName = "C:\\Users\\Rodrigo\\Documents\\GitHub\\camarasheterogeneas\\Proyectos\\MemoriaCompartida\\bin\\MemoriaCompartida.dll";
+    char* dllName = "SharedMemory.dll";
     shareMeshLibrary =  LoadLibraryA(dllName);
     if (!shareMeshLibrary) {
         std::cout << "Failed to load the library" << std::endl;

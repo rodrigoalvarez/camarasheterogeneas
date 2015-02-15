@@ -12,7 +12,7 @@ typedef void (*f_MemoryCheck)(int* Id);
 
 Model_IMG::Model_IMG() {
 
-    char* dllName = "C:\\Users\\Rodrigo\\Documents\\GitHub\\camarasheterogeneas\\Proyectos\\MemoriaCompartida\\bin\\MemoriaCompartida.dll";
+    char* dllName = "SharedMemory.dll";
     shareImageLibrary =  LoadLibraryA(dllName);
     if (!shareImageLibrary) {
         std::cout << "Failed to load the library" << std::endl;
