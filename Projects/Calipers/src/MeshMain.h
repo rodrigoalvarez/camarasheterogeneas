@@ -34,6 +34,7 @@ class MeshMain
 
         int meshCount;
         int meshIndex;
+        bool generatingMesh;
 
         int cameraAxis;
         int cameraMove;
@@ -61,7 +62,8 @@ class MeshMain
     protected:
     private:
         void generarNubeUnida();
-        void writeText();
+        void drawText(const char* text, int length, int x, int y);
+        void drawAllText();
         void generarMalla(NubePuntos* nube);
         void saveXmlFile();
         void setPointVertex(int index);

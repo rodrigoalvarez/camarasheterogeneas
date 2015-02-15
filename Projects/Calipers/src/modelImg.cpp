@@ -56,16 +56,16 @@ void Model_IMG::Load(string filename) {
     if(fif == FIF_UNKNOWN)
         fif = FreeImage_GetFIFFromFilename(filename.c_str());
     if(fif == FIF_UNKNOWN)
-        cout << "Formato de imagen no reconocido." << endl;
+        cout << "The image does not have the correct format." << endl;
     if(FreeImage_FIFSupportsReading(fif))
         dib = FreeImage_Load(fif, filename.c_str());
     if(!dib)
-        cout << "Error al cargar la imagen." << endl;
+        cout << "Failed to load the image." << endl;
 
     Pixels = (char*)FreeImage_GetBits(dib);
     Width = FreeImage_GetWidth(dib);
     Height = FreeImage_GetHeight(dib);
     if((Pixels == 0) || (Width == 0) || (Height == 0))
-        cout << "Error en la imagen." << endl;
+        cout << "The image is corrupted." << endl;
     Id++;
 }

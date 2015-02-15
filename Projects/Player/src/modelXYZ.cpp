@@ -144,7 +144,6 @@ void Model_XYZ::ToImage() {
         PixelsZ.push_back(zC);
     }
     int timeX = tt->get_elapsed_ms();
-    cout << timeX << endl;
     tt->start();
 }
 
@@ -173,7 +172,6 @@ void Model_XYZ::ToCloud() {
         NewPoints.push_back(zF);
     }
     int timeX = tt->get_elapsed_ms();
-    cout << timeX << endl;
     tt->start();
 }
 

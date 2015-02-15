@@ -139,7 +139,7 @@ void Server::setup() {
 
     ofSetFrameRate(gdata->sys_data->fps);
 
-    mb              = new MainBuffer();
+    mb              = new MainBufferRT();
     mb->sys_data    = gdata->sys_data;
     mb->startBuffer();
 

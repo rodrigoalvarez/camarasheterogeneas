@@ -83,10 +83,7 @@ void Model_PLY::MemoryLoadCalibrator(FaceStruct* faces, int numberFaces)
             MaxCoord = Faces_Triangles[i];
         }
     }
-    cout << "MinCoord: "<< MinCoord << endl;
-    cout << "MaxCoord: "<< MaxCoord << endl;
     AlfaCoord = std::max(std::abs(MinCoord), std::abs(MaxCoord));
-    cout << "AlfaCoord: "<< AlfaCoord << endl;
     for (int i = 0; i < TotalFaces * 9; i++) {
         Faces_Triangles[i] = (Faces_Triangles[i] / AlfaCoord) * 10;
     }

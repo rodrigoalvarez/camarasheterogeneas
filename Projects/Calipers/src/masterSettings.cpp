@@ -29,13 +29,6 @@ void MasterSettings::loadMeshCalibration () {
     }
 }
 
-void SetColorAndBackground1(int ForgC, int BackC)
-{
-    WORD wColor = ((BackC & 0x0F) << 4) + (ForgC & 0x0F);;
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wColor);
-    return;
-}
-
 void MasterSettings::saveMeshCalibration () {
 
     for (int i = 1; i <= meshCount; i++) {
@@ -134,15 +127,6 @@ void MasterSettings::CalculateMatrix(vector<MasterTransform*> history, GLdouble*
             if (trans->type == 4) { glRotatef(-trans->value, 0.0f,1.0f,0.0f); }
             if (trans->type == 5) { glRotatef(-trans->value, 0.0f,0.0f,1.0f); }
         }
-
-
-    glGetDoublev(GL_MODELVIEW_MATRIX, m);
-    SetColorAndBackground1(6,0);
-       for (int p = 0; p < 16; p+=4) {
-           cout << m[p] << " "  << m[p+1] << " "  << m[p+2] << " "  << m[p+3] << endl;
-       }
-       cout << "- - - - " << endl;
-       SetColorAndBackground1(15,0);
 
     glPopMatrix();
 }

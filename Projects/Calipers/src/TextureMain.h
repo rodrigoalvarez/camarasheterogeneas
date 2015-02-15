@@ -54,7 +54,8 @@ class TextureMain
     protected:
     private:
 
-        void writeText();
+        void drawText(const char* text, int length, int x, int y);
+        void drawAllText();
         void setFaceVertex(int index);
         void setPointVertex(int index);
 

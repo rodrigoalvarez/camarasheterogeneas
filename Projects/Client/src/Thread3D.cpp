@@ -81,7 +81,7 @@ void Thread3D::updateData() {
             ofPixels&    ipixels    = openNIRecorder->getImagePixels();
             if((context->use2D == 1) && (sys_data->goLive == 1)) {
                 img.setFromPixels(ipixels.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_COLOR, true);
-                img.mirror(false, true);
+
                 if(context->resolutionDownSample < 1) {
                     img.resize(img.width * context->resolutionDownSample, img.height * context->resolutionDownSample);
                 }

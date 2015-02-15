@@ -83,20 +83,13 @@ void MasterPly::Sampling (char* input, char* output) {
 	//Initialization
 	tri::BallPivoting<MyMesh> pivot(subM);
 
-
-	cout << "Antes " << (unsigned int)time(0) <<endl;
-
 	//the main processing
 	pivot.BuildMesh();
 
 	//output the result
 	//tri::io::ExporterSTL<MyMesh>::Save(subM,output);
 
-	cout << "Despues " << (unsigned int)time(0) <<endl;
-
 	tri::io::ExporterPLY<MyMesh>::Save(subM,output,true);
-
-	cout << "Fin!!!!" << endl;
 }
 
 void MasterPly::loadPLY(char* fileName){
@@ -204,17 +197,6 @@ FaceStruct* MasterPly::getFaces(){
     return f;
 }
 
-/*
-void vertices(){
-    for(int i=0; i<m.VN(); i++)
-    {
-        float x =m.vert[i].P()[0];
-        float y =m.vert[i].P()[1];
-        float z =m.vert[i].P()[2];
-        cout << x << ' ' << y << ' ' << z <<endl;
-    }
-}*/
-
 VertexStruct MasterPly::getFaceVertex(int faceNumber, int vertexNumber){
     VertexStruct v;
 
@@ -223,8 +205,9 @@ VertexStruct MasterPly::getFaceVertex(int faceNumber, int vertexNumber){
         v.v[1] = m.face[faceNumber].V(vertexNumber)->P()[1];
         v.v[2] = m.face[faceNumber].V(vertexNumber)->P()[2];
     }
-    else
+    else {
        cout << "Vertex doesn't exist.\n" << endl;
+    }
 
     return v;
 }

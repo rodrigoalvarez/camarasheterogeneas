@@ -93,6 +93,9 @@ void Grabber::draw() {
     if(gui.isOn()) {
         gui.draw();
     }
+    if((gdata->total3D) > 0) {
+        tData[0].img.draw(0, 0);
+    }
 }
 
 void Grabber::exit() {
