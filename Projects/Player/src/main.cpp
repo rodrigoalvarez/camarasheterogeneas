@@ -308,11 +308,11 @@ void textureProjection(Matrix4x4f &mv) {
     float wImg = textureImage[textureIndex-1].Width;
     float hImg = textureImage[textureIndex-1].Height;
     if (wImg < hImg) {
-        glScalef(1.0f,(1.f*wImg)/hImg,1.0f);
+        glScalef(1.0f,(1.f*wImg)/hImg,3.0f);
     } else {
-        glScalef((1.f*hImg)/wImg,1.0f,1.0f);
+        glScalef((1.f*hImg)/wImg,1.0f,3.0f);
     }
-    glFrustum(-0.035,0.035,-0.035,0.035,0.02,2.0);
+    glFrustum(-0.035,0.035,-0.035,0.035,0.04,2.0);
     glMultMatrixf(inverseMV.getMatrix());
     glMatrixMode(GL_MODELVIEW);
 }
@@ -537,9 +537,9 @@ void myReshape(int w, int h) {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     if (w <= h) {
-        glFrustum(-2.0, 2.0, -2.0*(GLfloat)h/(GLfloat)w,2.0*(GLfloat)h/(GLfloat)w, 2.0, 20.0);
+        glFrustum(-.5, .5, -.5 * (GLfloat)h / (GLfloat)w, .5 * (GLfloat)h / (GLfloat)w, .5, 20.0);
     } else {
-        glFrustum(-2.0*(GLfloat)w/(GLfloat)h, 2.0*(GLfloat)w/(GLfloat)h, -2.0, 2.0, 2.0, 20.0);
+        glFrustum(-.5 * (GLfloat)w / (GLfloat)h, .5 *(GLfloat)w / (GLfloat)h, -.5, .5, .5, 20.0);
     }
     glMatrixMode(GL_MODELVIEW);
 }
