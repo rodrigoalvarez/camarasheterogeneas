@@ -183,6 +183,7 @@ void Grabber::updateThreadData() {
             tData[di].imgWidth      = imgW;
             tData[di].imgHeight     = imgH;
             tData[di].img.resize(imgW, imgH);
+            tData[di].img.mirror(false, true);
 
             tData[di].imgrow1.set(t2D[i].context->imgrow1.x, t2D[i].context->imgrow1.y, t2D[i].context->imgrow1.z, t2D[i].context->imgrow1.w);
             tData[di].imgrow2.set(t2D[i].context->imgrow2.x, t2D[i].context->imgrow2.y, t2D[i].context->imgrow2.z, t2D[i].context->imgrow2.w);
@@ -225,6 +226,7 @@ void Grabber::updateThreadData() {
                 tData[di].imgHeight     = imgH;
 
                 tData[di].img.resize(imgW, imgH);
+                tData[di].img.mirror(false, true);
                 tData[di].qfactor       = t3D[i].context->rgbCompressionQuality;
 
                 tData[di].nubeW = tData[di].nubeH = 0;
