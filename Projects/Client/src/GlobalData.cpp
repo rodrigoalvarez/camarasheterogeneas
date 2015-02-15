@@ -63,13 +63,17 @@ void GlobalData::loadCalibData(char * xml) {
 				int useComp                     = settings.getValue("useRGBCompression", 0);
 				currCam->useCompression         = ((useComp == 0) ? false : true);
 				currCam->rgbCompressionQuality  = settings.getValue("RGBCompressionQuality", 90);
-				currCam->pcDownSample           = settings.getValue("pcDownSample", 4);
 				currCam->resolutionDownSample   = settings.getValue("resolutionDownSample", 1.0f);
 				currCam->fps                    = settings.getValue("FPS", 24);
 				currCam->use2D                  = settings.getValue("use2D", true);
 				currCam->use3D                  = settings.getValue("use3D", true);
 
-                if(settings.pushTag("matrix2D")) {
+                if(settings.pushTag("depthSettings")) {
+                    currCam->pcDownSample           = settings.getValue("pointsDownSample", 4);
+                    settings.popTag();
+                }
+
+                /*if(settings.pushTag("matrix2D")) {
                     currCam->imgrow1.set(settings.getValue("m00", 1.0f), settings.getValue("m01", 1.0f), settings.getValue("m02", 1.0f), settings.getValue("m03", 1.0f));
                     currCam->imgrow2.set(settings.getValue("m10", 1.0f), settings.getValue("m11", 1.0f), settings.getValue("m12", 1.0f), settings.getValue("m13", 1.0f));
                     currCam->imgrow3.set(settings.getValue("m20", 1.0f), settings.getValue("m21", 1.0f), settings.getValue("m22", 1.0f), settings.getValue("m23", 1.0f));
@@ -81,7 +85,7 @@ void GlobalData::loadCalibData(char * xml) {
                     cout << "[GlobalData::loadCalibData] - imgrow4.x: " << currCam->imgrow4.x << ", imgrow4.y: " << currCam->imgrow4.y << ", imgrow4.z: " << currCam->imgrow4.z << ", imgrow4.w: " << currCam->imgrow4.w << endl;
 
                     settings.popTag();
-                }
+                }*/
 
                 if(settings.pushTag("matrix3D")) {
                     currCam->row1.set(settings.getValue("m00", 1.0f), settings.getValue("m01", 1.0f), settings.getValue("m02", 1.0f), settings.getValue("m03", 1.0f));
