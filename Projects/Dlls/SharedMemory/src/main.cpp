@@ -135,13 +135,6 @@ void DLL_EXPORT ShareImage(int* imageId, unsigned char* pixels, int* wPixels, in
                     memoryMappedImage.setup(key4.str(), sizeof(unsigned char) * (*wPixels) * (*hPixels) * 3, true);
                     isConnectedPixels = memoryMappedImage.connect();
                     if (isConnectedPixels){
-                        char* nombre = new char[20];
-                        sprintf(nombre,"imagen%d.png",*imageId);
-
-
-                        ofImage image;
-                        image.setFromPixels(pixels,*wPixels,*hPixels,OF_IMAGE_COLOR);
-                        image.saveImage(nombre);
 
                         memoryMappedImage.setData(pixels);
                         shareImage = true;
