@@ -1,5 +1,6 @@
 #include "ofMain.h"
 #include "Grabber.h"
+#include "testApp.h"
 #include "Thread3D.h"
 #include "Thread2D.h"
 #include "Constants.h"
@@ -16,4 +17,5 @@ int main( ) {
 	// pass in width and height too:
 	ofLogToFile("client_log.txt", false);
 	ofRunApp( new Grabber() );
+	//ofRunApp( new testApp() );
 }

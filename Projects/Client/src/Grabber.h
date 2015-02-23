@@ -3,12 +3,15 @@
 #include "ofMain.h"
 #include "Thread2D.h"
 #include "Thread3D.h"
+#include "ThreadONI.h"
 #include "Transmitter.h"
 #include "ThreadData.h"
 #include "Constants.h"
 #include "ofxOpenCv.h"
 #include "GlobalData.h"
 #include "ofMatrix4x4.h"
+
+#include "ofxOpenNI.h"
 
 class Grabber : public IGrabber {
 
@@ -32,6 +35,7 @@ class Grabber : public IGrabber {
         ofVec3f * transformPoint(ofVec3f point, ofMatrix4x4 transform);
         Thread2D * t2D;
 		Thread3D * t3D;
+		ThreadONI * tONI;
 		GlobalData * gdata;
         Transmitter  transmitter;
         xn::DepthGenerator * Xn_depth;
@@ -48,4 +52,7 @@ class Grabber : public IGrabber {
         int x;
         float d;
         ofVec3f * vt;
+
+        ofxOpenNI * openNIRecorder;
+        ofxOpenNI * openNIPlayer;
 };

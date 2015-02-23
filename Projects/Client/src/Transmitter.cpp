@@ -126,7 +126,7 @@ void Transmitter::process(ofEventArgs &e) {
                     ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Actualizando ultima informacion:";
                     grabber->updateThreadData();
                     ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Saliendo de actualizar";
-                    sendFrame((grabber->total2D + grabber->total3D), grabber->tData);
+                    sendFrame((grabber->total2D + grabber->total3D + grabber->totalONI), grabber->tData);
                 } else {
                     ofLogVerbose() << "[Transmitter::threadedFunction] El servidor no está conectado.";
                 }

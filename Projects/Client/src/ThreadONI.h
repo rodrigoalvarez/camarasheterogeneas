@@ -4,11 +4,11 @@
 #include "GlobalData.h"
 #include "ofMain.h"
 
-class Thread3D : public ofThread {
+class ThreadONI : public ofThread {
 
 	public:
-        /*Thread3D();
-        ~Thread3D();*/
+        /*ThreadONI();
+        ~ThreadONI();*/
 
 		void	threadedFunction();
 		void    updateData();
@@ -16,8 +16,11 @@ class Thread3D : public ofThread {
 		bool	isDeviceInitted();
         bool	isDataAllocated();
         void exit();
+
         bool    deviceInited;
-		ofxOpenNI * openNIRecorder;
+		//ofxOpenNI player;
+		//ofxOpenNI * openNIRecorder;
+        ofxOpenNI * openNIRecorder;
         bool    dataAllocated;
         ofImage         img;
         ofFloatPixels  fXpix;
@@ -31,27 +34,27 @@ class Thread3D : public ofThread {
         bool started;
         bool idle;
 
-        Thread3D() {
-            openNIRecorder  = NULL;
+        ThreadONI() {
+            //openNIRecorder  = NULL;
             deviceInited    = false;
             idle = true;
             started = false;
         }
 
-        ~Thread3D() {
+        ~ThreadONI() {
             if(!started) return;
 
-            ofRemoveListener(ofEvents().update, this, &Thread3D::process);
+            ofRemoveListener(ofEvents().update, this, &ThreadONI::process);
 
-            openNIRecorder->stop();
+            //openNIRecorder->stop();
             // done
 
             if((context->use2D == 1) && (sys_data->goLive == 1)) {
                 img.clear();
             }
 
-            if(openNIRecorder != NULL) {
+            /*if(openNIRecorder != NULL) {
                 delete openNIRecorder;
-            }
+            }*/
         }
 };

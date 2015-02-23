@@ -15,6 +15,8 @@ struct t_camera {
     bool colorRGB;
     bool use2D;
     bool use3D;
+    bool useONI;
+    string   file;
     bool useCompression;
     int  rgbCompressionQuality;
     float near3D;
@@ -62,6 +64,7 @@ class GlobalData {
 
         int      total3D;
         int      total2D;
+        int      totalONI;
 
         t_camera    * camera;
         t_data      * sys_data;

@@ -10,4 +10,5 @@ class IGrabber : public ofBaseApp {
 		ThreadData * tData;
 		int total2D;
         int total3D;
+        int totalONI;
 };

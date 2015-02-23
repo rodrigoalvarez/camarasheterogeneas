@@ -3,6 +3,8 @@
 
 #include "ofxSimpleGuiToo.h"
 
+ThreadONI * tONI;
+
 //--------------------------------------------------------------
 void Grabber::setup() {
 
@@ -29,12 +31,13 @@ void Grabber::setup() {
 
     total2D     = gdata->total2D;    //Hacer que se cargue dinámico.
     total3D     = gdata->total3D;    //Hacer que se cargue dinámico.
+    totalONI    = gdata->totalONI;   //Hacer que se cargue dinámico.
 
     //ofSetFrameRate(gdata->sys_data->fps);
 
-    if((gdata->total2D + gdata->total3D) > 0) {
-        tData = new ThreadData[gdata->total2D + gdata->total3D];
-        for(int w = 0; w < (gdata->total2D + gdata->total3D); w++) {
+    if((gdata->total2D + gdata->total3D + gdata->totalONI) > 0) {
+        tData = new ThreadData[gdata->total2D + gdata->total3D + gdata->totalONI];
+        for(int w = 0; w < (gdata->total2D + gdata->total3D + gdata->totalONI); w++) {
             tData[w].cliId = gdata->sys_data->cliId;
         }
     } else {
@@ -51,11 +54,23 @@ void Grabber::setup() {
         t3D   = new Thread3D[gdata->total3D];
     }
 
-    int i2D = 0;
-    int i3D = 0;
+    if(gdata->totalONI > 0) {
+        tONI  = new ThreadONI[gdata->totalONI];
+    }
+
+    int i2D     = 0;
+    int i3D     = 0;
+    int iONI    = 0;
 
     while(camera != NULL) {
-        if(camera->use3D == 1) {
+        if(camera->useONI) {
+            tONI[iONI]._id = i3D + iONI;
+            tONI[iONI].sys_data                   = gdata->sys_data;
+            tONI[iONI].context                    = camera;
+            tONI[iONI].startThread(true, false);
+            iONI ++;
+        } else if(camera->use3D) {
+            t3D[i3D]._id = i3D + iONI;
             t3D[i3D].sys_data                   = gdata->sys_data;
             t3D[i3D].context                    = camera;
             t3D[i3D].startThread(true, false);
@@ -85,16 +100,23 @@ void Grabber::setupGui() {
 
 //--------------------------------------------------------------
 void Grabber::update() {
-
 }
 
 //--------------------------------------------------------------
 void Grabber::draw() {
+
     if(gui.isOn()) {
         gui.draw();
     }
     if((gdata->total3D) > 0) {
         tData[0].img.draw(0, 0);
+    }
+
+
+    if((gdata->totalONI) > 0) {
+        //cout << "totalONI " << gdata->totalONI << endl;
+        tData[0].img.draw(0, 0);
+        tData[0].img.saveImage("player4.jpg");
     }
 }
 
@@ -102,7 +124,6 @@ void Grabber::exit() {
     //Stop the thread
     int i       = 0;
     for(i; i<gdata->total2D; i++) {
-        //t2D[i].stopThread();
         if(t2D[i].isThreadRunning()) {
             t2D[i].exit();
             t2D[i].waitForThread();
@@ -111,10 +132,17 @@ void Grabber::exit() {
 
     i = 0;
     for(i; i<gdata->total3D; i++) {
-        //t3D[i].stopThread();
         if(t3D[i].isThreadRunning()) {
             t3D[i].exit();
             t3D[i].waitForThread();
+        }
+    }
+
+    i = 0;
+    for(i; i<gdata->totalONI; i++) {
+        if(tONI[i].isThreadRunning()) {
+            tONI[i].exit();
+            tONI[i].waitForThread();
         }
     }
 
@@ -136,9 +164,13 @@ void Grabber::exit() {
         delete t3D;
     }
 
+    if(tONI != NULL) {
+        delete tONI;
+    }
+
     if(tData != NULL) {
         i = 0;
-        for(i; i<gdata->total2D + gdata->total3D; i++) {
+        for(i; i<gdata->total2D + gdata->total3D + gdata->totalONI; i++) {
             if(tData[i].xpix != NULL) {
                 delete tData[i].xpix;
                 delete tData[i].ypix;
@@ -153,11 +185,9 @@ void Grabber::exit() {
     }
 }
 
-
-//xn::DepthGenerator& Xn_depth;
-
 //Operación invocada por Transmitter para refrezcar la información a trasmitir.
 void Grabber::updateThreadData() {
+
     ofLogVerbose() << "[Grabber::updateThreadData] " << " entrando. " << gdata->total2D;
     int di      = 0;
     int i       = 0;
@@ -205,6 +235,7 @@ void Grabber::updateThreadData() {
     * ACTUALIZO LA INFO DE LAS CÁMARAS 3D
     */
     ofLogVerbose() << "ACTUALIZO LA INFO DE LAS CÁMARAS 3D" << endl;
+    //cout << "ACTUALIZO LA INFO DE LAS CÁMARAS 3D" << endl;
     i = 0;
     for(i; i<gdata->total3D; i++) {
         t3D[i].lock();
@@ -226,7 +257,6 @@ void Grabber::updateThreadData() {
                 tData[di].imgHeight     = imgH;
 
                 tData[di].img.resize(imgW, imgH);
-                tData[di].img.mirror(false, true);
                 tData[di].qfactor       = t3D[i].context->rgbCompressionQuality;
 
                 tData[di].nubeW = tData[di].nubeH = 0;
@@ -330,6 +360,146 @@ void Grabber::updateThreadData() {
         }
         gettimeofday(&tData[di].curTime, NULL);
         t3D[i].unlock();
+        di++;
+    }
+
+    /**
+    * ACTUALIZO LA INFO DE LAS CÁMARAS ONI
+    */
+    ofLogVerbose() << "ACTUALIZO LA INFO DE LAS CÁMARAS ONI" << endl;
+    //cout << "ACTUALIZO LA INFO DE LAS CÁMARAS ONI" << endl;
+    i = 0;
+    for(i; i<gdata->totalONI; i++) {
+        tONI[i].lock();
+        tData[di].state         = 0;
+        tData[di].camId         = tONI[i].context->id;
+        tData[di].cameraType    = 2;
+
+        if(tONI[i].isDeviceInitted()) { //Si la cámara está inicializada.
+
+            if(tONI[i].context->use2D == 1) {
+                tData[di].state    = DEVICE_2D;
+                //Clono la imágen
+                tData[di].compressed    = tONI[i].context->useCompression;
+                tData[di].img.setFromPixels(tONI[i].img.getPixels(), tONI[i].img.getWidth(), tONI[i].img.getHeight(), OF_IMAGE_COLOR, true);
+
+                int imgW                = (int)tONI[i].img.getWidth()*tONI[i].context->resolutionDownSample;
+                int imgH                = (int)tONI[i].img.getHeight()*tONI[i].context->resolutionDownSample;
+                tData[di].imgWidth      = imgW;
+                tData[di].imgHeight     = imgH;
+
+                tData[di].img.resize(imgW, imgH);
+                tData[di].qfactor       = tONI[i].context->rgbCompressionQuality;
+
+                tData[di].nubeW = tData[di].nubeH = 0;
+            }
+
+            if(tONI[i].context->use3D == 1) {
+
+                ((tONI[i].context->use2D == 1) ? tData[di].state = DEVICE_2D_3D : tData[di].state = DEVICE_3D);
+                //Hacer que esta nube de puntos, cuando tela de, ya te la de transformada.
+
+                tData[di].nubeW = tONI[i].spix.getWidth();
+                tData[di].nubeH = tONI[i].spix.getHeight();
+
+                rawPix          = tONI[i].spix.getPixels();
+                Xn_depth        = &tONI[i].openNIRecorder->getDepthGenerator();
+
+                y   = 0;
+                x   = 0;
+                d   = 0;
+                tData[di].nubeLength    = 0;
+
+                tmpX = NULL;
+                tmpY = NULL;
+                tmpZ = NULL;
+
+                if((tData[di].nubeW > 0) && (tData[di].nubeH > 0)) {
+                    tmpX = new float[tData[di].nubeW * tData[di].nubeH];
+                    tmpY = new float[tData[di].nubeW * tData[di].nubeH];
+                    tmpZ = new float[tData[di].nubeW * tData[di].nubeH];
+                }
+
+                tData[di].row1.set(tONI[i].context->row1.x, tONI[i].context->row1.y, tONI[i].context->row1.z, tONI[i].context->row1.w);
+                tData[di].row2.set(tONI[i].context->row2.x, tONI[i].context->row2.y, tONI[i].context->row2.z, tONI[i].context->row2.w);
+                tData[di].row3.set(tONI[i].context->row3.x, tONI[i].context->row3.y, tONI[i].context->row3.z, tONI[i].context->row3.w);
+                tData[di].row4.set(tONI[i].context->row4.x, tONI[i].context->row4.y, tONI[i].context->row4.z, tONI[i].context->row4.w);
+
+                matrix.set( tONI[i].context->row1.x, tONI[i].context->row1.y, tONI[i].context->row1.z, tONI[i].context->row1.w,
+                            tONI[i].context->row2.x, tONI[i].context->row2.y, tONI[i].context->row2.z, tONI[i].context->row2.w,
+                            tONI[i].context->row3.x, tONI[i].context->row3.y, tONI[i].context->row3.z, tONI[i].context->row3.w,
+                            tONI[i].context->row4.x, tONI[i].context->row4.y, tONI[i].context->row4.z, tONI[i].context->row4.w);
+
+                ofLogVerbose() << matrix << endl;
+
+                for(y=0; y < tData[di].nubeH; y += tONI[i].context->pcDownSample) {
+                    for(x=0; x < tData[di].nubeW; x += tONI[i].context->pcDownSample) {
+                        d = rawPix[y * tData[di].nubeW + x];
+                        if(d != 0) {
+                            Point2D.X   = x;
+                            Point2D.Y   = y;
+                            Point2D.Z   = (float)d;
+                            try {
+
+                                Xn_depth->ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
+                                v1.set(Point3D.X, Point3D.Y, Point3D.Z);
+
+                                vt = transformPoint(v1, matrix);
+                                if(((int)vt->x == 0) && ((int)vt->x == 0) && ((int)vt->x == 0)) {
+
+                                } else {
+                                    tmpX[tData[di].nubeLength] = vt->x;
+                                    tmpY[tData[di].nubeLength] = vt->y;
+                                    tmpZ[tData[di].nubeLength] = vt->z;
+                                    tData[di].nubeLength ++;
+                                }
+                                delete vt;
+
+                            } catch(...) {
+                                ofLogVerbose() << "[Grabber::updateThreadData] " << "Excepción al transformar los puntos.";
+                            }
+                        }
+                    }
+                }
+
+                if( (tData[di].nubeLength == 0) || (tData[di].nubeW == 0) || (tData[di].nubeH == 0)) {
+                    tData[di].state = 0;
+                    if(tONI[i].context->use2D == 1) {
+                        tData[di].state    = DEVICE_2D;
+                    }
+                }
+
+                if(tData[di].xpix != NULL) {
+                    delete tData[di].xpix;
+                    delete tData[di].ypix;
+                    delete tData[di].zpix;
+                    tData[di].xpix = NULL;
+                    tData[di].ypix = NULL;
+                    tData[di].zpix = NULL;
+                }
+
+                if(tData[di].nubeLength > 0) {
+                    tData[di].xpix = new float[tData[di].nubeLength];
+                    tData[di].ypix = new float[tData[di].nubeLength];
+                    tData[di].zpix = new float[tData[di].nubeLength];
+
+                    memcpy(tData[di].xpix,     tmpX,     sizeof(float) * tData[di].nubeLength);
+                    memcpy(tData[di].ypix,     tmpY,     sizeof(float) * tData[di].nubeLength);
+                    memcpy(tData[di].zpix,     tmpZ,     sizeof(float) * tData[di].nubeLength);
+                }
+
+                if(tmpX != NULL) {
+                    delete tmpX;
+                    delete tmpY;
+                    delete tmpZ;
+                }
+
+                //ofLogVerbose() << "[Grabber::updateThreadData] " << " saliendo del for for.";
+
+            }
+        }
+        gettimeofday(&tData[di].curTime, NULL);
+        tONI[i].unlock();
         di++;
     }
 
