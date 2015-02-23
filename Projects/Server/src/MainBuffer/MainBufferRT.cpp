@@ -75,10 +75,10 @@ std::pair <ThreadData *, ThreadData *> MainBufferRT::getNextFrame() {
                 if(curr->nubeLength > 0) {
                     if(ret.first == NULL) {
                         ret.first = ThreadData::Clone(curr);
-                    }/* else {
+                    } else {
                         ofLogVerbose() << "[MainBufferRT::getNextFrame] Mergeando puntos.";
                         ret.first->mergePointClouds(curr);
-                    }*/
+                    }
                 }
             }
 
