@@ -257,6 +257,7 @@ void Grabber::updateThreadData() {
                 tData[di].imgHeight     = imgH;
 
                 tData[di].img.resize(imgW, imgH);
+                tData[di].img.mirror(false, true);
                 tData[di].qfactor       = t3D[i].context->rgbCompressionQuality;
 
                 tData[di].nubeW = tData[di].nubeH = 0;
