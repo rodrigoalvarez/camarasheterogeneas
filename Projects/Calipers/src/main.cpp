@@ -160,7 +160,7 @@ void keys(unsigned char key, int x, int y) {
         if (mMain->faces != NULL){
             modeMesh = false;
             tMain->textureModel->MemoryLoadCalibrator(mMain->faces,*(mMain->numberFaces));
-            //tMain->textureModel->Load("antMesh.ply");
+            //tMain->textureModel->Load("mallaUnida.ply");
 
         }
     }

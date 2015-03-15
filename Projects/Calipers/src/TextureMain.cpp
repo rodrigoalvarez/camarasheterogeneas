@@ -101,42 +101,88 @@ void TextureMain::drawAllText() {
 void TextureMain::setFaceVertex(int index) {
     GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
-
     glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
+}
+
+float TextureMain::isFrontFacePoints(float* points) {
+    GLfloat p1[3] = { points[0], points[1], points[2] };
+    GLfloat p2[3] = { points[3], points[4], points[5] };
+    GLfloat p3[3] = { points[6], points[7], points[8] };
+
+    float va[3], vb[3], vr[3], val;
+	va[0] = p2[0] - p1[0];
+	va[1] = p2[1] - p1[1];
+	va[2] = p2[2] - p1[2];
+
+	vb[0] = p3[0] - p1[0];
+	vb[1] = p3[1] - p1[1];
+	vb[2] = p3[2] - p1[2];
+
+	/* cross product */
+	vr[0] = va[1] * vb[2] - vb[1] * va[2];
+	vr[1] = vb[0] * va[2] - va[0] * vb[2];
+	vr[2] = va[0] * vb[1] - vb[0] * va[1];
+
+	return vr[2];
+}
+
+bool TextureMain::isFrontFace(int index) {
+    float points[9] = { textureModel->Faces_Triangles[index * 9], textureModel->Faces_Triangles[index * 9 + 1], textureModel->Faces_Triangles[index * 9 + 2],
+                        textureModel->Faces_Triangles[index * 9 + 3], textureModel->Faces_Triangles[index * 9 + 4], textureModel->Faces_Triangles[index * 9 + 5],
+                        textureModel->Faces_Triangles[index * 9 + 6], textureModel->Faces_Triangles[index * 9 + 7], textureModel->Faces_Triangles[index * 9 + 8] };
+    return isFrontFacePoints(points) <= 0;
 }
 
 void TextureMain::draw2DElement(int index) {
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_POLYGON);
-        setFaceVertex(index * 3);
-        setFaceVertex(index * 3 + 1);
-        setFaceVertex(index * 3 + 2);
+        if (isFrontFace(index)) {
+            setFaceVertex(index * 3);
+            setFaceVertex(index * 3 + 1);
+            setFaceVertex(index * 3 + 2);
+        } else {
+            setFaceVertex(index * 3);
+            setFaceVertex(index * 3 + 2);
+            setFaceVertex(index * 3 + 1);
+        }
     glEnd();
 }
 
 void TextureMain::draw2DBackground() {
 
    if (textureIndex > 0) {
-       float wImg = textureImage[textureIndex-1].Width;
-       float hImg = textureImage[textureIndex-1].Height;
-
        glColor3f(0.0f, 0.0f, 0.0f);
+       float wImg = textureImage[textureIndex-1].Width / 10.0;
+       float hImg = textureImage[textureIndex-1].Height / 10.0;
+       GLfloat vert1[3] = { -wImg, -hImg, -19.0 };
+       GLfloat vert2[3] = { -wImg, hImg, -19.0 };
+       GLfloat vert3[3] = { wImg, hImg, -19.0 };
+       GLfloat vert4[3] = { wImg, -hImg, -19.0 };
+       float points1[9] = { vert1[0], vert1[1], vert2[0], vert2[1], vert2[2], vert1[2], vert3[0], vert3[1], vert3[2] };
        glBegin(GL_POLYGON);
-           GLfloat vert1[3] = { -wImg, -hImg, -19.0 };
-           glVertex3fv(vert1);
-           glNormal3f(0,0,1);
-           GLfloat vert2[3] = { -wImg, hImg, -19.0 };
-           glVertex3fv(vert2);
-           glNormal3f(0,0,1);
-           GLfloat vert3[3] = { wImg, hImg, -19.0 };
-           glVertex3fv(vert3);
-           glNormal3f(0,0,1);
-           GLfloat vert4[3] = { wImg, -hImg, -19.0 };
-           glVertex3fv(vert4);
-           glNormal3f(0,0,1);
+           if (isFrontFacePoints(points1) <= 0) {
+               glVertex3fv(vert1);
+               glNormal3f(0,0,-1);
+               glVertex3fv(vert2);
+               glNormal3f(0,0,-1);
+               glVertex3fv(vert3);
+               glNormal3f(0,0,-1);
+               glVertex3fv(vert4);
+               glNormal3f(0,0,-1);
+           } else {
+               glVertex3fv(vert1);
+               glNormal3f(0,0,-1);
+               glVertex3fv(vert4);
+               glNormal3f(0,0,-1);
+               glVertex3fv(vert3);
+               glNormal3f(0,0,-1);
+               glVertex3fv(vert2);
+               glNormal3f(0,0,-1);
+           }
        glEnd();
    }
 }
+
 void TextureMain::draw2DView() {
 
     for (int i = 0; i < textureModel->TotalFaces; i++) {
@@ -145,6 +191,9 @@ void TextureMain::draw2DView() {
 //            hits = max(hits, faces[k][i]);
 //        }
 //        if (hits > 0 && faces[textureIndex][i] == hits) {
+            glEnable(GL_CULL_FACE);
+            glFrontFace(GL_CW);
+            glCullFace(GL_FRONT);
             draw2DElement(i);
 //        }
     }
@@ -284,6 +333,9 @@ void TextureMain::draw2DCalibrationFull() {
         int index = i * 3;
         if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
             glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
+            glEnable(GL_CULL_FACE);
+            glFrontFace(GL_CW);
+            glCullFace(GL_FRONT);
             draw2DElement(i);
             glEndQueryARB(GL_SAMPLES_PASSED_ARB);
         }
@@ -300,6 +352,9 @@ void TextureMain::draw2DCalibrationFull() {
                 if (textureIndex > 0) {
                     faces[textureIndex][i] = sampleCount;
                 }
+                glEnable(GL_CULL_FACE);
+                glFrontFace(GL_CW);
+                glCullFace(GL_FRONT);
                 draw2DElement(i);
             }
         }
@@ -311,6 +366,9 @@ void TextureMain::draw2DCalibrationFull() {
 
 void TextureMain::draw2DCalibrationFast() {
     for (int i = 0; i < textureModel->TotalFaces; i++) {
+        glEnable(GL_CULL_FACE);
+        glFrontFace(GL_CW);
+        glCullFace(GL_FRONT);
         draw2DElement(i);
     }
 }

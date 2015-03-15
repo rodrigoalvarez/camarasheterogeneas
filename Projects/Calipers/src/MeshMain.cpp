@@ -366,6 +366,9 @@ void MeshMain::keys(unsigned char key, int x, int y) {
     if (key == 'k') {
         settings->saveMeshCalibration();
     }
+    if (key == 'p') {
+        cameraLight = !cameraLight;
+    }
     if(key == 'v') {
         meshIndex = 0;
         cloudModel[0]->Clear();

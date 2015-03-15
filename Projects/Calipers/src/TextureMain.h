@@ -58,6 +58,8 @@ class TextureMain
         void drawAllText();
         void setFaceVertex(int index);
         void setPointVertex(int index);
+        float isFrontFacePoints(float* points);
+        bool isFrontFace(int index);
 
         void draw2DElement(int index);
         void draw3D();
