@@ -26,6 +26,12 @@ MeshThreadedGenerator::~MeshThreadedGenerator() {
 void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
     lock();
     if(state == GENERATOR_LOADED) {
+        ThreadData * iter = (ThreadData *) frame.second;
+        /*bool descartado = false;
+        while(iter != NULL) {
+            descartado = descartado || ((iter->img.getWidth() <= 0) || (iter->img.getHeight() <= 0));
+            iter = iter->sig;
+        }*/
 
         int idMesh;
         PointsCloud* nbIN = NULL;
@@ -54,9 +60,11 @@ void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
             faces            = new FaceStruct;
             numberFaces      = new int;
 
-            cout << "[MeshThreadedGenerator::processFrame] nubeLength " << td->nubeLength << " " <<  nMTG << endl;
+            cout << "[MeshThreadedGenerator::processFrame] nubeLength " << td->nubeLength << endl;
             try {
-                meshGenerate(nbIN, &faces, numberFaces, nframe);
+                //if(!descartado) {
+                    meshGenerate(nbIN, &faces, numberFaces, nframe);
+                //}
 
                 ofLogVerbose() << "[MeshThreadedGenerator::processFrame] Termino de generar " << nframe << endl;
             }  catch (exception& e) {
@@ -68,10 +76,14 @@ void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
         }
 
         result              = new GeneratedResult();
-        result->hasDepth    = (frame.first != NULL);
-        result->hasRGB      = (frame.second != NULL);
+        //result->descartado  = descartado;
         result->nframe      = nframe;
         result->idMesh      = 10000 + nframe;
+
+        //if(!descartado) {
+        result->hasDepth    = (frame.first != NULL);
+        result->hasRGB      = (frame.second != NULL);
+
         result->textures    = (ThreadData *) frame.second;
         result->numberFaces = numberFaces;
         result->faces       = faces;
@@ -81,6 +93,7 @@ void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
             frame.first = NULL;
             delete nbIN;
         }
+        //}
 
         /**/
         state   = GENERATOR_COMPLETE;
@@ -101,7 +114,7 @@ int MeshThreadedGenerator::getState() {
 
 void MeshThreadedGenerator::processMesh(std::pair <ThreadData *, ThreadData *> frame, int nframe) {
     lock();
-    ofLogVerbose() << "MeshThreadedGenerator :: processMesh " << nMTG << ", nframe " << nframe << endl;
+    ofLogVerbose() << "MeshThreadedGenerator :: processMesh nframe " << nframe << endl;
     this->frame     = frame;
     this->nframe    = nframe;
     state           = GENERATOR_LOADED;

@@ -54,7 +54,9 @@ void MeshGenerator::threadedFunction() {
     collector->threads   = threads;
     collector->startThread(true, false);
     started         = true;
+
     ofAddListener(ofEvents().update, this, &MeshGenerator::processFrame);
+
     /*
     while(isThreadRunning()) {
         ofLogVerbose() << "MeshGenerator :: FPS " << ofToString(ofGetFrameRate()) << endl;
@@ -65,6 +67,7 @@ void MeshGenerator::threadedFunction() {
 }
 
 void MeshGenerator::processFrame(ofEventArgs &e) {
+
     if(!started) return;
     ofLogVerbose() << "MeshGenerator :: FPS " << ofToString(ofGetFrameRate()) << endl;
 
@@ -72,6 +75,8 @@ void MeshGenerator::processFrame(ofEventArgs &e) {
         ofLogVerbose() << "MeshGenerator :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
         return;
     }
+    //buffer->getNextFrame();
+    //return;
     __idle = false;
     ofLogVerbose() << "MeshGenerator :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
     int i = 0;

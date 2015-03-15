@@ -147,6 +147,7 @@ void Server::setup() {
         tservers[i] = NULL;
 	}
 
+
     generator.sys_data  = gdata->sys_data;
     generator.buffer    = mb;
     generator.startThread(true, false);

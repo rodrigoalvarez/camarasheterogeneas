@@ -22,7 +22,7 @@ void MeshCollector::processFrame(ofEventArgs &e) {
     int i = 0;
     for(i=0; i<sys_data->totalFreeCores; i++) {
         if((threads[i].getState() == GENERATOR_COMPLETE) /*&& (threads[i].nframe != -1)*/) {
-
+            ofLogVerbose() << "[MeshCollector::processFrame]" << endl;
             bool esta = false;
             for (it=list.begin(); it!=list.end(); ++it) {
                 if((threads[i].result->nframe == (*it)->nframe)) esta = true;
@@ -56,13 +56,14 @@ void MeshCollector::processFrame(ofEventArgs &e) {
 void MeshCollector::shareNextCompleteFrame() {
     if(list.size()>0) {
         GeneratedResult * result = list.front();
+        //ofLogVerbose() << "SHARE FRAME " << (currFrame + 1) << ", result->nframe: " << result->nframe << endl;
         if((currFrame + 1) == result->nframe) {
-            ofLogVerbose() << "SHARE FRAME " << (currFrame + 1) << endl;
             currFrame++;
             list.remove(result);
-
-            shareFrame(result);
-
+            //ofLogVerbose() << "[MeshCollector::shareNextCompleteFrame] !result->descartado " << !result->descartado << endl;
+            //if(!result->descartado) {
+                shareFrame(result);
+            //}
         }
     }
 }
@@ -73,16 +74,33 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
     int width;
     int height;
 
+    ThreadData * iter = (ThreadData *) gresult->textures;
+    /*
+    bool descartado = false;
+    while(iter != NULL) {
+        descartado = descartado || ((iter->img.getWidth() <= 0) || (iter->img.getHeight() <= 0));
+        iter = iter->sig;
+    }
+    ofLogVerbose() << "[MeshCollector::shareFrame] descartado: " << descartado << endl;
+    //if(descartado) return;
+    */
+
     if(gresult->hasDepth) {
         int numFaces = *gresult->numberFaces;
-        ShareMesh(gresult->idMesh, numFaces, gresult->faces);
+        //if(!descartado) {
+            ofLogVerbose() << "[MeshCollector::shareFrame] idMesh " << gresult->idMesh << ", numFaces:" << numFaces << endl;
+            for(int i = 0; i<numFaces; i++) {
+                ofLogVerbose() << "[MeshCollector::shareFrame]" << ", p1_0: " << gresult->faces[i].p1[0] << ", p1_1: " << gresult->faces[i].p1[1]  << ", p1_2: " << gresult->faces[i].p1[2] << ", p2_0: " << gresult->faces[i].p2[0] << ", p2_1: " << gresult->faces[i].p2[1]  << ", p2_2: " << gresult->faces[i].p2[2] << ", p3_0: " << gresult->faces[i].p3[0] << ", p3_1: " << gresult->faces[i].p3[1]  << ", p3_2: " << gresult->faces[i].p3[2] << endl;
+            }
+            ShareMesh(gresult->idMesh, numFaces, gresult->faces);
+        //}
         delete [] gresult->faces;
         delete gresult->numberFaces;
     }
 
     if(gresult->hasRGB) {
-        ThreadData * iter = (ThreadData *) gresult->textures;
 
+        iter = (ThreadData *) gresult->textures;
         do {
             ofBuffer imageBuffer;
             ofSaveImage(iter->img.getPixelsRef(), imageBuffer, OF_IMAGE_FORMAT_JPEG);
@@ -95,20 +113,21 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
             pixels      = (unsigned char*)FreeImage_GetBits(dib);
             width       = FreeImage_GetWidth(dib);
             height      = FreeImage_GetHeight(dib);
-
+            ofLogVerbose() << "[MeshCollector::shareFrame] dib width: " << width << ", height: " << height << ", img.width: " << iter->img.getWidth() << ", img.height: " << iter->img.getHeight() << endl;
             idMomento   = iter->cliId;
             idMomento   = idMomento*10 + iter->cameraType;
             idMomento   = idMomento*10 + iter->camId;
             idMomento   = idMomento*10000 + gresult->nframe % 10000;
 
-            shareImage(&idMomento, pixels, &width, &height);
-
-            iter = iter->sig;
+            //shareImage(&idMomento, pixels, &width, &height);
 
             FreeImage_CloseMemory(stream);
             imageBuffer.clear();
             free(pixels);
             FreeImage_Unload(dib);
+
+            iter = iter->sig;
+
         } while(iter != NULL);
     }
 
