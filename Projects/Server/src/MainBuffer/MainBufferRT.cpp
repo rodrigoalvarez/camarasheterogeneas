@@ -6,6 +6,8 @@ MainBufferRT::MainBufferRT() {
             tdatabusy[i][j] = false;
         }
     }
+    iniData = NULL;
+    pthread_mutex_init(&myMutex, NULL);
 }
 
 void MainBufferRT::startBuffer() {
@@ -26,6 +28,18 @@ MainBufferRT::~MainBufferRT() {
         }
     }
 
+    pthread_mutex_destroy(&myMutex);
+
+}
+
+int MainBufferRT::buffLength() {
+    ThreadData * iter = iniData;
+    int length = 0;
+    while(iter != NULL) {
+        length++;
+        iter = iter->sig;
+    }
+    return length;
 }
 
 /**
@@ -39,16 +53,42 @@ MainBufferRT::~MainBufferRT() {
 * Asumo que en frame viene una única cámara.
 */
 void MainBufferRT::addFrame( ThreadData * frame , int cam, int cli) {
-    //long int camId  = getCamId(cam, cli);
-    while(tdatabusy[cli][cam]);
-    tdatabusy[cli][cam] = true;
 
-    if(tdata[cli][cam] != NULL) {
-        delete tdata[cli][cam];
+    pthread_mutex_lock(&myMutex);
+
+    if(iniData == NULL) {
+        iniData = frame;
+        iniData->sig = NULL;
+    } else {
+        ThreadData * iter = iniData;
+        ThreadData * prev = iter;
+        while((iter!=NULL) && !((iter->cliId == cli) &&(iter->camId == cam ))) {
+            prev = iter;
+            iter = iter->sig;
+        }
+
+        if(iter == NULL) {
+            prev->sig = frame;
+        } else {
+            if(prev == iter) {
+                iniData = frame;
+                iniData->sig = iter->sig;
+                ThreadData * tmp = iter;
+                //delete tmp;
+                tmp->releaseResources();
+            } else {
+                prev->sig = frame;
+                frame->sig = iter->sig;
+                ThreadData * tmp = iter;
+                iter = prev;
+                tmp->releaseResources();
+                //delete tmp;
+            }
+
+        }
     }
-    tdata[cli][cam] = frame;
 
-    tdatabusy[cli][cam] = false;
+    pthread_mutex_unlock(&myMutex);
 }
 
 /**
@@ -62,43 +102,57 @@ std::pair <ThreadData *, ThreadData *> MainBufferRT::getNextFrame() {
     std::pair <ThreadData *, ThreadData *> ret;
     ret.first   = NULL;
     ret.second  = NULL;
+    //return ret;
 
-    for(int i=0; i<50; i++) {
-        for(int j=0; j<50; j++) {
+    ThreadData * it = iniData;
+    while(it!=NULL) {
+        pthread_mutex_lock(&myMutex);
+        ThreadData * curr = ThreadData::Clone(it);
+        pthread_mutex_unlock(&myMutex);
 
-            while(tdatabusy[i][j]);
-            tdatabusy[i][j] = true;
-            ThreadData * curr = ThreadData::Clone(tdata[i][j]);
-            tdatabusy[i][j] = false;
-
-            if( (curr != NULL) && ((curr->state == 2 ) || (curr->state == 3 ))) {
-                if(curr->nubeLength > 0) {
-                    if(ret.first == NULL) {
-                        ret.first = ThreadData::Clone(curr);
-                    } else {
-                        ofLogVerbose() << "[MainBufferRT::getNextFrame] Mergeando puntos.";
-                        ret.first->mergePointClouds(curr);
-                    }
-                }
-            }
-
-            if( (curr != NULL) && ((curr->state == 1 ) || (curr->state == 3 ))) {
-                ThreadData * td = ThreadData::Clone(curr);
-
-                if(ret.second == NULL) {
-                    ofLogVerbose() << "[MainBuffer::getNextFrame] primera imagen RGB.";
-                    td->sig     = NULL;
+        if( (curr != NULL) && ((curr->state == 2 ) || (curr->state == 3 ))) {
+            if(curr->nubeLength > 0) {
+                if(ret.first == NULL) {
+                    ret.first = ThreadData::Clone(curr);
                 } else {
-                    ofLogVerbose() << "[MainBuffer::getNextFrame] agrego otra imagen imagen RGB.";
-                    td->sig     = ret.second;
+                    ofLogVerbose() << "[MainBufferRT::getNextFrame] Mergeando puntos.";
+                    ret.first->mergePointClouds(curr);
                 }
-                ret.second  = td;
             }
-            delete curr;
-
         }
+
+        if( (curr != NULL) && ((curr->state == 1 ) || (curr->state == 3 )) ) {
+            ThreadData * td = ThreadData::Clone(curr);
+            curr->img.saveImage("td-img.jpg");
+            if(ret.second == NULL) {
+                ofLogVerbose() << "[MainBuffer::getNextFrame] primera imagen RGB.";
+                td->sig     = NULL;
+            } else {
+                ofLogVerbose() << "[MainBuffer::getNextFrame] agrego otra imagen imagen RGB.";
+                td->sig     = ret.second;
+            }
+            ret.second  = td;
+        }
+        delete curr;
+
+        it = it->sig;
     }
 
+    ThreadData * iter = ret.second;
+    bool descartado = false;
+    while(iter != NULL) {
+        descartado = descartado || ((iter->img.getWidth() <= 0) || (iter->img.getHeight() <= 0));
+        iter = iter->sig;
+    }
+
+    if((ret.first == NULL) || (((ThreadData *) ret.first)->nubeLength <100)) {
+        descartado = true;
+    }
+
+    if(descartado) {
+        ret.first   = NULL;
+        ret.second  = NULL;
+    }
     return ret;
 }
 

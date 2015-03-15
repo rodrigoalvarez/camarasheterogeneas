@@ -28,6 +28,7 @@ class ThreadData {
         int imgHeight;
         int qfactor;
         bool compressed;
+        bool released;
 
         int cameraType; //0-Unknown, 1-RGB, 2-Depth Camera
         float *         xpix;
@@ -62,6 +63,7 @@ class ThreadData {
             compImg     = NULL;
             cameraType  = 0;
             sig         = NULL;
+            released    = false;
         }
 
         ~ThreadData() {
@@ -94,42 +96,41 @@ class ThreadData {
             nTD->row2.set( oTD->row2.x, oTD->row2.y, oTD->row2.z, oTD->row2.w);
             nTD->row3.set( oTD->row3.x, oTD->row3.y, oTD->row3.z, oTD->row3.w);
             nTD->row4.set( oTD->row4.x, oTD->row4.y, oTD->row4.z, oTD->row4.w);
-            nTD->xpix = (float*) malloc ( sizeof(float) * (oTD->nubeLength) );
-            nTD->ypix = (float*) malloc ( sizeof(float) * (oTD->nubeLength) );
-            nTD->zpix = (float*) malloc ( sizeof(float) * (oTD->nubeLength) );
-            memcpy(nTD->xpix,  oTD->xpix,  sizeof(float) * oTD->nubeLength);
-            memcpy(nTD->ypix,  oTD->ypix,  sizeof(float) * oTD->nubeLength);
-            memcpy(nTD->zpix,  oTD->zpix,  sizeof(float) * oTD->nubeLength);
+
+            if(oTD->state > 1) {
+                nTD->xpix   = new float[oTD->nubeLength];
+                nTD->ypix   = new float[oTD->nubeLength];
+                nTD->zpix   = new float[oTD->nubeLength];
+
+                memcpy(nTD->xpix,  oTD->xpix,  sizeof(float) * oTD->nubeLength);
+                memcpy(nTD->ypix,  oTD->ypix,  sizeof(float) * oTD->nubeLength);
+                memcpy(nTD->zpix,  oTD->zpix,  sizeof(float) * oTD->nubeLength);
+            }
+
             return nTD;
         }
 
         void releaseResources() {
-
+            if(released) return;
             if(xpix != NULL) {
-                free(xpix);
+                delete xpix;
                 xpix = NULL;
             }
 
             if(ypix != NULL) {
-                free(ypix);
+                delete ypix;
                 ypix = NULL;
             }
 
             if(zpix != NULL) {
-                free(zpix);
+                delete zpix;
                 zpix = NULL;
             }
 
             if(compImg != NULL) {
-                //cout << " eliminando compImg " << endl;
-                free(compImg);
+                delete compImg;
                 compImg = NULL;
             }
-
-            /*if(sig != NULL) {
-                delete sig;
-                //sig = NULL;
-            }*/
 
             img.clear();
             spix.clear();
@@ -143,6 +144,7 @@ class ThreadData {
             sZpix.clear();
 
             ofLogVerbose() << "[ThreadData::~ThreadData] fin";
+            released    = true;
         }
 
         void mergePointClouds(ThreadData * td) {
@@ -151,12 +153,12 @@ class ThreadData {
 
                 int curLength   = nubeLength;
 
-                char * tmpzPix = (char*) malloc ( sizeof(float) * (curLength + td->nubeLength) );
-                char * tmpyPix = (char*) malloc ( sizeof(float) * (curLength + td->nubeLength) );
-                char * tmpxPix = (char*) malloc ( sizeof(float) * (curLength + td->nubeLength) );
-                char * offx    = tmpxPix + curLength * sizeof(float);
-                char * offy    = tmpyPix + curLength * sizeof(float);
-                char * offz    = tmpzPix + curLength * sizeof(float);
+                float * tmpzPix = new float [curLength + td->nubeLength];
+                float * tmpyPix = new float [curLength + td->nubeLength];
+                float * tmpxPix = new float [curLength + td->nubeLength];
+                char * offx    = (char *) tmpxPix + curLength * sizeof(float);
+                char * offy    = (char *) tmpyPix + curLength * sizeof(float);
+                char * offz    = (char *) tmpzPix + curLength * sizeof(float);
 
                 memcpy(tmpxPix,  xpix,      sizeof(float) * curLength);
                 memcpy(offx,     td->xpix,  sizeof(float) * td->nubeLength);
@@ -169,9 +171,9 @@ class ThreadData {
 
                 int w;
 
-                free(xpix);
-                free(ypix);
-                free(zpix);
+                delete(xpix);
+                delete(ypix);
+                delete(zpix);
 
                 xpix = (float *) tmpxPix;
                 ypix = (float *) tmpyPix;

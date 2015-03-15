@@ -8,14 +8,18 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <pthread.h>
 
 class MainBufferRT {
 	public:
         MainBufferRT();
 		~MainBufferRT();
         ThreadData * tdata [50][50];
+        ThreadData * iniData;
         bool tdatabusy [50][50];
+        bool tdatabusyvar;
         void startBuffer();
+        pthread_mutex_t myMutex;
         t_data      * sys_data;
 
 		/**
@@ -35,5 +39,7 @@ class MainBufferRT {
 		* de todos los clientes para ese frame (aún no implementado).
 		*/
 		std::pair <ThreadData *, ThreadData *> getNextFrame();
+
+		int buffLength();
 
 };

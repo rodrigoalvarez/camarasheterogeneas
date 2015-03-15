@@ -25,6 +25,7 @@ struct PointsCloud{
 struct GeneratedResult{
     int nframe;
     int idMesh;
+    //bool descartado;
     PointsCloud * nube;
     /*
     int idMomento;
