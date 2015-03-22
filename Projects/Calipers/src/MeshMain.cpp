@@ -194,18 +194,36 @@ void MeshMain::saveXmlFile() {
 	settings.saveFile("settings.xml");
 }
 
-void MeshMain::setPointVertex(int index) {
+void MeshMain::setPointVertex(int index, double* m) {
     GLfloat vert[3] = { cloudModel[meshIndex]->Points[index * 3], cloudModel[meshIndex]->Points[index * 3 + 1], cloudModel[meshIndex]->Points[index * 3 + 2] };
     glVertex3fv(vert);
-    glNormal3fv(vert);
+
+    float newv[3] = { 0, 0, -1 };
+    /*newv[0] = vert[0] * m[0] + vert[1] * m[1] + vert[2] * m[2] + m[3];
+    newv[1] = vert[0] * m[4] + vert[1] * m[5] + vert[2] * m[6] + m[7];
+    newv[2] = vert[0] * m[8] + vert[1] * m[9] + vert[2] * m[10] + m[11];
+    newv[3] = vert[0] * m[12] + vert[1] * m[13] + vert[2] * m[14] + m[15];
+
+    newv[0] = newv[0] / newv[3];
+    newv[1] = newv[1] / newv[3];
+    newv[2] = newv[2] / newv[3];*/
+
+    glNormal3fv(newv);
 }
 
 void MeshMain::draw3D() {
     glPointSize(0.2);
     glColor3fv(colors[meshIndex]);
+
+    GLdouble m[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, m);
+
     for (int i = 0; i < cloudModel[meshIndex]->TotalPoints; i += 4) {
         glBegin(GL_POINTS);
-            setPointVertex(i);
+            if (cloudModel[meshIndex]->hasColor){
+                glColor3f(cloudModel[meshIndex]->ColorPoints[i * 3], cloudModel[meshIndex]->ColorPoints[i * 3 + 1], cloudModel[meshIndex]->ColorPoints[i * 3 + 2] );
+            }
+            setPointVertex(i, m);
         glEnd();
     }
 }
@@ -436,6 +454,7 @@ void MeshMain::keys(unsigned char key, int x, int y) {
         if(key == 'J') cloudMaster[0].viewer[2] += 0.2 * cameraFactor;
         if(key == 'G') cloudMaster[0].viewer[2] -= 0.2 * cameraFactor;
     }
+
 
     /*float valueX = 0;
     float valueY = 0;

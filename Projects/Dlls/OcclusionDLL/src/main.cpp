@@ -134,22 +134,50 @@ void setFaceVertex(int index)
 //    glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
 }
 
+bool isFrontFace(int index) {
+    GLfloat p1[3] = { Faces_Triangles[index * 9], Faces_Triangles[index * 9 + 1], Faces_Triangles[index * 9 + 2] };
+    GLfloat p2[3] = { Faces_Triangles[index * 9 + 3], Faces_Triangles[index * 9 + 4], Faces_Triangles[index * 9 + 5] };
+    GLfloat p3[3] = { Faces_Triangles[index * 9 + 6], Faces_Triangles[index * 9 + 7], Faces_Triangles[index * 9 + 8] };
+
+    float va[3], vb[3], vr[3], val;
+	va[0] = p2[0] - p1[0];
+	va[1] = p2[1] - p1[1];
+	va[2] = p2[2] - p1[2];
+
+	vb[0] = p3[0] - p1[0];
+	vb[1] = p3[1] - p1[1];
+	vb[2] = p3[2] - p1[2];
+
+	/* cross product */
+	vr[0] = va[1] * vb[2] - vb[1] * va[2];
+	vr[1] = vb[0] * va[2] - va[0] * vb[2];
+	vr[2] = va[0] * vb[1] - vb[0] * va[1];
+
+	return vr[2] <= 0;
+}
+
 void draw2DElement(int index)
 {
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_POLYGON);
-    setFaceVertex(index * 3);
-    setFaceVertex(index * 3 + 1);
-    setFaceVertex(index * 3 + 2);
+        if (isFrontFace(index)) {
+            setFaceVertex(index * 3);
+            setFaceVertex(index * 3 + 1);
+            setFaceVertex(index * 3 + 2);
+        } else {
+            setFaceVertex(index * 3);
+            setFaceVertex(index * 3 + 2);
+            setFaceVertex(index * 3 + 1);
+        }
     glEnd();
-//    if (textureWire) {
-//        glColor3f(0.5f, 0.5f, 0.5f);
-//        glBegin(GL_LINE_LOOP);
-//            setFaceVertex(index * 3);
-//            setFaceVertex(index * 3 + 1);
-//            setFaceVertex(index * 3 + 2);
-//        glEnd();
-//    }
+
+
+    /*glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_POLYGON);
+        setFaceVertex(index * 3);
+        setFaceVertex(index * 3 + 1);
+        setFaceVertex(index * 3 + 2);
+    glEnd();*/
 }
 
 void DLL_EXPORT OcclusionCulling(int textureIndex,int TotalFaces, float* Faces_TrianglesParm, int*** faces)
@@ -161,34 +189,25 @@ void DLL_EXPORT OcclusionCulling(int textureIndex,int TotalFaces, float* Faces_T
     glGenQueriesARB = (PFNGLGENQUERIESARBPROC)wglGetProcAddress("glGenQueriesARB");
     glEndQueryARB = (PFNGLENDQUERYARBPROC)wglGetProcAddress("glEndQueryARB");
     glGetQueryObjectuivARB = (PFNGLGETQUERYOBJECTUIVPROC)wglGetProcAddress("glGetQueryObjectuivARB");
-//    cout<< "Paso1" << endl;
+    glDeleteQueriesARB = (PFNGLDELETEQUERIESARBPROC)wglGetProcAddress("glDeleteQueriesARB");
     GLuint* queries = new GLuint[TotalFaces];
-//    cout<< "Paso2" << endl;
-    //GLuint queries = *queriesP;
     GLuint sampleCount;
-//    cout<< "Paso2.0 " << TotalFaces << endl;
     glGenQueriesARB(TotalFaces, queries);
-//    cout<< "Paso2.1" << endl;
     glDisable(GL_BLEND);
-//    cout<< "Paso2.2" << endl;
     glDepthFunc(GL_LESS);
-//    cout<< "Paso2.3" << endl;
     glDepthMask(GL_TRUE);
-//    cout<< "Paso3" << endl;
     for (int i = 0; i < TotalFaces; i++)
     {
         int index = i * 3;
         if (PointInFrustum(Faces_Triangles[index * 3], Faces_Triangles[index * 3 + 1], Faces_Triangles[index * 3 + 2])) {
-//            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
-//            draw2DElement(i);
-//            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
+            draw2DElement(i);
+            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
         }
     }
-//    cout<< "Paso4" << endl;
     glEnable(GL_BLEND);
     glDepthFunc(GL_EQUAL);
     glDepthMask(GL_FALSE);
-//    cout<< "Paso5" << endl;
 
     for (int i = 0; i < TotalFaces; i++)
     {
@@ -201,15 +220,17 @@ void DLL_EXPORT OcclusionCulling(int textureIndex,int TotalFaces, float* Faces_T
                 {
                     (*faces)[textureIndex][i] = sampleCount;
                 }
-                //glEnable(GL_CULL_FACE);
+                /*glEnable(GL_CULL_FACE);
+                glFrontFace(GL_CW);
+                glCullFace(GL_FRONT);*/
                 draw2DElement(i);
             }
         }
     }
-//    cout<< "Paso5.5" << endl;
     glDisable(GL_BLEND);
     glDepthFunc(GL_LESS);
     glDepthMask(GL_TRUE);
+    glDeleteQueriesARB(TotalFaces, queries);
     delete [] queries;
 }
 

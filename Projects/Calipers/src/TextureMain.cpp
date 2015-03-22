@@ -98,11 +98,52 @@ void TextureMain::drawAllText() {
     positionY += 20;
 }
 
+
+void TextureMain::setNormal(float* points) {
+    GLfloat p1[3] = { points[0], points[1], points[2] };
+    GLfloat p2[3] = { points[3], points[4], points[5] };
+    GLfloat p3[3] = { points[6], points[7], points[8] };
+
+    float va[3], vb[3], vr[3], val;
+	va[0] = p2[0] - p1[0];
+	va[1] = p2[1] - p1[1];
+	va[2] = p2[2] - p1[2];
+
+	vb[0] = p3[0] - p1[0];
+	vb[1] = p3[1] - p1[1];
+	vb[2] = p3[2] - p1[2];
+
+	/* cross product */
+	vr[0] = va[1] * vb[2] - vb[1] * va[2];
+	vr[1] = vb[0] * va[2] - va[0] * vb[2];
+	vr[2] = va[0] * vb[1] - vb[0] * va[1];
+	float norm = sqrt(vr[0] * vr[0] + vr[1] * vr[1] + vr[2] * vr[2]);
+
+	if (vr[2] >= 0) {
+        glNormal3f(vr[0] / norm, vr[1] / norm, vr[2] / norm);
+	} else {
+        float newPoints[9] = { points[0], points[1], points[2], points[6], points[7], points[8], points[3], points[4], points[5] };
+        setNormal(newPoints);
+	}
+}
+
 void TextureMain::setFaceVertex(int index) {
     GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
-    glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
+
+    index = index / 3;
+    float points[9] = { textureModel->Faces_Triangles[index * 9], textureModel->Faces_Triangles[index * 9 + 1], textureModel->Faces_Triangles[index * 9 + 2],
+                        textureModel->Faces_Triangles[index * 9 + 3], textureModel->Faces_Triangles[index * 9 + 4], textureModel->Faces_Triangles[index * 9 + 5],
+                        textureModel->Faces_Triangles[index * 9 + 6], textureModel->Faces_Triangles[index * 9 + 7], textureModel->Faces_Triangles[index * 9 + 8] };
+    setNormal(points);
 }
+
+
+/*void TextureMain::setFaceVertex(int index) {
+    GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
+    glVertex3fv(vert);
+    glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
+}*/
 
 float TextureMain::isFrontFacePoints(float* points) {
     GLfloat p1[3] = { points[0], points[1], points[2] };
@@ -187,15 +228,21 @@ void TextureMain::draw2DView() {
 
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         int hits = 0;
-//        for (int k = 1; k <= textureCount; k++) {
-//            hits = max(hits, faces[k][i]);
-//        }
-//        if (hits > 0 && faces[textureIndex][i] == hits) {
+
+        /*glEnable(GL_CULL_FACE);
+        glFrontFace(GL_CW);
+        glCullFace(GL_FRONT);
+        draw2DElement(i);*/
+
+        for (int k = 1; k <= textureCount; k++) {
+            hits = max(hits, faces[k][i]);
+        }
+        if (hits > 0 && faces[textureIndex][i] == hits) {
             glEnable(GL_CULL_FACE);
             glFrontFace(GL_CW);
             glCullFace(GL_FRONT);
             draw2DElement(i);
-//        }
+        }
     }
 }
 

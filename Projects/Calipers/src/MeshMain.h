@@ -66,7 +66,7 @@ class MeshMain
         void drawAllText();
         void generarMalla(NubePuntos* nube);
         void saveXmlFile();
-        void setPointVertex(int index);
+        void setPointVertex(int index, double* m);
         void draw3D();
         void IncludeMesh(Model_XYZ* model, Model_XYZ* newModel, MasterMesh master);
 };
