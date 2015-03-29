@@ -29,6 +29,7 @@
 #define ECONNABORTED    WSAECONNABORTED
 #endif
 
+bool connected = false;
 void Transmitter::threadedFunction() {
 
     HINSTANCE hGetProcIDDLL;
@@ -38,7 +39,7 @@ void Transmitter::threadedFunction() {
     }
     compress_img    = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
 
-    state       = 0;
+    state       = -1;
 
     std::string str =  ofToString(sys_data->cliId) + "|" + ofToString(sys_data->cliPort);
     cliId           = str;
@@ -103,9 +104,17 @@ void Transmitter::process(ofEventArgs &e) {
         ofLogVerbose() << "[Transmitter::process] :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
         return;
     }
-    idle = false;
 
     ofLogVerbose() << "[Transmitter::process] :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+
+    connected = grabber->isConnected();
+    if(connected && (state == -1)) {
+        state = 0;
+        return;
+    }
+
+    idle = false;
+
 
     if(state == 0) { // 0 - Todavía no se conectó al servidor
         try {
@@ -129,6 +138,10 @@ void Transmitter::process(ofEventArgs &e) {
                     sendFrame((grabber->total2D + grabber->total3D + grabber->totalONI), grabber->tData);
                 } else {
                     ofLogVerbose() << "[Transmitter::threadedFunction] El servidor no está conectado.";
+                    state = -1;
+                    grabber->setConnected(false);
+                    connected = grabber->isConnected();
+                    TCPSVR.close();
                 }
             }
         } catch (int e) {
@@ -215,6 +228,15 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
                 free(tData[i].compImg);
             }
         }
+    }
+
+    connected = grabber->isConnected();
+    if(!connected && (state == 2)) {
+        state    = -1;
+        int conn = -10;
+        TCPSVR.sendRawBytesToAll((char*) &conn, sizeof(int));
+        TCPSVR.close();
+        return;
     }
 }
 

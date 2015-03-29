@@ -55,11 +55,13 @@ struct t_data {
 class GlobalData {
 
 	public:
+
 		int     getFPS();
 		bool    getGoLive();
 		int     getTotal3D();
         int     getTotal2D();
 		int     getTotalDevices();
+
         void    loadCalibData(char * xml);
 
         int      total3D;

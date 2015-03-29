@@ -13,9 +13,16 @@
 
 #include "ofxOpenNI.h"
 
-class Grabber : public IGrabber {
+struct DebugTexture {
+    ofTexture * videoTexture;
+    int         tipo;
+    int         id;
+};
 
-	public:
+class Grabber : public IGrabber {
+    public:
+
+        bool connected;
 		void setup();
 		void update();
 		void draw();
@@ -29,7 +36,10 @@ class Grabber : public IGrabber {
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
+
 		void updateThreadData();
+		bool isConnected();
+
 		void setupGui();
 		ofVec3f * transformPointDepth(ofVec3f point, ofVec3f vtrans);
         ofVec3f * transformPoint(ofVec3f point, ofMatrix4x4 transform);
@@ -52,7 +62,14 @@ class Grabber : public IGrabber {
         int x;
         float d;
         ofVec3f * vt;
-
+        bool b_exit_pressed;
+        bool b_exit;
+        bool b_exit_fired;
+        void setVideoPreview(int , int , ofImage );
+        void setConnected(bool);
         ofxOpenNI * openNIRecorder;
         ofxOpenNI * openNIPlayer;
+
+        std::list<DebugTexture *> list;
+        std::list<DebugTexture *>::iterator it;
 };
