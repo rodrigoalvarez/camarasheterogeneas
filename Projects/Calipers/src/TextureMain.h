@@ -56,8 +56,11 @@ class TextureMain
 
         void drawText(const char* text, int length, int x, int y);
         void drawAllText();
+        void setNormal(float* points);
         void setFaceVertex(int index);
         void setPointVertex(int index);
+        float isFrontFacePoints(float* points);
+        bool isFrontFace(int index);
 
         void draw2DElement(int index);
         void draw3D();

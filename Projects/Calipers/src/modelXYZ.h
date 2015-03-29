@@ -20,6 +20,9 @@ class Model_XYZ
 		int Clear();
 
 		vector<float> Points;
+		vector<float> ColorPoints;
+
+		bool hasColor;
 
 		int TotalPoints;
 

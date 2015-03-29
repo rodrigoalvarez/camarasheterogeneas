@@ -109,28 +109,62 @@ void drawAllText() {
     positionY += 20;
 }
 
+float isFrontFacePoints(float* points) {
+    GLfloat p1[3] = { points[0], points[1], points[2] };
+    GLfloat p2[3] = { points[3], points[4], points[5] };
+    GLfloat p3[3] = { points[6], points[7], points[8] };
+
+    float va[3], vb[3], vr[3], val;
+	va[0] = p2[0] - p1[0];
+	va[1] = p2[1] - p1[1];
+	va[2] = p2[2] - p1[2];
+
+	vb[0] = p3[0] - p1[0];
+	vb[1] = p3[1] - p1[1];
+	vb[2] = p3[2] - p1[2];
+
+	/* cross product */
+	vr[0] = va[1] * vb[2] - vb[1] * va[2];
+	vr[1] = vb[0] * va[2] - va[0] * vb[2];
+	vr[2] = va[0] * vb[1] - vb[0] * va[1];
+
+	return vr[2];
+}
+
+bool isFrontFace(int index) {
+    float points[9] = { textureModel->Faces_Triangles[index * 9], textureModel->Faces_Triangles[index * 9 + 1], textureModel->Faces_Triangles[index * 9 + 2],
+                        textureModel->Faces_Triangles[index * 9 + 3], textureModel->Faces_Triangles[index * 9 + 4], textureModel->Faces_Triangles[index * 9 + 5],
+                        textureModel->Faces_Triangles[index * 9 + 6], textureModel->Faces_Triangles[index * 9 + 7], textureModel->Faces_Triangles[index * 9 + 8] };
+    return isFrontFacePoints(points) <= 0;
+}
+
 void setFaceVertex(int index) {
     GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
     glVertex3fv(vert);
-    ///
-//    glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
+    //glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
 }
 
 void draw2DElement(int index) {
     glColor3f(1.0f, 1.0f, 1.0f);
     glBegin(GL_POLYGON);
-        setFaceVertex(index * 3);
-        setFaceVertex(index * 3 + 1);
-        setFaceVertex(index * 3 + 2);
+        if (isFrontFace(index)) {
+            setFaceVertex(index * 3);
+            setFaceVertex(index * 3 + 1);
+            setFaceVertex(index * 3 + 2);
+        } else {
+            setFaceVertex(index * 3);
+            setFaceVertex(index * 3 + 2);
+            setFaceVertex(index * 3 + 1);
+        }
     glEnd();
-    if (textureWire) {
+    /*if (textureWire) {
         glColor3f(0.5f, 0.5f, 0.5f);
         glBegin(GL_LINE_LOOP);
             setFaceVertex(index * 3);
             setFaceVertex(index * 3 + 1);
             setFaceVertex(index * 3 + 2);
         glEnd();
-    }
+    }*/
 }
 
 void ExtractFrustum() {
@@ -308,6 +342,9 @@ void draw2DPlayerFast() {
             hits = max(hits, faces[k][i]);
         }
         if (hits > 0 && faces[textureIndex][i] == hits) {
+            glEnable(GL_CULL_FACE);
+            glFrontFace(GL_CW);
+            glCullFace(GL_FRONT);
             draw2DElement(i);
         }
     }
@@ -692,7 +729,7 @@ void timerFunction(int arg) {
 
 int main(int argc, char **argv) {
 
-    char* dllName = "C:\\Users\\Rodrigo\\Documents\\GitHub\\camarasheterogeneas\\Proyectos\\OcclusionDLL\\bin\\OcclusionDLL.dll";
+    char* dllName = "OcclusionDLL.dll";
     occlusionLibrary =  LoadLibraryA(dllName);
     if (!occlusionLibrary) {
         std::cout << "Failed to load the library" << std::endl;

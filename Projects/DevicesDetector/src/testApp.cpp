@@ -151,7 +151,9 @@ void testApp::update() {
                                 Point2D.Y   = y;
                                 Point2D.Z   = (float)d;
                                 Xn_depth.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
-                                fprintf (pFile, "%f %f %f\n", Point3D.X, Point3D.Y, Point3D.Z);
+                                ofFloatColor color = ipixels.getColor(x,y);
+                                fprintf (pFile, "%f %f %f %f %f %f\n", Point3D.X, Point3D.Y, Point3D.Z, color.r, color.g, color.b);
+                                //fprintf (pFile, "%f %f %f\n", Point3D.X, Point3D.Y, Point3D.Z);
                             }
                         }
 
