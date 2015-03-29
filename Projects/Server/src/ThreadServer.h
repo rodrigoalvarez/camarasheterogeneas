@@ -17,6 +17,8 @@ class ThreadServer : public ofThread {
             idle                = true;
             started             = false;
             connectionClosed    = false;
+            closed              = false;
+            b_exit              = false;
         }
 
         ~ThreadServer() {
@@ -25,13 +27,14 @@ class ThreadServer : public ofThread {
         }
 
 		void threadedFunction();
+		bool closed;
 		int port;
 		int cliId;
 		string ip;
 		ofxTCPClient TCPCLI;
 		void startFoo();
 		void update();
-		void receiveFrame();
+		void receiveFrame(ofEventArgs &e);
 		void exit();
 		//int totCameras;
 		ThreadData * tData;
@@ -42,6 +45,7 @@ class ThreadServer : public ofThread {
 		t_data * sys_data;
 		bool idle;
 		bool started;
+		bool b_exit;
 		bool connectionClosed;
 		bool checkConnError();
 };

@@ -29,6 +29,7 @@ class ThreadData {
         int qfactor;
         bool compressed;
         bool released;
+        bool used;
 
         int cameraType; //0-Unknown, 1-RGB, 2-Depth Camera
         float *         xpix;
@@ -57,6 +58,7 @@ class ThreadData {
         ofFloatPixels  sZpix;
 
         ThreadData() {
+            used        = false;
             xpix        = NULL;
             ypix        = NULL;
             zpix        = NULL;
@@ -73,9 +75,9 @@ class ThreadData {
         static ThreadData * Clone(ThreadData * oTD) {
             if(oTD == NULL) return NULL;
             ThreadData * nTD = new ThreadData();
+            nTD->used        = oTD->used;
             nTD->sig         = oTD->sig;
             nTD->curTime     = oTD->curTime;
-
             nTD->cliId       = oTD->cliId;
             nTD->camId       = oTD->camId;
             nTD->img.clone(oTD->img);
@@ -96,17 +98,24 @@ class ThreadData {
             nTD->row2.set( oTD->row2.x, oTD->row2.y, oTD->row2.z, oTD->row2.w);
             nTD->row3.set( oTD->row3.x, oTD->row3.y, oTD->row3.z, oTD->row3.w);
             nTD->row4.set( oTD->row4.x, oTD->row4.y, oTD->row4.z, oTD->row4.w);
-
             if(oTD->state > 1) {
-                nTD->xpix   = new float[oTD->nubeLength];
-                nTD->ypix   = new float[oTD->nubeLength];
-                nTD->zpix   = new float[oTD->nubeLength];
+                if((oTD->nubeLength < 100) || ((!oTD->xpix) || (!oTD->ypix) || (!oTD->zpix))) {
+                    if(nTD->state == 3) {
+                        nTD->state = 1;
+                    } else {
+                        nTD->state = 0;
+                    }
+                    nTD->nubeLength = 0;
+                } else {
+                    nTD->xpix   = new float[oTD->nubeLength];
+                    nTD->ypix   = new float[oTD->nubeLength];
+                    nTD->zpix   = new float[oTD->nubeLength];
+                    memcpy(nTD->xpix,  oTD->xpix,  sizeof(float) * oTD->nubeLength);
+                    memcpy(nTD->ypix,  oTD->ypix,  sizeof(float) * oTD->nubeLength);
+                    memcpy(nTD->zpix,  oTD->zpix,  sizeof(float) * oTD->nubeLength);
+                }
 
-                memcpy(nTD->xpix,  oTD->xpix,  sizeof(float) * oTD->nubeLength);
-                memcpy(nTD->ypix,  oTD->ypix,  sizeof(float) * oTD->nubeLength);
-                memcpy(nTD->zpix,  oTD->zpix,  sizeof(float) * oTD->nubeLength);
             }
-
             return nTD;
         }
 

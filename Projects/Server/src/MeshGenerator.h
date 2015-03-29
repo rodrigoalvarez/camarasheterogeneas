@@ -25,8 +25,9 @@ class MeshGenerator : public ofThread {
             buffer = NULL;
             nframe          = 0;
             currTProcesor   = 0;
-            __idle            = true;
+            __idle          = true;
             started         = false;
+            b_exit          = false;
         }
 
         ~MeshGenerator() {
@@ -40,6 +41,7 @@ class MeshGenerator : public ofThread {
         //HINSTANCE memorySharedLibrary;
 		void threadedFunction();
 		void processFrame(ofEventArgs &e);
+		void exit();
 		MainBufferRT * buffer;
 		MeshThreadedGenerator * threads;
 		MeshCollector * collector;
@@ -55,4 +57,5 @@ class MeshGenerator : public ofThread {
         bool isConnected;
         bool __idle;
         bool started;
+        bool b_exit;
 };

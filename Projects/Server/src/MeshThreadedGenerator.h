@@ -68,6 +68,7 @@ class MeshThreadedGenerator : public ofThread {
 		int* numberFaces;
 		std::pair <ThreadData *, ThreadData *> frame;
 		void processMesh(std::pair <ThreadData *, ThreadData *> frame, int id);
+		void exit();
 		f_meshGenerate meshGenerate;
 		~MeshThreadedGenerator();
 };

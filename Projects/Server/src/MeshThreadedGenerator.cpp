@@ -23,6 +23,10 @@ MeshThreadedGenerator::~MeshThreadedGenerator() {
     //delete result;
 }
 
+void MeshThreadedGenerator::exit() {
+    ofRemoveListener(ofEvents().update, this, &MeshThreadedGenerator::processFrame);
+}
+
 void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
     lock();
     if(state == GENERATOR_LOADED) {

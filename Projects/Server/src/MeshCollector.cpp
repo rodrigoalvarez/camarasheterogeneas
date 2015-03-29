@@ -8,20 +8,20 @@ bool compare_nframe (GeneratedResult * first, GeneratedResult * second) {
 void MeshCollector::threadedFunction() {
     ShareMesh  = (f_compartirMalla)GetProcAddress(memorySharedLibrary, "ShareMesh");
     shareImage = (f_ShareImage)GetProcAddress(memorySharedLibrary, "ShareImage");
-    /*
-    while(isThreadRunning()) {
-        //ofSleepMillis(1000/sys_data->fps);
-        processFrame();
-    }*/
 
     ofAddListener(ofEvents().update, this, &MeshCollector::processFrame);
+}
+
+void MeshCollector::exit() {
+    ofRemoveListener(ofEvents().update, this, &MeshCollector::processFrame);
+    b_exit  = true;
 }
 
 void MeshCollector::processFrame(ofEventArgs &e) {
     //Ver en http://www.cplusplus.com/reference/list/list/sort/
     int i = 0;
-    for(i=0; i<sys_data->totalFreeCores; i++) {
-        if((threads[i].getState() == GENERATOR_COMPLETE) /*&& (threads[i].nframe != -1)*/) {
+    for(i=0; ((i<sys_data->totalFreeCores) && !b_exit); i++) {
+        if(threads[i].getState() == GENERATOR_COMPLETE) {
             ofLogVerbose() << "[MeshCollector::processFrame]" << endl;
             bool esta = false;
             for (it=list.begin(); it!=list.end(); ++it) {
@@ -29,23 +29,8 @@ void MeshCollector::processFrame(ofEventArgs &e) {
             }
             if(!esta) {
                 threads[i].setState(GENERATOR_IDLE);
-
                 list.push_back(threads[i].result);
                 list.sort(compare_nframe);
-
-                /*
-                GeneratedResult * result = threads[i].result;
-                delete [] result->faces;
-                delete result->numberFaces;
-                if(result->textures != NULL) {
-                    while(result->textures != NULL){
-                        ThreadData * curr = result->textures;
-                        result->textures = result->textures->sig;
-                        delete curr;
-                    }
-                    result->textures = NULL;
-                }
-                */
             }
         }
     }
@@ -56,14 +41,10 @@ void MeshCollector::processFrame(ofEventArgs &e) {
 void MeshCollector::shareNextCompleteFrame() {
     if(list.size()>0) {
         GeneratedResult * result = list.front();
-        //ofLogVerbose() << "SHARE FRAME " << (currFrame + 1) << ", result->nframe: " << result->nframe << endl;
         if((currFrame + 1) == result->nframe) {
             currFrame++;
             list.remove(result);
-            //ofLogVerbose() << "[MeshCollector::shareNextCompleteFrame] !result->descartado " << !result->descartado << endl;
-            //if(!result->descartado) {
-                shareFrame(result);
-            //}
+            shareFrame(result);
         }
     }
 }
@@ -101,10 +82,12 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
     if(gresult->hasRGB) {
 
         iter = (ThreadData *) gresult->textures;
+        int i = 0;
         do {
+            i++;
             ofBuffer imageBuffer;
             ofSaveImage(iter->img.getPixelsRef(), imageBuffer, OF_IMAGE_FORMAT_JPEG);
-
+            iter->img.saveImage("mcollector_share_img_" + ofToString(i) + ".jpg");
             FIMEMORY* stream        = FreeImage_OpenMemory((unsigned char*) imageBuffer.getBinaryBuffer(), imageBuffer.size());
             FREE_IMAGE_FORMAT fif   = FreeImage_GetFileTypeFromMemory( stream, 0 );
             FIBITMAP *dib(0);
@@ -119,7 +102,7 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
             idMomento   = idMomento*10 + iter->camId;
             idMomento   = idMomento*10000 + gresult->nframe % 10000;
 
-            //shareImage(&idMomento, pixels, &width, &height);
+            shareImage(&idMomento, pixels, &width, &height);
 
             FreeImage_CloseMemory(stream);
             imageBuffer.clear();

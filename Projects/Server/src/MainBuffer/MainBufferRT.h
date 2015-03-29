@@ -39,7 +39,7 @@ class MainBufferRT {
 		* de todos los clientes para ese frame (aún no implementado).
 		*/
 		std::pair <ThreadData *, ThreadData *> getNextFrame();
-
+        bool hasNewData(ThreadData * data);
 		int buffLength();
 
 };

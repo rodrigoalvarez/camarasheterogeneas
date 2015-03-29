@@ -32,7 +32,8 @@
 using namespace std;
 
 void ThreadServer::threadedFunction() {
-
+    closed           = false;
+    connectionClosed = false;
     HINSTANCE hGetProcIDDLL;
     hGetProcIDDLL   =  LoadLibraryA("imageCompression.dll");
     if (!hGetProcIDDLL) {
@@ -45,25 +46,10 @@ void ThreadServer::threadedFunction() {
 
     currBytearray = NULL;
     started = true;
-    //ofAddListener(ofEvents().update, this, &ThreadServer::receiveFrame);
-
-    while(isThreadRunning()) {
-
-        /*timeval curTime;
-        gettimeofday(&curTime, NULL);
-        int milli = curTime.tv_usec / 1000;
-        char buffer [80];
-        strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", localtime(&curTime.tv_sec));
-        char currentTime[84] = "";
-        sprintf(currentTime, "%s:%d", buffer, milli);*/
-
-        ofLogVerbose() << "[ThreadServer::threadedFunction] Hago polling - (FPS) " << ofToString(ofGetFrameRate());
-        receiveFrame();
-    }
+    ofAddListener(ofEvents().update, this, &ThreadServer::receiveFrame);
 }
 
 void ThreadServer::update() {
-    //receiveFrame();
 }
 
 bool ThreadServer::checkConnError() {
@@ -105,7 +91,7 @@ bool ThreadServer::checkConnError() {
     return connectionClosed;
 }
 
-void ThreadServer::receiveFrame() {
+void ThreadServer::receiveFrame(ofEventArgs &e) {
     if(connectionClosed) return;
     if(!started) return;
     if(!idle) {
@@ -131,12 +117,38 @@ void ThreadServer::receiveFrame() {
             int v1 = 0;
             int recSize = 0;
             int	err = 0;
-            recSize = TCPCLI.receiveRawBytes((char*) &v0, sizeof(int));
-            if(checkConnError()) {
-                exit();
+
+            if(TCPCLI.isConnected()) {
+                recSize = TCPCLI.receiveRawBytes((char*) &v0, sizeof(int));
+                if(checkConnError()) {
+                    exit();
+                    return;
+                }
+            } else {
                 return;
             }
-            recSize = TCPCLI.receiveRawBytes((char*) &v1, sizeof(int));
+
+            if(v0 == -10) {
+                ofLogVerbose() << "[ThreadServer::receiveFrame] Conexión cerrada por el cliente"<< endl;
+                cout << "[ThreadServer::receiveFrame] Conexión cerrada por el cliente"<< endl;
+                if(TCPCLI.isConnected()) {
+                    TCPCLI.close();
+                } else {
+                    return;
+                }
+                connectionClosed    = true;
+                idle                = true;
+                closed              = true;
+                unlock();
+                return;
+            }
+
+            if(TCPCLI.isConnected()) {
+                recSize = TCPCLI.receiveRawBytes((char*) &v1, sizeof(int));
+            } else {
+                return;
+            }
+
             if(checkConnError()) {
                 exit();
                 return;
@@ -156,7 +168,14 @@ void ThreadServer::receiveFrame() {
             ofLogVerbose() << "[ThreadServer::receiveFrame] RECIBIENDO NUVO FRAME: " << currentTime;
             do {
                 char * recBytearray  = new char [sys_data->maxPackageSize];
-                numBytes             = TCPCLI.receiveRawBytes((char*) &recBytearray[0], sys_data->maxPackageSize);
+
+                if(TCPCLI.isConnected()) {
+                    numBytes             = TCPCLI.receiveRawBytes((char*) &recBytearray[0], sys_data->maxPackageSize);
+                } else {
+                    delete recBytearray;
+                    return;
+                }
+
                 if(numBytes > 0 ) {
                     currBytearray        = FrameUtils::addToBytearray(recBytearray, numBytes, currBytearray, currTotal);
                     currTotal           += numBytes;
@@ -167,7 +186,11 @@ void ThreadServer::receiveFrame() {
                     }
                 }
                 delete recBytearray;
-            } while(currTotal < (v0*sys_data->maxPackageSize + v1));
+            } while((currTotal < (v0*sys_data->maxPackageSize + v1)) && !(b_exit));
+
+            if(b_exit) {
+                return;
+            }
             ofLogVerbose() << "[ThreadServer::receiveFrame] Se recibio frame de: " << currTotal << " bytes";
 
             float millisThen = ofGetElapsedTimeMillis();
@@ -177,19 +200,6 @@ void ThreadServer::receiveFrame() {
             if(currTotal > 0) {
 
                 std::pair <int, ThreadData *>  tPair = FrameUtils::getThreadDataFromByteArray( currBytearray );
-
-                /*
-                ThreadData * prevFrame  = tPair.second;
-                while(prevFrame != NULL) {
-                    ThreadData * td = prevFrame;
-                    prevFrame = prevFrame->sig;
-                    if(td->state > 0) {
-                        //PROBLEMA:
-                        td->releaseResources();
-                    }
-                }
-                delete prevFrame;
-                */
 
                 ofLogVerbose() << "[ThreadServer::receiveFrame] Por agregar frame a buffer con " << tPair.first;
 
@@ -219,7 +229,7 @@ char * ThreadServer::getFrame() {
 void ThreadServer::exit() {
     ofLogVerbose() << "[ThreadServer::exit]";
     lock();
-
+    b_exit = true;
     if(tData != NULL) {
         delete tData;
     }

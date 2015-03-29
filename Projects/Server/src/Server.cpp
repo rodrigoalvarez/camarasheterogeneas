@@ -26,6 +26,10 @@ void Server::setupGui(string ip) {
     gui.addTitle("Sync Factor: " + ofToString(gdata->sys_data->syncFactorValue));
     gui.addTitle("Max Threads: " + ofToString(gdata->sys_data->maxThreadedServers));
     gui.addTitle("Max Cli Buffer: " + ofToString(gdata->sys_data->maxReceiveFrameBuffer));
+
+    std::string exstr = "Exit";
+    gui.addButton(exstr, b_exit_pressed);
+
     gui.show();
 }
 
@@ -64,30 +68,33 @@ void Server::setVideoPreview(int cli, int cam, ofImage img) {
 }
 
 void Server::exit() {
+
+    cout << "[Server::exit]" << endl;
     int i = 0;
     for(i = 0; i < totThreadedServers; i++) {
-        if(tservers[i]->isThreadRunning()) {
-            tservers[i]->exit();
-            //tservers[i]->stopThread();
-            tservers[i]->waitForThread();
-        }
-        delete tservers[i];
+        tservers[i]->stopThread();
     }
+    //generator.exit();
+    generator.stopThread();
 
     TCP.close();
 
-    for (it=list.begin(); it!=list.end(); ++it) {
+    int j, size = list.size();
+    for( j = 0; j < size; j++) {
         DebugTexture * result = list.front();
-        delete result->videoTexture;
-        list.remove(result);
-        delete result;
+        if(size > 0) {
+            if(result != NULL) {
+                delete result->videoTexture;
+                list.remove(result);
+                delete result;
+            }
+        }
     }
-
     if(gdata != NULL) {
         delete gdata;
     }
-
     delete mb;
+    cout << "[Server::exit] END" << endl;
 }
 
 void Server::setup() {
@@ -98,6 +105,11 @@ void Server::setup() {
     string line;
     string ip;
     ifstream IPFile;
+
+    b_exit          = false;
+    b_exit_fired    = false;
+    b_exit_pressed  = false;
+
     int offset;
     char* search0 = "IPv4 Address. . . . . . . . . . . :";      // search pattern
 
@@ -160,6 +172,22 @@ void Server::setup() {
         //Le retorno al cliente el puerto (PUERTO_X) asignado.
 //--------------------------------------------------------------
 void Server::update() {
+    if(b_exit_fired) return;
+    if(b_exit) {
+        //connected = false;
+        //if((transmitter.state == -1) || (transmitter.state == 3) || (!transmitter.started)) {
+            if(!b_exit_fired) {
+                b_exit_fired = true;
+                ofExit();
+            }
+        //}
+        return;
+    }
+
+    if(b_exit_pressed) {
+        b_exit = true;
+    }
+
     ofLogVerbose() << "Server :: FPS " << ofToString(ofGetFrameRate()) << endl;
     for(int i = 0; i < TCP.getLastID(); i++) { // getLastID is UID of all clients
         if( TCP.isClientConnected(i) ) { // check and see if it's still around
@@ -189,7 +217,7 @@ void Server::update() {
 
                 currCliPort         ++;
                 totThreadedServers  ++;
-
+                //TCP.close();
             }
         }
     }
@@ -199,7 +227,8 @@ void Server::update() {
 void Server::computeFrames() {
     ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totThreadedServers;
     for(int i = 0; i < totThreadedServers; i++) {
-        if(tservers[i]->isThreadRunning()) {
+        if(!tservers[i]->closed) {
+            //cout << "[Server::computeFrames] IS threadRunning " << tservers[i]->connectionClosed << endl;
             int currCam = 1;
             ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer lock " << endl;
             tservers[i]->lock();
@@ -209,26 +238,19 @@ void Server::computeFrames() {
 
             for(int c = 0; c < head.first; c++) {
                 if(gui.isOn()) {
-                    setVideoPreview(head.second[c].cliId, currCam, head.second[c].img);
+                    setVideoPreview(head.second[c].cliId, head.second[c].camId, head.second[c].img);
                 }
 
                 currCam ++;
-                mb->addFrame(&head.second[c], c, i);
+                mb->addFrame(&head.second[c], head.second[c].camId, head.second[c].cliId);
             }
-
-            /*
-            ThreadData * prevFrame  = head.second;
-            while(prevFrame != NULL) {
-                ThreadData * td = prevFrame;
-                prevFrame = prevFrame->sig;
-                if(td->state > 0) {
-                    //PROBLEMA:
-                    td->releaseResources();
-                }
-            }
-            delete prevFrame;*/
 
             tservers[i]->unlock();
+        } else {
+            if(tservers[i]->isThreadRunning()) {
+                cout << "STOP THREAD" << endl;
+                tservers[i]->stopThread();
+            }
         }
     }
 }

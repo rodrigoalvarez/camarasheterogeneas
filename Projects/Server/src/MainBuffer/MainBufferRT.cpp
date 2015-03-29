@@ -55,7 +55,7 @@ int MainBufferRT::buffLength() {
 void MainBufferRT::addFrame( ThreadData * frame , int cam, int cli) {
 
     pthread_mutex_lock(&myMutex);
-
+    frame->used = false;
     if(iniData == NULL) {
         iniData = frame;
         iniData->sig = NULL;
@@ -63,32 +63,44 @@ void MainBufferRT::addFrame( ThreadData * frame , int cam, int cli) {
         ThreadData * iter = iniData;
         ThreadData * prev = iter;
         while((iter!=NULL) && !((iter->cliId == cli) &&(iter->camId == cam ))) {
+            ofLogVerbose() << "[MainBufferRT::addFrame] iter-cli: " << iter->cliId << ", cli: " << cli << ", camId: " << iter->camId << ", cam: " << cam;
             prev = iter;
             iter = iter->sig;
         }
 
         if(iter == NULL) {
             prev->sig = frame;
+            ofLogVerbose() << "[MainBufferRT::addFrame] iter == NULL ";
         } else {
             if(prev == iter) {
+                ofLogVerbose() << "[MainBufferRT::addFrame] " << prev << " == " << iter;
                 iniData = frame;
                 iniData->sig = iter->sig;
                 ThreadData * tmp = iter;
-                //delete tmp;
                 tmp->releaseResources();
             } else {
+                ofLogVerbose() << "[MainBufferRT::addFrame] Else ";
                 prev->sig = frame;
                 frame->sig = iter->sig;
                 ThreadData * tmp = iter;
                 iter = prev;
                 tmp->releaseResources();
-                //delete tmp;
             }
-
         }
     }
 
     pthread_mutex_unlock(&myMutex);
+}
+
+bool MainBufferRT::hasNewData(ThreadData * data) {
+    ThreadData * it = data;
+    while(it!=NULL) {
+        if(!it->used) {
+            return true;
+        }
+        it = it->sig;
+    }
+    return false;
 }
 
 /**
@@ -102,14 +114,19 @@ std::pair <ThreadData *, ThreadData *> MainBufferRT::getNextFrame() {
     std::pair <ThreadData *, ThreadData *> ret;
     ret.first   = NULL;
     ret.second  = NULL;
-    //return ret;
+
+    if(!hasNewData(iniData)) {
+        return ret;
+    }
 
     ThreadData * it = iniData;
     while(it!=NULL) {
+        ofLogVerbose() << "[MainBufferRT::getNextFrame] entro " << it << endl;
         pthread_mutex_lock(&myMutex);
+        it->used = true;
         ThreadData * curr = ThreadData::Clone(it);
         pthread_mutex_unlock(&myMutex);
-
+        ofLogVerbose() << "[MainBufferRT::getNextFrame] clono " << curr << endl;
         if( (curr != NULL) && ((curr->state == 2 ) || (curr->state == 3 ))) {
             if(curr->nubeLength > 0) {
                 if(ret.first == NULL) {
@@ -123,21 +140,23 @@ std::pair <ThreadData *, ThreadData *> MainBufferRT::getNextFrame() {
 
         if( (curr != NULL) && ((curr->state == 1 ) || (curr->state == 3 )) ) {
             ThreadData * td = ThreadData::Clone(curr);
-            curr->img.saveImage("td-img.jpg");
             if(ret.second == NULL) {
-                ofLogVerbose() << "[MainBuffer::getNextFrame] primera imagen RGB.";
+                ofLogVerbose() << "[MainBufferRT::getNextFrame] primera imagen RGB.";
                 td->sig     = NULL;
             } else {
-                ofLogVerbose() << "[MainBuffer::getNextFrame] agrego otra imagen imagen RGB.";
+                ofLogVerbose() << "[MainBufferRT::getNextFrame] agrego otra imagen imagen RGB. " << td;
                 td->sig     = ret.second;
             }
             ret.second  = td;
         }
         delete curr;
-
+        ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA a " << it << endl;
+        ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA b " << it->sig << endl;
         it = it->sig;
+        ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA c " << it << endl;
     }
 
+    ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA " << endl;
     ThreadData * iter = ret.second;
     bool descartado = false;
     while(iter != NULL) {
@@ -153,6 +172,12 @@ std::pair <ThreadData *, ThreadData *> MainBufferRT::getNextFrame() {
         ret.first   = NULL;
         ret.second  = NULL;
     }
+
+    /*
+    ret.first   = NULL;
+    ret.second  = NULL;
+    */
+
     return ret;
 }
 

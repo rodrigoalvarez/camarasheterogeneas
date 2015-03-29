@@ -22,17 +22,18 @@ class MeshCollector : public ofThread {
         MeshCollector() {
             currProc   = 0;
             currFrame  = -1;
-            char* dllName = "GenerarMallas.dll";
+            char* dllName = "MeshGenerator.dll";
             generateMeshLibrary =  LoadLibraryA(dllName);
             if (!generateMeshLibrary) {
                 std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
             }
 
-            dllName = "MemoriaCompartida.dll";
+            dllName = "SharedMemory.dll";
             memorySharedLibrary =  LoadLibraryA(dllName);
             if (!memorySharedLibrary) {
                 std::cout << "No se pudo cargar la libreria: " << dllName << std::endl;
             }
+            b_exit = false;
         }
 
         ~MeshCollector() {
@@ -54,4 +55,6 @@ class MeshCollector : public ofThread {
 		void processFrame(ofEventArgs &e);
 		void shareNextCompleteFrame();
 		void shareFrame(GeneratedResult *);
+		void exit();
+		bool b_exit;
 };

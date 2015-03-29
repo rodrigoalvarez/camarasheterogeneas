@@ -79,6 +79,11 @@ class Server : public ofBaseApp {
 
         int buffLastIndex;
         int buffCurrIndex;
+
+        bool b_exit_pressed;
+        bool b_exit;
+        bool b_exit_fired;
+
         MainBufferRT * mb;
         ServerGlobalData * gdata;
 

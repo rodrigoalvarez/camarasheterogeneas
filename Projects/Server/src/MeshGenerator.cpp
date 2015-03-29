@@ -13,27 +13,6 @@
 
 using namespace std;
 
-/*
-struct NubePuntos{
-    float* x;
-    float* y;
-    float* z;
-    int largo;
-};
-*/
-
-//string facesMemoryKey   = "Faces";
-//string nFacesMemoryKey  = "NumberFaces";
-//int nFacesMemorySize    = sizeof(int);
-//int facesMemorySize;
-
-//typedef void (*f_generarMalla)(NubePuntos* nbIN, FaceStruct** faces, int* numberFaces, int nroFrame);
-//typedef void (*f_compartirMalla)(int idMesh, int numberFaces, FaceStruct* faces);
-//typedef void (*f_ShareImage)(int* idImage, unsigned char* pixels, int* wPixels, int* hPixels);
-
-//int nframe          = 0;
-//int currTProcesor   = 0;
-//int idMesh          = 0;
 int proc = 0;
 void MeshGenerator::threadedFunction() {
     if(buffer == NULL) return;
@@ -56,14 +35,19 @@ void MeshGenerator::threadedFunction() {
     started         = true;
 
     ofAddListener(ofEvents().update, this, &MeshGenerator::processFrame);
+}
 
-    /*
-    while(isThreadRunning()) {
-        ofLogVerbose() << "MeshGenerator :: FPS " << ofToString(ofGetFrameRate()) << endl;
-        //ofSleepMillis(1000/sys_data->fps);
-        //processFrame();
-    }*/
-
+void MeshGenerator::exit() {
+    b_exit          = true;
+    collector->exit();
+    collector->stopThread();
+    int i = 0, proc = 0;
+    for(i=0; (i<sys_data->totalFreeCores); i++) {
+        proc ++;
+        proc = proc % sys_data->totalFreeCores;
+        threads[proc].exit();
+        threads[proc].stopThread();
+    }
 }
 
 void MeshGenerator::processFrame(ofEventArgs &e) {
@@ -75,12 +59,10 @@ void MeshGenerator::processFrame(ofEventArgs &e) {
         ofLogVerbose() << "MeshGenerator :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
         return;
     }
-    //buffer->getNextFrame();
-    //return;
     __idle = false;
     ofLogVerbose() << "MeshGenerator :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
     int i = 0;
-    for(i=0; i<sys_data->totalFreeCores; i++) {
+    for(i=0; (i<sys_data->totalFreeCores && !b_exit); i++) {
         proc ++;
         proc = proc % sys_data->totalFreeCores;
         if(threads[proc].getState() == GENERATOR_IDLE) {
@@ -90,49 +72,7 @@ void MeshGenerator::processFrame(ofEventArgs &e) {
                 nframe++;
                 break;
             }
-            /*if(frame.first != NULL) {
-                delete frame.first;
-                frame.first = NULL;
-            }
-            if(frame.second != NULL) {
-                while(frame.second != NULL){
-                    ThreadData * curr = frame.second;
-                    frame.second = frame.second->sig;
-                    delete curr;
-                }
-            }*/
         }
     }
     __idle = true;
-    /*return;
-
-    ofLogVerbose() << "MeshGenerator :: FPS " << ofToString(ofGetFrameRate()) << endl;
-
-    if(!__idle) {
-        ofLogVerbose() << "MeshGenerator :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
-        return;
-    }
-    __idle = false;
-    ofLogVerbose() << "MeshGenerator :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
-
-    int i = 0;
-    for(i=0; i<sys_data->totalFreeCores; i++) {
-        proc ++;
-        proc = proc % sys_data->totalFreeCores;
-        if(threads[proc].getState() == GENERATOR_IDLE) {
-
-            if(frame.first != NULL) {
-                delete frame.first;
-                frame.first = NULL;
-            }
-            if(frame.second != NULL) {
-                while(frame.second != NULL){
-                    ThreadData * curr = frame.second;
-                    frame.second = frame.second->sig;
-                    delete curr;
-                }
-            }
-        }
-    }
-    __idle = true;*/
 }
