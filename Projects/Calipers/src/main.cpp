@@ -98,10 +98,18 @@ void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
             MasterMesh* master = camera->masterMesh;
             GLdouble m[16];
             MasterSettings::CalculateMatrix(*master, m);
+
+            GLdouble mm[16];
+            for (int k = 0; k < 4; k++) {
+                for (int j = 0; j < 4; j++) {
+                    mm[k*4+j] = master->matrix[k*4+0] * m[0*4+j] + master->matrix[k*4+1] * m[1*4+j] + master->matrix[k*4+2] * m[2*4+j] + master->matrix[k*4+3] * m[3*4+j];
+                }
+            }
+
             for(int j = 0; j < 16; j++) {
                 std::stringstream cellM;
                 cellM << "m" << j / 4 << j % 4;
-                settings.addValue(cellM.str(), (float)m[j]);
+                settings.addValue(cellM.str(), (float)mm[j]);
             }
             settings.popTag();
         }
@@ -146,6 +154,13 @@ void IncludeMesh (Model_XYZ* model, Model_XYZ* newModel, MasterMesh master) {
     GLdouble m[16];
     MasterSettings::CalculateMatrix(master, m);
     model->Include(newModel, m);
+    /*GLdouble mm[16];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            mm[i*4+j] = master.matrix[i*4+0] * m[0*4+j] + master.matrix[i*4+1] * m[1*4+j] + master.matrix[i*4+2] * m[2*4+j] + master.matrix[i*4+3] * m[3*4+j];
+        }
+    }
+    model->Include(newModel, mm);*/
 }
 
 void display(void) {
@@ -337,8 +352,6 @@ vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster,
 
 int main(int argc, char **argv) {
 
-
-
     mMain = new MeshMain();
 
 	glutInit(&argc, argv);
@@ -355,7 +368,6 @@ int main(int argc, char **argv) {
 	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 
 	glEnable(GL_DEPTH_TEST);
-
 
     ///INICIALIZACION CALIBRACION 3D
 
@@ -374,13 +386,27 @@ int main(int argc, char **argv) {
 
     /* Settings and files */
     mMain->settings = new MasterSettings(0, NULL, mMain->meshCount, mMain->cloudMaster);
+    mMain->settings->loadMeshCalibration();
+    //cout << "*" << endl;
+    for (int i = 1; i <= mMain->meshCount; i++) {
+        for (int j = 0; j < 16; j++) {
+            mMain->cloudMaster[i].matrix[j] = mMain->settings->meshMaster[i].matrix[j];
+            //cout << mMain->cloudMaster[i].matrix[j] << " ";
+        }
+    }
 
     /* LoadClouds */
     for (int i = 0; i < mMain->meshCount; i++) {
+        float mm[16];
+        for (int j = 0; j < 16; j++) {
+            mm[j] = mMain->cloudMaster[i+1].matrix[j];
+            //cout << mm[j] << " ";
+        }
+        //cout << endl;
         if (i == 0) {
-            mMain->cloudModel[i+1]->Load(files3D[i].c_str(), 0);
+            mMain->cloudModel[i+1]->Load(files3D[i].c_str(), 0, mm);
         } else {
-            mMain->cloudModel[i+1]->Load(files3D[i].c_str(), mMain->cloudModel[1]->AlfaCoord);
+            mMain->cloudModel[i+1]->Load(files3D[i].c_str(), mMain->cloudModel[1]->AlfaCoord, mm);
         }
     }
 

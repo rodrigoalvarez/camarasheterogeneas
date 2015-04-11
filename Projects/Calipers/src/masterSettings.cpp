@@ -7,8 +7,12 @@
 using namespace std;
 
 
+void MasterSettings::loadCalibration () {
+}
+
 void MasterSettings::loadMeshCalibration () {
 
+    //cout << "/" << endl;
     for (int i = 1; i <= meshCount; i++) {
         MasterMesh* masterNow = &meshMaster[i];
         std::stringstream fileName;
@@ -21,8 +25,9 @@ void MasterSettings::loadMeshCalibration () {
         if (getline(buffer, line, '\n')) {
             istringstream subBuffer(line);
             string value;
-            for (int i = 0; i < 16 && getline(subBuffer, value, ' '); i++) {
-                masterNow->matrix[i] = ::atof(value.c_str());
+            for (int k = 0; k < 16 && getline(subBuffer, value, ' '); k++) {
+                masterNow->matrix[k] = ::atof(value.c_str());
+                //cout << masterNow->matrix[k] << " ";
             }
         }
         in.close();

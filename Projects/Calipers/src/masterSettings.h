@@ -49,18 +49,19 @@ class MasterSettings
 {
     public:
         MasterSettings(int textureCount, MasterTexture* textureMaster, int meshCount, MasterMesh* meshMaster);
+        void loadCalibration();
         void loadTextureCalibration();
         void loadMeshCalibration();
 //        void saveTextureCalibration();
         void saveMeshCalibration();
         static void CalculateMatrix(MasterMesh master, GLdouble* m);
         static void CalculateMatrix(vector<MasterTransform*> history, GLdouble* m, bool flag);
+        MasterMesh* meshMaster;
     protected:
     private:
         int textureCount;
         MasterTexture* textureMaster;
         int meshCount;
-        MasterMesh* meshMaster;
 };
 
 #endif // MASTERSETTINGS_H

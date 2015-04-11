@@ -232,6 +232,13 @@ void MeshMain::IncludeMesh (Model_XYZ* model, Model_XYZ* newModel, MasterMesh ma
     GLdouble m[16];
     MasterSettings::CalculateMatrix(master, m);
     model->Include(newModel, m);
+    /*GLdouble mm[16];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            mm[i*4+j] = master.matrix[i*4+0] * m[0*4+j] + master.matrix[i*4+1] * m[1*4+j] + master.matrix[i*4+2] * m[2*4+j] + master.matrix[i*4+3] * m[3*4+j];
+        }
+    }
+    model->Include(newModel, mm);*/
 }
 
 void MeshMain::display(void) {

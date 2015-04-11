@@ -15,12 +15,16 @@ class Model_XYZ
 {
 	public:
 		Model_XYZ();
-		int Load(string fileName, float alfa);
+		int Load(string fileName, float alfa, float* matrix);
+		int Convert(int index, float* matrix);
 		int Include(Model_XYZ* model, GLdouble* m);
 		int Clear();
 
 		vector<float> Points;
 		vector<float> ColorPoints;
+
+		float* tMatrix;
+		float* transformPoints;
 
 		bool hasColor;
 
