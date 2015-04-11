@@ -23,6 +23,8 @@ Model_IMG::Model_IMG() {
 bool Model_IMG::MemoryLoad() {
 
     std::stringstream key1;
+    cout << Id << endl;
+
     key1 << "ImageId" << Id / 10000;
 
     f_ReadSharedImage readImage = (f_ReadSharedImage)GetProcAddress(shareImageLibrary, "ReadSharedImage");
@@ -33,30 +35,32 @@ bool Model_IMG::MemoryLoad() {
 
     int idAux = Id;
     readImage(&Id, wPixels, hPixels, &pixels);
+    cout << "ap1" << endl;
 
     if (Id >= 0){
         if (*wPixels > 0 && *hPixels > 0) {
-
+cout << "ap1" << endl;
             char* nombre = new char[20];
             sprintf(nombre,"imagen%d.png",Id);
             ofImage image;
             image.setFromPixels(pixels,*wPixels,*hPixels,OF_IMAGE_COLOR);
             image.saveImage(nombre);
-
+cout << "ap1" << endl;
             Width = *wPixels;
             Height = *hPixels;
-
+cout << "ap2" << endl;
             delete wPixels;
             delete hPixels;
-
+cout << "ap3" << endl;
             //Pixels = pixels;
             unsigned char* pixelsAux;
             pixelsAux = Pixels;
             Pixels = new unsigned char[Width * Height * 3];
-
+cout << "ap4" << endl;
             memcpy(Pixels, pixels, sizeof(unsigned char) * Width * Height * 3);
-
-            delete [] pixelsAux;
+cout << "ap5" << endl;
+            //delete [] pixelsAux;
+cout << "ap6" << endl;
             return true;
         }
         else
