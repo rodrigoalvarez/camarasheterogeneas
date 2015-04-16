@@ -440,6 +440,9 @@ int main(int argc, char **argv) {
             }
         }
         tMain->faces[i] = new int[tMain->facesCount];
+        for (int k = 0; k < tMain->facesCount; k++) {
+            tMain->faces[i][k] = 0;
+        }
     }
 
     /* Settings and files */

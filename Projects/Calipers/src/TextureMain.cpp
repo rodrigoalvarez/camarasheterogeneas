@@ -22,7 +22,10 @@ TextureMain::TextureMain()
     facesCount = 200000;
     faces;
     frustum[6][4];
-
+    drawXmin = std::numeric_limits<float>::max();
+    drawXmax = std::numeric_limits<float>::min();
+    drawYmin = std::numeric_limits<float>::max();
+    drawYmax = std::numeric_limits<float>::min();
     /* Camera */
 
     cameraFactor = 1.0;
@@ -189,12 +192,44 @@ void TextureMain::draw2DElement(int index) {
     glEnd();
 }
 
+void TextureMain::calcBackground(GLfloat* vert) {
+    GLdouble model_view[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, model_view);
+    GLdouble projection[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    GLdouble pos3D_x, pos3D_y, pos3D_z;
+    pos3D_x = vert[0];
+    pos3D_y = vert[1];
+    pos3D_z = vert[2];
+    GLdouble winX, winY, winZ;
+    gluProject(pos3D_x, pos3D_y, pos3D_z,
+        model_view, projection, viewport,
+        &winX, &winY, &winZ);
+
+    if (winX > drawXmax) {
+        drawXmax = winX;
+    }
+    if (winX < drawXmin) {
+        drawXmin = winX;
+    }
+    if (winY > drawYmax) {
+        drawYmax = winY;
+    }
+    if (winY < drawYmin) {
+        drawYmin = winY;
+    }
+    //cout << pos3D_x << " " << pos3D_y << " " << pos3D_z << " " << winX << " " << winY << " " << winZ << endl;
+}
+
 void TextureMain::draw2DBackground() {
 
    if (textureIndex > 0) {
-       glColor3f(0.0f, 0.0f, 0.0f);
-       float wImg = textureImage[textureIndex-1].Width / 10.0;
-       float hImg = textureImage[textureIndex-1].Height / 10.0;
+       glColor3f(1.0f, 1.0f, 1.0f);
+       float wImg = textureImage[textureIndex-1].Width / 58.0;
+       float hImg = textureImage[textureIndex-1].Height / 58.0;
        GLfloat vert1[3] = { -wImg, -hImg, -19.0 };
        GLfloat vert2[3] = { -wImg, hImg, -19.0 };
        GLfloat vert3[3] = { wImg, hImg, -19.0 };
@@ -221,19 +256,16 @@ void TextureMain::draw2DBackground() {
                glNormal3f(0,0,-1);
            }
        glEnd();
+       calcBackground(vert1);
+       calcBackground(vert2);
+       calcBackground(vert3);
+       calcBackground(vert4);
    }
 }
 
 void TextureMain::draw2DView() {
-
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         int hits = 0;
-
-        /*glEnable(GL_CULL_FACE);
-        glFrontFace(GL_CW);
-        glCullFace(GL_FRONT);
-        draw2DElement(i);*/
-
         for (int k = 1; k <= textureCount; k++) {
             hits = max(hits, faces[k][i]);
         }
@@ -391,12 +423,32 @@ void TextureMain::draw2DCalibrationFull() {
     glDepthFunc(GL_EQUAL);
     glDepthMask(GL_FALSE);
 
+    GLdouble model_view[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, model_view);
+    GLdouble projection[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         int index = i * 3;
+        if (textureIndex > 0) {
+            faces[textureIndex][i] = 0;
+        }
+
+        GLdouble pos3D_x, pos3D_y, pos3D_z;
+        pos3D_x = textureModel->Faces_Triangles[index * 3];
+        pos3D_y = textureModel->Faces_Triangles[index * 3 + 1];
+        pos3D_z = textureModel->Faces_Triangles[index * 3 + 2];
+        GLdouble winX, winY, winZ;
+        gluProject(pos3D_x, pos3D_y, pos3D_z,
+            model_view, projection, viewport,
+            &winX, &winY, &winZ);
+
         if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
             glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
             if (sampleCount > 0) {
-                if (textureIndex > 0) {
+                if (winX > drawXmin && winX < drawXmax && winY > drawYmin && winY < drawYmax && textureIndex > 0) {
                     faces[textureIndex][i] = sampleCount;
                 }
                 glEnable(GL_CULL_FACE);

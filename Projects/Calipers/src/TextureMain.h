@@ -32,6 +32,10 @@ class TextureMain
         int facesCount;
         int** faces;
         float frustum[6][4];
+        float drawXmin;
+        float drawXmax;
+        float drawYmin;
+        float drawYmax;
 
         /* Camera */
 
@@ -72,6 +76,7 @@ class TextureMain
         void draw2DCalibrationFull();
         void draw2DCalibrationFast();
         void draw2DBackground();
+        void calcBackground(GLfloat* vert);
 
         void applyTransformations(vector<MasterTransform*> history, bool flag);
         void UpdateHistory (int id);
