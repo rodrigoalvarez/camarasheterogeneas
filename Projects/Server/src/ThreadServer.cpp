@@ -149,6 +149,21 @@ void ThreadServer::receiveFrame(ofEventArgs &e) {
                 return;
             }
 
+            if(!((v0 >= 0) && (v0 < 1000) && (v1 >= 0) && (v1 <= 60000))) {
+                ofLogVerbose() << "[ThreadServer::receiveFrame] Error en la conexión con el cliente. Cerrando conexión."<< endl;
+                cout << "[ThreadServer::receiveFrame] Error en la conexión con el cliente. Cerrando conexión."<< endl;
+                if(TCPCLI.isConnected()) {
+                    TCPCLI.close();
+                } else {
+                    return;
+                }
+                connectionClosed    = true;
+                idle                = true;
+                closed              = true;
+                unlock();
+                return;
+            }
+
             if(checkConnError()) {
                 exit();
                 return;
@@ -175,7 +190,6 @@ void ThreadServer::receiveFrame(ofEventArgs &e) {
                     delete recBytearray;
                     return;
                 }
-
                 if(numBytes > 0 ) {
                     currBytearray        = FrameUtils::addToBytearray(recBytearray, numBytes, currBytearray, currTotal);
                     currTotal           += numBytes;

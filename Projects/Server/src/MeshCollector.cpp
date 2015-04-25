@@ -50,6 +50,7 @@ void MeshCollector::shareNextCompleteFrame() {
 }
 
 void MeshCollector::shareFrame(GeneratedResult * gresult) {
+
     int idMomento;
     unsigned char* pixels;
     int width;
@@ -103,6 +104,7 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
             idMomento   = idMomento*10000 + gresult->nframe % 10000;
 
             shareImage(&idMomento, pixels, &width, &height);
+            cout << idMomento << endl;
 
             FreeImage_CloseMemory(stream);
             imageBuffer.clear();
