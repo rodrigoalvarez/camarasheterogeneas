@@ -5,8 +5,8 @@
 #include "Thread2D.h"
 #include "Constants.h"
 #include "ofAppGlutWindow.h"
-
 //========================================================================
+
 int main( ) {
 
     ofAppGlutWindow window;

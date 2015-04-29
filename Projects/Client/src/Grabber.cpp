@@ -108,7 +108,8 @@ void Grabber::setup() {
 
 void Grabber::setupGui() {
     gui.addFPSCounter();
-    gui.addToggle("Conectar", connected);
+    gui.addTitle("CLI ID: " + ofToString(gdata->sys_data->cliId));
+    gui.addToggle("Connect", connected);
 
     std::string exstr = "Exit";
     gui.addButton(exstr, b_exit_pressed);
@@ -171,7 +172,7 @@ void Grabber::setVideoPreview(int tipo, int id, ofImage img) {
         } else {
             stipo = "ONI";
         }
-        std::string title   = "Tipo: " + stipo + ", Id: " + ofToString(id);
+        std::string title   = "TYPE: " + stipo + ", ID CAM: " + ofToString(id);
         gui.addContent(title, *dt->videoTexture);
         list.push_back(dt);
         list.sort(compare_texture);
@@ -188,7 +189,6 @@ void Grabber::draw() {
     if(gui.isOn()) {
         gui.draw();
     }
-
 }
 
 void Grabber::exit() {
@@ -201,7 +201,7 @@ void Grabber::exit() {
             t2D[i].waitForThread();
         }
     }
-    cout << "[Grabber::exit] a" << endl;
+    //cout << "[Grabber::exit] a" << endl;
     i = 0;
     for(i; i<gdata->total3D; i++) {
         if(t3D[i].isThreadRunning()) {
@@ -209,7 +209,7 @@ void Grabber::exit() {
             t3D[i].waitForThread();
         }
     }
-    cout << "[Grabber::exit] b" << endl;
+    //cout << "[Grabber::exit] b" << endl;
     i = 0;
     for(i; i<gdata->totalONI; i++) {
         if(tONI[i].isThreadRunning()) {
@@ -217,7 +217,7 @@ void Grabber::exit() {
             tONI[i].waitForThread();
         }
     }
-    cout << "[Grabber::exit] c" << endl;
+    //cout << "[Grabber::exit] c" << endl;
     if(gdata->sys_data->goLive == 1) {
         if(transmitter.isThreadRunning()) {
             transmitter.exit();
@@ -225,24 +225,24 @@ void Grabber::exit() {
             //transmitter.stopThread();
         }
     }
-    cout << "[Grabber::exit] d" << endl;
+    //cout << "[Grabber::exit] d" << endl;
     //ofSleepMillis(1500);
 
     if(t2D != NULL) {
         delete t2D;
     }
-    cout << "[Grabber::exit] e" << endl;
+    //cout << "[Grabber::exit] e" << endl;
     if(t3D != NULL) {
         delete t3D;
     }
-    cout << "[Grabber::exit] f" << endl;
+    //cout << "[Grabber::exit] f" << endl;
     if(tONI != NULL) {
         delete tONI;
     }
-    cout << "[Grabber::exit] g" << endl;
+    //cout << "[Grabber::exit] g" << endl;
     if(tData != NULL) {
         i = 0;
-        cout << "[Grabber::exit] " << (gdata->total2D + gdata->total3D + gdata->totalONI) << endl;
+        //cout << "[Grabber::exit] " << (gdata->total2D + gdata->total3D + gdata->totalONI) << endl;
         for(i; i<gdata->total2D + gdata->total3D + gdata->totalONI; i++) {
             if((tData[i].nubeLength > 100) && (tData[i].xpix != NULL)) {
                 delete tData[i].xpix;
@@ -250,17 +250,15 @@ void Grabber::exit() {
                 delete tData[i].zpix;
             }
         }
-        cout << "[Grabber::exit] por delete tData " << tData << endl;
+        //cout << "[Grabber::exit] por delete tData " << tData << endl;
         //delete tData;
     }
-    cout << "[Grabber::exit] h" << endl;
+    //cout << "[Grabber::exit] h" << endl;
     if(gdata != NULL) {
         delete gdata;
     }
 
-    cout << "[Grabber::exit] END" << endl;
-
-
+    //cout << "[Grabber::exit] END" << endl;
 }
 
 bool Grabber::isConnected() {
@@ -282,7 +280,7 @@ void Grabber::updateThreadData() {
         tData[di].camId         = t2D[i].context->id;
         tData[di].state         = 0;
         tData[di].cameraType    = 1;
-        ofLogVerbose() << "[Grabber::updateThreadData] " << " if " << t2D[i].isDeviceInitted() << " " << t2D[i].isDataAllocated() << " " << t2D[i].context->id;
+        //ofLogVerbose() << "[Grabber::updateThreadData] " << " if " << t2D[i].isDeviceInitted() << " " << t2D[i].isDataAllocated() << " " << t2D[i].context->id;
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
             tData[di].img.clear();
@@ -382,7 +380,7 @@ void Grabber::updateThreadData() {
                             t3D[i].context->row3.x, t3D[i].context->row3.y, t3D[i].context->row3.z, t3D[i].context->row3.w,
                             t3D[i].context->row4.x, t3D[i].context->row4.y, t3D[i].context->row4.z, t3D[i].context->row4.w);
 
-                ofLogVerbose() << matrix << endl;
+                //ofLogVerbose() << matrix << endl;
 
                 for(y=0; y < tData[di].nubeH; y += t3D[i].context->pcDownSample) {
                     for(x=0; x < tData[di].nubeW; x += t3D[i].context->pcDownSample) {
@@ -516,7 +514,7 @@ void Grabber::updateThreadData() {
                             tONI[i].context->row3.x, tONI[i].context->row3.y, tONI[i].context->row3.z, tONI[i].context->row3.w,
                             tONI[i].context->row4.x, tONI[i].context->row4.y, tONI[i].context->row4.z, tONI[i].context->row4.w);
 
-                ofLogVerbose() << matrix << endl;
+                //ofLogVerbose() << matrix << endl;
 
                 for(y=0; y < tData[di].nubeH; y += tONI[i].context->pcDownSample) {
                     for(x=0; x < tData[di].nubeW; x += tONI[i].context->pcDownSample) {

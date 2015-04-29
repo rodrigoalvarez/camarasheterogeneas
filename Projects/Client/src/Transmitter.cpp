@@ -30,6 +30,7 @@
 #endif
 
 bool connected = false;
+int retry;
 void Transmitter::threadedFunction() {
 
     HINSTANCE hGetProcIDDLL;
@@ -38,7 +39,7 @@ void Transmitter::threadedFunction() {
         std::cout << "No se pudo cargar la libreria: " << std::endl;
     }
     compress_img    = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
-
+    retry       = -1;
     state       = -1;
 
     std::string str =  ofToString(sys_data->cliId) + "|" + ofToString(sys_data->cliPort);
@@ -105,12 +106,25 @@ void Transmitter::process(ofEventArgs &e) {
         return;
     }
 
+    cout << "Transmitter::process state " << state << endl;
+
     ofLogVerbose() << "[Transmitter::process] :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
 
     connected = grabber->isConnected();
     if(connected && (state == -1)) {
+        cout << "Transmitter::process if(connected && (state == -1)) {" << endl;
         state = 0;
         return;
+    }
+
+    if(!connected && (state == -1)) {
+        if(retry > 0) {
+            retry--;
+        }
+        if(retry == 0) {
+            cout << " RETRY " << endl;
+            state = 0;
+        }
     }
 
     idle = false;
@@ -120,10 +134,14 @@ void Transmitter::process(ofEventArgs &e) {
         try {
             ofLogVerbose() << "[Transmitter::threadedFunction] state=0, conectando a " << sys_data->serverIp << "-" << sys_data->serverPort;
             TCP.setup( sys_data->serverIp, sys_data->serverPort );
-            TCPSVR.setup(sys_data->cliPort, true);
-            TCP.send( cliId );
-            TCP.close();
-            state = 2;
+            if(TCP.isConnected()) {
+                TCPSVR.setup(sys_data->cliPort, true);
+                TCP.send( cliId );
+                TCP.close();
+                state = 2;
+                grabber->setConnected(true);
+                connected = grabber->isConnected();
+            }
         } catch (int e) {
             ofLogVerbose() << "[Transmitter::threadedFunction] An exception occurred. Exception Nr. " << e;
             state       = 3;
@@ -132,6 +150,7 @@ void Transmitter::process(ofEventArgs &e) {
         try {
             if(TCPSVR.getNumClients() > 0) {
                 if(TCPSVR.isClientConnected(0)) {
+
                     ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Actualizando ultima informacion:";
                     grabber->updateThreadData();
                     ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Saliendo de actualizar";
@@ -142,6 +161,7 @@ void Transmitter::process(ofEventArgs &e) {
                     grabber->setConnected(false);
                     connected = grabber->isConnected();
                     TCPSVR.close();
+                    retry   = 50;
                 }
             }
         } catch (int e) {
@@ -186,6 +206,19 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
 
     int val0  = floor(frameSize / sys_data->maxPackageSize);   //totMaxRecSize
     int val1  = frameSize - val0 * sys_data->maxPackageSize; //resto
+
+    if(!((val0 >= -10) && (val0 <= 1000) && (val1 >= 0) && (val1 <= 70000))) {
+        free(bytearray);
+        int i = 0;
+        for(i=0; i<totalCams; i++) {
+            if(tData[i].state > 0) {
+                if((tData[i].state == 1) || (tData[i].state == 3)) {
+                    free(tData[i].compImg);
+                }
+            }
+        }
+        return;
+    }
 
     if(checkConnError()) return;
     TCPSVR.sendRawBytesToAll((char*) &val0, sizeof(int));
@@ -233,6 +266,7 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     connected = grabber->isConnected();
     if(!connected && (state == 2)) {
         state    = -1;
+        retry    = -1;
         int conn = -10;
         TCPSVR.sendRawBytesToAll((char*) &conn, sizeof(int));
         TCPSVR.close();
