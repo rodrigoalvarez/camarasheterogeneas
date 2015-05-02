@@ -20,7 +20,7 @@ int SERVER_PORT = 11969;
 int REAL_TIME = 1;
 int PERSISTENCE = 0;
 int LOG_LEVEL = 0;
-int FPS = 4;
+int FPS = 10;
 int MAX_PACKAGE_SIZE = 60000;
 
 MeshMain* mMain;
@@ -34,7 +34,7 @@ void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
 
     ofxXmlSettings settings = *pSettings;
     settings.setValue("cliId", client->idClient);
-    settings.setValue("cliPort", CLI_PORT);
+    settings.setValue("cliPort", CLI_PORT++);
     settings.setValue("serverIp", SERVER_IP);
     settings.setValue("serverPort", SERVER_PORT);
     settings.setValue("realTime", REAL_TIME);
@@ -66,7 +66,7 @@ void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
         settings.pushTag("depthSettings");
         settings.addValue("near", 10);
         settings.addValue("far", 100);
-        settings.addValue("pointsDownSample", 1);
+        settings.addValue("pointsDownSample", 4);
         settings.popTag();
 
         if (camera->is2D) {

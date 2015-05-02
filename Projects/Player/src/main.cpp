@@ -44,10 +44,14 @@ float frustum[6][4];
 int cameraAxis = -1;
 int cameraMove = -1;
 
+float drawXmin;
+float drawXmax;
+float drawYmin;
+float drawYmax;
 
 HINSTANCE occlusionLibrary;
 
-typedef void (*f_OcclusionCulling)(int textureIndex,int TotalFaces, float* Faces_Triangles, int*** faces);
+typedef void (*f_OcclusionCulling)(int textureIndex,int TotalFaces, float* Faces_Triangles, int*** faces, float drawXmin, float drawXmax, float drawYmin, float drawYmax);
 
 void drawText(const char* text, int length, int x, int y) {
     glMatrixMode(GL_PROJECTION);
@@ -136,6 +140,56 @@ bool isFrontFace(int index) {
                         textureModel->Faces_Triangles[index * 9 + 3], textureModel->Faces_Triangles[index * 9 + 4], textureModel->Faces_Triangles[index * 9 + 5],
                         textureModel->Faces_Triangles[index * 9 + 6], textureModel->Faces_Triangles[index * 9 + 7], textureModel->Faces_Triangles[index * 9 + 8] };
     return isFrontFacePoints(points) <= 0;
+}
+
+void calcBackground(GLfloat* vert) {
+    GLdouble model_view[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, model_view);
+    GLdouble projection[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
+    //cout << "MV " << model_view[0] << " " << model_view[1] << " " << model_view[2] << endl;
+    //cout << "PJ " << projection[0] << " " << projection[1] << " " << projection[2] << endl;
+    //cout << "VP " << viewport[0] << " " << viewport[1] << " " << viewport[2] << endl;
+
+    GLdouble pos3D_x, pos3D_y, pos3D_z;
+    pos3D_x = vert[0];
+    pos3D_y = vert[1];
+    pos3D_z = vert[2];
+    GLdouble winX, winY, winZ;
+    gluProject(pos3D_x, pos3D_y, pos3D_z,
+        model_view, projection, viewport,
+        &winX, &winY, &winZ);
+
+    if (winX > drawXmax) {
+        drawXmax = winX;
+    }
+    if (winX < drawXmin) {
+        drawXmin = winX;
+    }
+    if (winY > drawYmax) {
+        drawYmax = winY;
+    }
+    if (winY < drawYmin) {
+        drawYmin = winY;
+    }
+    //cout << pos3D_x << " " << pos3D_y << " " << pos3D_z << " " << winX << " " << winY << " " << winZ << endl;
+}
+
+ void draw2DBackground() {
+    glColor3f(1.0f, 1.0f, 1.0f);
+    float wImg = textureImage[textureIndex-1].Width / 58.0;
+    float hImg = textureImage[textureIndex-1].Height / 58.0;
+    GLfloat vert1[3] = { -wImg, -hImg, -19.0 };
+    GLfloat vert2[3] = { -wImg, hImg, -19.0 };
+    GLfloat vert3[3] = { wImg, hImg, -19.0 };
+    GLfloat vert4[3] = { wImg, -hImg, -19.0 };
+    calcBackground(vert1);
+    calcBackground(vert2);
+    calcBackground(vert3);
+    calcBackground(vert4);
 }
 
 void setFaceVertex(int index) {
@@ -290,12 +344,23 @@ bool PointInFrustum(float x, float y, float z) {
 }
 
 
-
 void draw2DPlayerFull() {
+
+    drawXmin = std::numeric_limits<float>::max();
+    drawXmax = std::numeric_limits<float>::min();
+    drawYmin = std::numeric_limits<float>::max();
+    drawYmax = std::numeric_limits<float>::min();
+    glPushMatrix();
+    glLoadIdentity();
+    draw2DBackground();
+    glPopMatrix();
+
+    //cout << "*" << drawXmin << " " << drawXmax << " " << drawYmin << " " << drawYmax << endl;
 
     f_OcclusionCulling occlusionCulling = (f_OcclusionCulling)GetProcAddress(occlusionLibrary, "OcclusionCulling");
 
-    occlusionCulling(textureIndex,textureModel->TotalFaces, textureModel->Faces_Triangles, &faces);
+    occlusionCulling(textureIndex,textureModel->TotalFaces, textureModel->Faces_Triangles, &faces, drawXmin, drawXmax, drawYmin, drawYmax);
+
 //    ExtractFrustum();
 //    GLuint* queries = new GLuint[textureModel->TotalFaces];
 //    //GLuint queries = *queriesP;
@@ -735,6 +800,11 @@ int main(int argc, char **argv) {
         std::cout << "Failed to load the library" << std::endl;
     }
 
+    drawXmin = std::numeric_limits<float>::max();
+    drawXmax = std::numeric_limits<float>::min();
+    drawYmin = std::numeric_limits<float>::max();
+    drawYmax = std::numeric_limits<float>::min();
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
     glutInitWindowSize(500,500);
@@ -772,6 +842,9 @@ int main(int argc, char **argv) {
            textureMaster[i].matrixB[p] = textureSetting->ValuesB[i * 16 + p];
         }
         faces[i] = new int[facesCount];
+        for (int k = 0; k < facesCount; k++) {
+            faces[i][k] = 0;
+        }
     }
 
     /* Settings and files */
