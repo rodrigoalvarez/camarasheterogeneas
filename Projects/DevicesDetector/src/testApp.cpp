@@ -150,10 +150,11 @@ void testApp::update() {
                                 Point2D.X   = x;
                                 Point2D.Y   = y;
                                 Point2D.Z   = (float)d;
-                                Xn_depth.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
                                 ofFloatColor color = ipixels.getColor(x,y);
-                                fprintf (pFile, "%f %f %f %f %f %f\n", Point3D.X, Point3D.Y, Point3D.Z, color.r, color.g, color.b);
-                                //fprintf (pFile, "%f %f %f\n", Point3D.X, Point3D.Y, Point3D.Z);
+
+
+                                Xn_depth.ConvertProjectiveToRealWorld(1, &Point2D, &Point3D);
+                                fprintf (pFile, "%f %f %f\n", Point3D.X, Point3D.Y, Point3D.Z);
                             }
                         }
 
@@ -208,4 +209,44 @@ void testApp::keyPressed(int key) {
     if(deviceInited) {
         keyP = true;
     }
+}
+
+//--------------------------------------------------------------
+void testApp::keyReleased(int key){
+
+}
+
+//--------------------------------------------------------------
+void testApp::mouseMoved(int x, int y ){
+
+}
+
+//--------------------------------------------------------------
+void testApp::mouseDragged(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void testApp::mousePressed(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void testApp::mouseReleased(int x, int y, int button){
+
+}
+
+//--------------------------------------------------------------
+void testApp::windowResized(int w, int h){
+
+}
+
+//--------------------------------------------------------------
+void testApp::gotMessage(ofMessage msg){
+
+}
+
+//--------------------------------------------------------------
+void testApp::dragEvent(ofDragInfo dragInfo){
+
 }
