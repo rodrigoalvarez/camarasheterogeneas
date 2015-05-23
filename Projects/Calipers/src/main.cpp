@@ -30,46 +30,60 @@ bool modeMesh = true;
 
 vector<MasterClient*> clients;
 
-void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
+void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client, bool isPlayer) {
 
     ofxXmlSettings settings = *pSettings;
     settings.setValue("cliId", client->idClient);
-    settings.setValue("cliPort", CLI_PORT++);
-    settings.setValue("serverIp", SERVER_IP);
-    settings.setValue("serverPort", SERVER_PORT);
-    settings.setValue("realTime", REAL_TIME);
-    settings.setValue("persistence", PERSISTENCE);
-    settings.setValue("logLevel", LOG_LEVEL);
-    settings.setValue("fps", FPS);
-    settings.setValue("maxPackageSize", MAX_PACKAGE_SIZE);
+    int count2D = 0;
+    int count3D = 1;
+
+    if (!isPlayer) {
+        settings.setValue("cliPort", CLI_PORT++);
+        settings.setValue("serverIp", SERVER_IP);
+        settings.setValue("serverPort", SERVER_PORT);
+        settings.setValue("realTime", REAL_TIME);
+        settings.setValue("persistence", PERSISTENCE);
+        settings.setValue("logLevel", LOG_LEVEL);
+        settings.setValue("fps", FPS);
+        settings.setValue("maxPackageSize", MAX_PACKAGE_SIZE);
+    }
     settings.setValue("alfaCoord", mMain->cloudModel[1]->AlfaCoord);
 
     settings.addTag("cameras");
     settings.pushTag("cameras");
 
-    for(int i = 0; i < client->cameras.size(); i++) {
+    for (int i = 0; i < client->cameras.size(); i++) {
         MasterCamera* camera = client->cameras[i];
         settings.addTag("camera");
         settings.pushTag("camera", i);
 
         settings.addValue("id", camera->idCamera);
-        settings.addValue("resolutionX", 640);//800
-        settings.addValue("resolutionY", 480);//600
-        settings.addValue("resolutionDownSample", 1);
-        settings.addValue("FPS", 30);// camera i fps
-        settings.addValue("colorRGB", true);// camera i color rgb
-        settings.addValue("use2D", camera->is2D);// camera i use2d
+        if (camera->is3D) {
+            settings.addValue("deviceInstance", count3D);
+            count3D++;
+        } else {
+            settings.addValue("deviceInstance", count2D);
+            count2D++;
+        }
+        if (!isPlayer) {
+            settings.addValue("resolutionX", 640);//800
+            settings.addValue("resolutionY", 480);//600
+            settings.addValue("resolutionDownSample", 1);
+            settings.addValue("FPS", 30);// camera i fps
+            settings.addValue("colorRGB", true);// camera i color rgb
+            settings.addValue("dataContext", "");// data context
+
+            settings.addTag("depthSettings");
+            settings.pushTag("depthSettings");
+            settings.addValue("near", 10);
+            settings.addValue("far", 100);
+            settings.addValue("pointsDownSample", 4);
+            settings.popTag();
+        }
+        settings.addValue("use2D", camera->is2D);// camera i use 2d
         settings.addValue("use3D", camera->is3D);// camera i use 3d
-        settings.addValue("dataContext", "");// data context
 
-        settings.addTag("depthSettings");
-        settings.pushTag("depthSettings");
-        settings.addValue("near", 10);
-        settings.addValue("far", 100);
-        settings.addValue("pointsDownSample", 4);
-        settings.popTag();
-
-        if (camera->is2D) {
+        if (camera->is2D && isPlayer) {
             settings.addTag("matrixA2D");
             settings.pushTag("matrixA2D");
             GLdouble mA[16];
@@ -92,7 +106,7 @@ void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
             }
             settings.popTag();
         }
-        if (camera->is3D) {
+        if (camera->is3D && !isPlayer) {
             settings.addTag("matrix3D");
             settings.pushTag("matrix3D");
             MasterMesh* master = camera->masterMesh;
@@ -121,7 +135,7 @@ void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client) {
 }
 
 void saveXmlFiles(vector<MasterClient*> clients) {
-
+    //Player
     if (clients.size() > 0) {
         ofxXmlSettings settings;
         settings.addTag("settings");
@@ -129,7 +143,7 @@ void saveXmlFiles(vector<MasterClient*> clients) {
         for (int k = 0; k < clients.size(); k++) {
             settings.addTag("client");
             settings.pushTag("client", k);
-            saveXmlClient(&settings, clients[k]);
+            saveXmlClient(&settings, clients[k], true);
             settings.popTag();
         }
         settings.popTag();
@@ -138,11 +152,12 @@ void saveXmlFiles(vector<MasterClient*> clients) {
         fileName << "settings.xml";
         settings.saveFile(fileName.str());
     }
+    //Clients
     for (int k = 0; k < clients.size(); k++) {
         ofxXmlSettings settings;
         settings.addTag("settings");
         settings.pushTag("settings");
-        saveXmlClient(&settings, clients[k]);
+        saveXmlClient(&settings, clients[k], false);
         settings.popTag();
 
         std::stringstream fileName;
@@ -150,6 +165,7 @@ void saveXmlFiles(vector<MasterClient*> clients) {
         settings.saveFile(fileName.str());
     }
 }
+
 void IncludeMesh (Model_XYZ* model, Model_XYZ* newModel, MasterMesh master) {
     GLdouble m[16];
     MasterSettings::CalculateMatrix(master, m);
@@ -250,7 +266,6 @@ vector<string> getCloudFiles() {
                     cameraDirectory.allowExt("xyz");
                     cameraDirectory.listDir();
                     if (cameraDirectory.numFiles() > 0){
-                        //cout << cameraDirectory.getPath(0) << endl;
                         files.push_back(cameraDirectory.getPath(0));
                     }
                 }
@@ -282,7 +297,6 @@ vector<string> getImageFiles() {
                     cameraDirectory.allowExt("jpg");
                     cameraDirectory.listDir();
                     if (cameraDirectory.numFiles() > 0){
-                        //cout << cameraDirectory.getPath(0) << endl;
                         files.push_back(cameraDirectory.getPath(0));
                     }
                 }
@@ -296,7 +310,8 @@ vector<string> getImageFiles() {
 vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster, int meshCount, MasterMesh* cloudMaster) {
     vector<MasterClient*> clients;
     int idClient = 0;
-    int idCamera = 0;
+    int idCameraM = 0;
+    int idCameraT = 0;
     ofDirectory directory("C:\\Users\\Rodrigo\\Documents\\CodeBlocks\\Calipers\\bin\\data");
 
     directory.listDir();
@@ -305,6 +320,7 @@ vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster,
         if (allFiles[i].isDirectory()){
 
             MasterClient* client = new MasterClient();
+            int idCamera = 0;
 
             ofDirectory clientDirectory(allFiles[i].path());
             clientDirectory.listDir();
@@ -318,9 +334,13 @@ vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster,
                     ofDirectory cludDirectory(allClientFiles[j].path());
                     cludDirectory.allowExt("xyz");
                     cludDirectory.listDir();
-                    camera->is3D = cludDirectory.numFiles() > 0 && idCamera < meshCount;
+
+                    camera->is3D = cludDirectory.numFiles() > 0 && idCameraM < meshCount;
                     if (camera->is3D) {
-                        camera->masterMesh = &cloudMaster[idCamera+1];
+                        camera->masterMesh = &cloudMaster[idCameraM+1];
+                        idCameraM++;
+
+                        cout << "3D" << endl;
                     }
 
                     ofDirectory imageDirectory(allClientFiles[j].path());
@@ -328,14 +348,17 @@ vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster,
                     imageDirectory.allowExt("bmp");
                     imageDirectory.allowExt("jpg");
                     imageDirectory.listDir();
-                    camera->is2D = imageDirectory.numFiles() > 0 && idCamera < textureCount;
+
+                    camera->is2D = imageDirectory.numFiles() > 0 && idCameraT < textureCount;
                     if (camera->is2D) {
-                        camera->masterTexture = &textureMaster[idCamera+1];
+                        camera->masterTexture = &textureMaster[idCameraT+1];
+                        idCameraT++;
+
+                        cout << "2D" << endl;
                     }
 
                     if (camera->is2D || camera->is3D) {
                         camera->idCamera = idCamera++;
-                        //cout << "idcamera: " << idCamera << endl;
                         client->cameras.push_back(camera);
                     }
                 }
