@@ -39,28 +39,21 @@ bool Model_IMG::MemoryLoad() {
 
     if (Id >= 0){
         if (*wPixels > 0 && *hPixels > 0) {
-//cout << "ap1" << endl;
             char* nombre = new char[20];
             sprintf(nombre,"imagen%d.png",Id);
-            ofImage image;
+            /*ofImage image;
             image.setFromPixels(pixels,*wPixels,*hPixels,OF_IMAGE_COLOR);
-            image.saveImage(nombre);
-//cout << "ap1" << endl;
+            image.saveImage(nombre);*/
             Width = *wPixels;
             Height = *hPixels;
-//cout << "ap2" << endl;
             delete wPixels;
             delete hPixels;
-//cout << "ap3" << endl;
             //Pixels = pixels;
             unsigned char* pixelsAux;
             pixelsAux = Pixels;
             Pixels = new unsigned char[Width * Height * 3];
-//cout << "ap4" << endl;
             memcpy(Pixels, pixels, sizeof(unsigned char) * Width * Height * 3);
-//cout << "ap5" << endl;
             //delete [] pixelsAux;
-//cout << "ap6" << endl;
             return true;
         }
         else

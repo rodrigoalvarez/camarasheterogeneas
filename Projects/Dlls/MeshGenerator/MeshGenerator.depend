@@ -97,3 +97,45 @@
 	<string>
 	<assert.h>
 
+1424021707 source:c:\users\rodrigo\documents\github\camarasheterogeneas\projects\dlls\meshgenerator\masterply.cpp
+	"masterPly.h"
+
+1424021707 c:\users\rodrigo\documents\github\camarasheterogeneas\projects\dlls\meshgenerator\masterply.h
+	<time.h>
+	<vcg/complex/complex.h>
+	<vcg/complex/algorithms/point_sampling.h>
+	<vcg/complex/algorithms/create/ball_pivoting.h>
+	<wrap/ply/plylib.h>
+	<vcg/complex/algorithms/update/topology.h>
+	<vcg/complex/algorithms/update/flag.h>
+	<vcg/complex/algorithms/update/normal.h>
+	<vcg/complex/algorithms/refine.h>
+	<wrap/io_trimesh/import_ply.h>
+	<wrap/io_trimesh/export_ply.h>
+	<wrap/io_trimesh/export_stl.h>
+	<wrap/io_trimesh/export_obj.h>
+	<vcg/complex/algorithms/smooth.h>
+	<vector>
+
+1424021707 source:c:\users\rodrigo\documents\github\camarasheterogeneas\projects\dlls\meshgenerator\plylib.cpp
+	<assert.h>
+	<direct.h>
+	<fcntl.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+	<assert.h>
+	<vector>
+	<algorithm>
+	"plylib.h"
+
+1424021707 c:\users\rodrigo\documents\github\camarasheterogeneas\projects\dlls\meshgenerator\plylib.h
+	<memory.h>
+	<vector>
+	<string>
+	<assert.h>
+

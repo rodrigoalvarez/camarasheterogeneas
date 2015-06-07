@@ -406,12 +406,16 @@ void draw2DPlayerFast() {
         for (int k = 1; k <= textureCount; k++) {
             hits = max(hits, faces[k][i]);
         }
-        if (hits > 0 && faces[textureIndex][i] == hits) {
+        /*if (hits > 0 && faces[textureIndex][i] == hits) {
             glEnable(GL_CULL_FACE);
             glFrontFace(GL_CW);
             glCullFace(GL_FRONT);
             draw2DElement(i);
-        }
+        }*/
+        glEnable(GL_CULL_FACE);
+        glFrontFace(GL_CW);
+        glCullFace(GL_FRONT);
+        draw2DElement(i);
     }
 }
 

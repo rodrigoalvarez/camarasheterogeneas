@@ -6,7 +6,7 @@ void DLL_EXPORT meshGenerate(PointsCloud* nbIN, FaceStruct** faces, int* numberF
 
         mply->loadMesh(nbIN->x,nbIN->y,nbIN->z,nbIN->length);//Load Mesh in VCG Lib structure
 
-        mply->poissonDiskSampling(nbIN->length/4);//Apply Poisson Disk Sampling to reduce the number of points
+        mply->poissonDiskSampling(25000);//Apply Poisson Disk Sampling to reduce the number of points
 
         mply->buildMeshBallPivoting();//Apply Ball Pivoting to build the mesh
 
