@@ -113,7 +113,7 @@ void drawAllText() {
     positionY += 20;
 }
 
-float isFrontFacePoints(float* points) {
+void setNormal(float* points) {
     GLfloat p1[3] = { points[0], points[1], points[2] };
     GLfloat p2[3] = { points[3], points[4], points[5] };
     GLfloat p3[3] = { points[6], points[7], points[8] };
@@ -131,15 +131,67 @@ float isFrontFacePoints(float* points) {
 	vr[0] = va[1] * vb[2] - vb[1] * va[2];
 	vr[1] = vb[0] * va[2] - va[0] * vb[2];
 	vr[2] = va[0] * vb[1] - vb[0] * va[1];
+	float norm = sqrt(vr[0] * vr[0] + vr[1] * vr[1] + vr[2] * vr[2]);
 
-	return vr[2];
+    glNormal3f(vr[0] / norm, vr[1] / norm, vr[2] / norm);
+}
+
+void setFaceVertex(int index, bool isFront) {
+    GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
+    glVertex3fv(vert);
+
+    index = index / 3;
+    if (isFront) {
+        float points[9] = { textureModel->Faces_Triangles[index * 9], textureModel->Faces_Triangles[index * 9 + 1], textureModel->Faces_Triangles[index * 9 + 2],
+                            textureModel->Faces_Triangles[index * 9 + 3], textureModel->Faces_Triangles[index * 9 + 4], textureModel->Faces_Triangles[index * 9 + 5],
+                            textureModel->Faces_Triangles[index * 9 + 6], textureModel->Faces_Triangles[index * 9 + 7], textureModel->Faces_Triangles[index * 9 + 8] };
+        setNormal(points);
+    } else {
+        float points[9] = { textureModel->Faces_Triangles[index * 9], textureModel->Faces_Triangles[index * 9 + 1], textureModel->Faces_Triangles[index * 9 + 2],
+                            textureModel->Faces_Triangles[index * 9 + 6], textureModel->Faces_Triangles[index * 9 + 7], textureModel->Faces_Triangles[index * 9 + 8],
+                            textureModel->Faces_Triangles[index * 9 + 3], textureModel->Faces_Triangles[index * 9 + 4], textureModel->Faces_Triangles[index * 9 + 5] };
+        setNormal(points);
+    }
+}
+
+GLdouble mv[16];
+GLdouble mvCamera[10][16];
+
+float isFrontFacePoints(float* points) {
+    GLfloat p1[3] = { points[0], points[1], points[2] };
+    GLfloat p2[3] = { points[3], points[4], points[5] };
+    GLfloat p3[3] = { points[6], points[7], points[8] };
+
+    GLfloat nx[4] = { mv[2] + mv[3], mv[6] + mv[7], mv[10] + mv[11], mv[14] + mv[15] };
+
+    nx[3] = mv[14] < -1 ? nx[3] : -nx[3];
+
+    nx[0] /= nx[3];
+    nx[1] /= nx[3];
+    nx[2] /= nx[3];
+
+    float va[3], vb[3], vr[3];
+	va[0] = p2[0] - p1[0];
+	va[1] = p2[1] - p1[1];
+	va[2] = p2[2] - p1[2];
+
+	vb[0] = p3[0] - p1[0];
+	vb[1] = p3[1] - p1[1];
+	vb[2] = p3[2] - p1[2];
+
+	vr[0] = va[1] * vb[2] - vb[1] * va[2];
+	vr[1] = vb[0] * va[2] - va[0] * vb[2];
+	vr[2] = va[0] * vb[1] - vb[0] * va[1];
+
+    return (nx[0]*vr[0] + nx[1]*vr[1] + nx[2]*vr[2]) / (sqrt(nx[0]*nx[0] + nx[1]*nx[1] + nx[2]*nx[2]) * sqrt(vr[0]*vr[0] + vr[1]*vr[1] + vr[2]*vr[2]));
 }
 
 bool isFrontFace(int index) {
     float points[9] = { textureModel->Faces_Triangles[index * 9], textureModel->Faces_Triangles[index * 9 + 1], textureModel->Faces_Triangles[index * 9 + 2],
                         textureModel->Faces_Triangles[index * 9 + 3], textureModel->Faces_Triangles[index * 9 + 4], textureModel->Faces_Triangles[index * 9 + 5],
                         textureModel->Faces_Triangles[index * 9 + 6], textureModel->Faces_Triangles[index * 9 + 7], textureModel->Faces_Triangles[index * 9 + 8] };
-    return isFrontFacePoints(points) <= 0;
+    float angle = isFrontFacePoints(points);
+    return angle > -1 && angle < 0;
 }
 
 void calcBackground(GLfloat* vert) {
@@ -149,10 +201,6 @@ void calcBackground(GLfloat* vert) {
     glGetDoublev(GL_PROJECTION_MATRIX, projection);
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
-
-    //cout << "MV " << model_view[0] << " " << model_view[1] << " " << model_view[2] << endl;
-    //cout << "PJ " << projection[0] << " " << projection[1] << " " << projection[2] << endl;
-    //cout << "VP " << viewport[0] << " " << viewport[1] << " " << viewport[2] << endl;
 
     GLdouble pos3D_x, pos3D_y, pos3D_z;
     pos3D_x = vert[0];
@@ -175,7 +223,6 @@ void calcBackground(GLfloat* vert) {
     if (winY < drawYmin) {
         drawYmin = winY;
     }
-    //cout << pos3D_x << " " << pos3D_y << " " << pos3D_z << " " << winX << " " << winY << " " << winZ << endl;
 }
 
  void draw2DBackground() {
@@ -192,33 +239,28 @@ void calcBackground(GLfloat* vert) {
     calcBackground(vert4);
 }
 
-void setFaceVertex(int index) {
-    GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
-    glVertex3fv(vert);
-    //glNormal3f(textureModel->Normals[index * 3], textureModel->Normals[index * 3 + 1], textureModel->Normals[index * 3 + 2]);
-}
-
 void draw2DElement(int index) {
+
     glColor3f(1.0f, 1.0f, 1.0f);
-    glBegin(GL_POLYGON);
-        if (isFrontFace(index)) {
-            setFaceVertex(index * 3);
-            setFaceVertex(index * 3 + 1);
-            setFaceVertex(index * 3 + 2);
-        } else {
-            setFaceVertex(index * 3);
-            setFaceVertex(index * 3 + 2);
-            setFaceVertex(index * 3 + 1);
-        }
-    glEnd();
-    /*if (textureWire) {
-        glColor3f(0.5f, 0.5f, 0.5f);
-        glBegin(GL_LINE_LOOP);
-            setFaceVertex(index * 3);
-            setFaceVertex(index * 3 + 1);
-            setFaceVertex(index * 3 + 2);
+    for (int i = 0; i < 16; i++) {
+        mv[i] = mvCamera[textureIndex][i];
+    }
+    if (isFrontFace(index)) {
+        glBegin(GL_POLYGON);
+            //glColor3f(1.0f, 0.0f, 0.0f); // ---------------- rojo
+            setFaceVertex(index * 3, true);
+            setFaceVertex(index * 3 + 1, true);
+            setFaceVertex(index * 3 + 2, true);
         glEnd();
-    }*/
+    } else {
+        glBegin(GL_POLYGON);
+            //glColor3f(0.0f, 1.0f, 0.0f); // ---------------- verde
+            setFaceVertex(index * 3, false);
+            setFaceVertex(index * 3 + 2, false);
+            setFaceVertex(index * 3 + 1, false);
+        glEnd();
+    }
+    glColor3f(1.0f, 1.0f, 1.0f);
 }
 
 void ExtractFrustum() {
@@ -344,6 +386,32 @@ bool PointInFrustum(float x, float y, float z) {
 }
 
 
+void xdraw2DElement(int index) {
+
+    glColor3f(1.0f, 1.0f, 1.0f);
+    //glGetDoublev(GL_MODELVIEW_MATRIX, mv);
+    for (int i = 0; i < 16; i++) {
+        mv[i] = mvCamera[textureIndex][i];
+    }
+    if (isFrontFace(index)) {
+        glBegin(GL_POLYGON);
+            glColor3f(1.0f, 0.0f, 0.0f); // ---------------- rojo
+            setFaceVertex(index * 3, true);
+            setFaceVertex(index * 3 + 1, true);
+            setFaceVertex(index * 3 + 2, true);
+        glEnd();
+    } else {
+        glBegin(GL_POLYGON);
+            glColor3f(0.0f, 1.0f, 0.0f); // ---------------- verde
+            setFaceVertex(index * 3, false);
+            setFaceVertex(index * 3 + 2, false);
+            setFaceVertex(index * 3 + 1, false);
+        glEnd();
+    }
+    glColor3f(1.0f, 1.0f, 1.0f);
+}
+
+
 void draw2DPlayerFull() {
 
     drawXmin = std::numeric_limits<float>::max();
@@ -355,49 +423,60 @@ void draw2DPlayerFull() {
     draw2DBackground();
     glPopMatrix();
 
-    //cout << "*" << drawXmin << " " << drawXmax << " " << drawYmin << " " << drawYmax << endl;
+    ExtractFrustum();
 
-    f_OcclusionCulling occlusionCulling = (f_OcclusionCulling)GetProcAddress(occlusionLibrary, "OcclusionCulling");
+    glBeginQueryARB = (PFNGLBEGINQUERYARBPROC)wglGetProcAddress("glBeginQueryARB");
+    glGenQueriesARB = (PFNGLGENQUERIESARBPROC)wglGetProcAddress("glGenQueriesARB");
+    glEndQueryARB = (PFNGLENDQUERYARBPROC)wglGetProcAddress("glEndQueryARB");
+    glGetQueryObjectuivARB = (PFNGLGETQUERYOBJECTUIVPROC)wglGetProcAddress("glGetQueryObjectuivARB");
+    glDeleteQueriesARB = (PFNGLDELETEQUERIESARBPROC)wglGetProcAddress("glDeleteQueriesARB");
+    GLuint* queries = new GLuint[textureModel->TotalFaces];
+    GLuint sampleCount;
+    glGenQueriesARB(textureModel->TotalFaces, queries);
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+    for (int i = 0; i < textureModel->TotalFaces; i++)
+    {
+        int index = i * 3;
+        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
+            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
+            xdraw2DElement(i);
+            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+        }
+    }
+    glEnable(GL_BLEND);
+    glDepthFunc(GL_EQUAL);
+    glDepthMask(GL_FALSE);
 
-    occlusionCulling(textureIndex,textureModel->TotalFaces, textureModel->Faces_Triangles, &faces, drawXmin, drawXmax, drawYmin, drawYmax);
+    glGetDoublev(GL_MODELVIEW_MATRIX, mv);
+    for (int i = 0; i < 16; i++) {
+        mvCamera[textureIndex][i] = mv[i];
+    }
 
-//    ExtractFrustum();
-//    GLuint* queries = new GLuint[textureModel->TotalFaces];
-//    //GLuint queries = *queriesP;
-//    GLuint sampleCount;
-//    glGenQueriesARB(textureModel->TotalFaces, queries);
-//    glDisable(GL_BLEND);
-//    glDepthFunc(GL_LESS);
-//    glDepthMask(GL_TRUE);
-//    for (int i = 0; i < textureModel->TotalFaces; i++) {
-//        int index = i * 3;
-//        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
-//            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
-//            draw2DElement(i);
-//            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
-//        }
-//    }
-//    glEnable(GL_BLEND);
-//    glDepthFunc(GL_EQUAL);
-//    glDepthMask(GL_FALSE);
-//
-//    for (int i = 0; i < textureModel->TotalFaces; i++) {
-//        int index = i * 3;
-//        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
-//            glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
-//            if (sampleCount > 0) {
-//                if (textureIndex > 0) {
-//                    faces[textureIndex][i] = sampleCount;
-//                }
-//                //glEnable(GL_CULL_FACE);
-//                draw2DElement(i);
-//            }
-//        }
-//    }
-//    glDisable(GL_BLEND);
-//    glDepthFunc(GL_LESS);
-//    glDepthMask(GL_TRUE);
-//    delete [] queries;
+    for (int i = 0; i < textureModel->TotalFaces; i++)
+    {
+        int index = i * 3;
+        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
+            glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
+            if (sampleCount > 0)
+            {
+                if (textureIndex > 0)
+                {
+                    faces[textureIndex][i] = sampleCount;
+                }
+                glEnable(GL_CULL_FACE);
+                glFrontFace(GL_CW);
+                glCullFace(GL_FRONT);
+                xdraw2DElement(i);
+            }
+        }
+    }
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+    glDeleteQueriesARB(textureModel->TotalFaces, queries);
+    delete [] queries;
 }
 
 void draw2DPlayerFast() {
@@ -406,12 +485,6 @@ void draw2DPlayerFast() {
         for (int k = 1; k <= textureCount; k++) {
             hits = max(hits, faces[k][i]);
         }
-        /*if (hits > 0 && faces[textureIndex][i] == hits) {
-            glEnable(GL_CULL_FACE);
-            glFrontFace(GL_CW);
-            glCullFace(GL_FRONT);
-            draw2DElement(i);
-        }*/
         glEnable(GL_CULL_FACE);
         glFrontFace(GL_CW);
         glCullFace(GL_FRONT);
@@ -611,50 +684,6 @@ void UpdateHistory (int id) {
             }
         }
     }
-    /*int type = 0;
-    float value = 0;
-    if (textureMaster[id].viewer[0] != 0) {
-        type = 0;
-        value = textureMaster[id].viewer[0];
-    }
-    if (textureMaster[id].viewer[1] != 0) {
-        type = 1;
-        value = textureMaster[id].viewer[1];
-    }
-    if (textureMaster[id].viewer[2] != 0) {
-        type = 2;
-        value = textureMaster[id].viewer[2];
-    }
-    if (textureMaster[id].rotate[0] != 0) {
-        type = 3;
-        value = textureMaster[id].rotate[0];
-    }
-    if (textureMaster[id].rotate[1] != 0) {
-        type = 4;
-        value = textureMaster[id].rotate[1];
-    }
-    if (textureMaster[id].rotate[2] != 0) {
-        type = 5;
-        value = textureMaster[id].rotate[2];
-    }
-
-    textureMaster[id].viewer[0] = 0;
-    textureMaster[id].viewer[1] = 0;
-    textureMaster[id].viewer[2] = 0;
-    textureMaster[id].rotate[0] = 0;
-    textureMaster[id].rotate[1] = 0;
-    textureMaster[id].rotate[2] = 0;
-
-    MasterTransform* trans = NULL;
-    if (textureMaster[id].history.size() == 0 || textureMaster[id].history.back()->type != type) {
-        trans = new MasterTransform();
-        trans->value = value;
-        trans->type = type;
-        textureMaster[id].history.push_back(trans);
-    } else {
-        trans = textureMaster[id].history.back();
-        trans->value += value;
-    }*/
 }
 
 void keys(unsigned char key, int x, int y) {

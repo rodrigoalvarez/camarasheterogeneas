@@ -23,7 +23,6 @@ Model_IMG::Model_IMG() {
 bool Model_IMG::MemoryLoad() {
 
     std::stringstream key1;
-    //cout << Id << endl;
 
     key1 << "ImageId" << Id / 10000;
 
@@ -35,20 +34,15 @@ bool Model_IMG::MemoryLoad() {
 
     int idAux = Id;
     readImage(&Id, wPixels, hPixels, &pixels);
-    //cout << "ap1" << endl;
 
     if (Id >= 0){
         if (*wPixels > 0 && *hPixels > 0) {
             char* nombre = new char[20];
             sprintf(nombre,"imagen%d.png",Id);
-            /*ofImage image;
-            image.setFromPixels(pixels,*wPixels,*hPixels,OF_IMAGE_COLOR);
-            image.saveImage(nombre);*/
             Width = *wPixels;
             Height = *hPixels;
             delete wPixels;
             delete hPixels;
-            //Pixels = pixels;
             unsigned char* pixelsAux;
             pixelsAux = Pixels;
             Pixels = new unsigned char[Width * Height * 3];

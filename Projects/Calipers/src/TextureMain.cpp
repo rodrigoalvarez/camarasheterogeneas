@@ -152,6 +152,9 @@ float TextureMain::isFrontFacePoints(float* points) {
     GLfloat p3[3] = { points[6], points[7], points[8] };
 
     GLfloat nx[4] = { mv[2] + mv[3], mv[6] + mv[7], mv[10] + mv[11], mv[14] + mv[15] };
+
+    nx[3] = mv[14] < -1 ? nx[3] : -nx[3];
+
     nx[0] /= nx[3];
     nx[1] /= nx[3];
     nx[2] /= nx[3];

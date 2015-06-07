@@ -34,16 +34,7 @@ void GlobalData::loadCalibData(char * xml) {
         for (int k = 0; k < nClientes; k++) {
             if (settings.pushTag("client", k)) {
                 sys_data[k].cliId           = settings.getValue("cliId",          0);
-                /*sys_data[k].cliPort         = settings.getValue("cliPort",        15000);
-                sys_data[k].serverIp        = settings.getValue("serverIp",       "127.0.0.1");
-                sys_data[k].serverPort      = settings.getValue("serverPort",     11969);
-                sys_data[k].goLive          = settings.getValue("realTime",       0);
-                sys_data[k].persistence     = settings.getValue("persistence",    1);
-                sys_data[k].logLevel        = settings.getValue("logLevel",       0);
-                sys_data[k].fps             = settings.getValue("fps",            10);
-                sys_data[k].maxPackageSize  = settings.getValue("maxPackageSize", 60000);*/
                 sys_data[k].alfaCoord       = settings.getValue("alfaCoord", 0.0);
-                //sys_data[k].alfaCoord = 0.0;
 
                 if(settings.pushTag("cameras")) {
                     sys_data[k].nCamaras = settings.getNumTags("camera");
@@ -52,21 +43,9 @@ void GlobalData::loadCalibData(char * xml) {
                         settings.pushTag("camera", i);
 
                         sys_data[k].camera[i].id                     = settings.getValue("id", 0);
-                        /*sys_data[k].camera[i].resolutionX            = settings.getValue("resolutionX", 640);
-                        sys_data[k].camera[i].resolutionY            = settings.getValue("resolutionY", 480);
-                        sys_data[k].camera[i].resolutionDownSample   = settings.getValue("resolutionDownSample", 1);
-                        sys_data[k].camera[i].fps                    = settings.getValue("FPS", 24);*/
                         sys_data[k].camera[i].use2D                  = settings.getValue("use2D", true);
                         sys_data[k].camera[i].use3D                  = settings.getValue("use3D", true);
-                        //sys_data[k].camera[i].use2D = true;
-                        //sys_data[k].camera[i].use3D = true;
 
-                        /*if(settings.pushTag("depthSettings")) {
-                            sys_data[k].camera[i].near3D                 = settings.getValue("near", 0);
-                            sys_data[k].camera[i].far3D                  = settings.getValue("far", 1);
-                            sys_data[k].camera[i].points3DDownSample     = settings.getValue("pointsDownSample", 0.5);
-                            settings.popTag();
-                        }*/
                         if(settings.pushTag("matrixA2D")) {
                             sys_data[k].camera[i].imgrowA1.set(settings.getValue("m00", 1.0f), settings.getValue("m01", 1.0f), settings.getValue("m02", 1.0f), settings.getValue("m03", 1.0f));
                             sys_data[k].camera[i].imgrowA2.set(settings.getValue("m10", 1.0f), settings.getValue("m11", 1.0f), settings.getValue("m12", 1.0f), settings.getValue("m13", 1.0f));
