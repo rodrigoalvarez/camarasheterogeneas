@@ -28,7 +28,6 @@ void MeshThreadedGenerator::exit() {
 }
 
 void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
-    //cout << "[MeshThreadedGenerator::processFrame] a " << endl;
     lock();
     if(state == GENERATOR_LOADED) {
         ThreadData * iter = (ThreadData *) frame.second;
