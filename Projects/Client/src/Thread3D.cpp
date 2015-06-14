@@ -4,7 +4,7 @@ void Thread3D::threadedFunction() {
     dataAllocated = false;
 
 	char buff[30];
-	openNIRecorder = new ofxOpenNI(context->id);
+	openNIRecorder = new ofxOpenNI(context->deviceInstance);
 	openNIRecorder->setup();
 
 	cout << "openNIRecorder->getNumDevices() " << openNIRecorder->getNumDevices() << endl;

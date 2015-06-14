@@ -2,7 +2,7 @@
 
 void ThreadONI::threadedFunction() {
 
-    openNIRecorder = new ofxOpenNI(context->id);
+    openNIRecorder = new ofxOpenNI(context->deviceInstance);
     openNIRecorder->setup();
 	openNIRecorder->start();
 

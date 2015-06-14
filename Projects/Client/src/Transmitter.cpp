@@ -239,6 +239,7 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     imageBytesToSend    = frameSize;
     totalBytesSent      = 0;
     messageSize         = sys_data->maxPackageSize;
+
     while( imageBytesToSend > 1 ) {
         if(imageBytesToSend > messageSize) {
             if(checkConnError()) return;

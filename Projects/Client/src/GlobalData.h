@@ -7,6 +7,7 @@
 
 struct t_camera {
     int id;
+    int deviceInstance;
     int resolutionX;
     int resolutionY;
     int pcDownSample;

@@ -7,7 +7,7 @@ void Thread2D::threadedFunction() {
     snapCounter = 1;
 
     vidGrabber.setVerbose(true);
-    vidGrabber.setDeviceID(context->id);
+    vidGrabber.setDeviceID(context->deviceInstance);
     vidGrabber.initGrabber(context->resolutionX, context->resolutionY);
     //return;
     string path = "cameras/2D/" + ofToString(context->id);

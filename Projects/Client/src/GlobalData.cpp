@@ -59,6 +59,7 @@ void GlobalData::loadCalibData(char * xml) {
 
                 currCam->sig                    = NULL;
                 currCam->id                     = settings.getValue("id", 0);
+                currCam->deviceInstance         = settings.getValue("deviceInstance", 0);
 				currCam->resolutionX            = settings.getValue("resolutionX", 640);
 				currCam->resolutionY            = settings.getValue("resolutionY", 480);
 				int useComp                     = settings.getValue("useRGBCompression", 0);
