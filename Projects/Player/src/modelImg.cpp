@@ -39,6 +39,11 @@ bool Model_IMG::MemoryLoad() {
         if (*wPixels > 0 && *hPixels > 0) {
             char* nombre = new char[20];
             sprintf(nombre,"imagen%d.png",Id);
+
+            ofImage image;
+            image.setFromPixels(pixels,*wPixels,*hPixels,OF_IMAGE_COLOR);
+            //image.saveImage(nombre);
+
             Width = *wPixels;
             Height = *hPixels;
             delete wPixels;

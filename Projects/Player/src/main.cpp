@@ -49,6 +49,9 @@ float drawXmax;
 float drawYmin;
 float drawYmax;
 
+bool cameraLight = true;
+bool cameraLightColor = true;
+
 HINSTANCE occlusionLibrary;
 
 typedef void (*f_OcclusionCulling)(int textureIndex,int TotalFaces, float* Faces_Triangles, int*** faces, float drawXmin, float drawXmax, float drawYmin, float drawYmax);
@@ -245,6 +248,13 @@ void draw2DElement(int index) {
     for (int i = 0; i < 16; i++) {
         mv[i] = mvCamera[textureIndex][i];
     }
+
+    if (cameraLightColor) {
+        glColor3f(1.0f, 0.0f, 0.0f);
+    } else {
+        glColor3f(0.0f, 1.0f, 0.0f);
+    }
+
     if (isFrontFace(index)) {
         glBegin(GL_POLYGON);
             //glColor3f(1.0f, 0.0f, 0.0f); // ---------------- rojo
@@ -436,6 +446,7 @@ void draw2DPlayerFull() {
     glDisable(GL_BLEND);
     glDepthFunc(GL_LESS);
     glDepthMask(GL_TRUE);
+
     for (int i = 0; i < textureModel->TotalFaces; i++)
     {
         int index = i * 3;
@@ -449,6 +460,13 @@ void draw2DPlayerFull() {
     glDepthFunc(GL_EQUAL);
     glDepthMask(GL_FALSE);
 
+    GLdouble model_view[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, model_view);
+    GLdouble projection[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+
     glGetDoublev(GL_MODELVIEW_MATRIX, mv);
     for (int i = 0; i < 16; i++) {
         mvCamera[textureIndex][i] = mv[i];
@@ -457,11 +475,24 @@ void draw2DPlayerFull() {
     for (int i = 0; i < textureModel->TotalFaces; i++)
     {
         int index = i * 3;
+        if (textureIndex > 0) {
+            faces[textureIndex][i] = 0;
+        }
+
+        GLdouble pos3D_x, pos3D_y, pos3D_z;
+        pos3D_x = textureModel->Faces_Triangles[index * 3];
+        pos3D_y = textureModel->Faces_Triangles[index * 3 + 1];
+        pos3D_z = textureModel->Faces_Triangles[index * 3 + 2];
+        GLdouble winX, winY, winZ;
+        gluProject(pos3D_x, pos3D_y, pos3D_z,
+            model_view, projection, viewport,
+            &winX, &winY, &winZ);
+
         if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
             glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
             if (sampleCount > 0)
             {
-                if (textureIndex > 0)
+                if (winX > drawXmin && winX < drawXmax && winY > drawYmin && winY < drawYmax && textureIndex > 0)
                 {
                     faces[textureIndex][i] = sampleCount;
                 }
@@ -485,10 +516,10 @@ void draw2DPlayerFast() {
         for (int k = 1; k <= textureCount; k++) {
             hits = max(hits, faces[k][i]);
         }
-        glEnable(GL_CULL_FACE);
-        glFrontFace(GL_CW);
-        glCullFace(GL_FRONT);
-        draw2DElement(i);
+        if (hits > 0 && faces[textureIndex][i] == hits) {
+            cameraLightColor = true;
+            draw2DElement(i);
+        }
     }
 }
 
@@ -559,8 +590,31 @@ void stepClearTexture() {
     }
 }
 
+int masterFull = 0;
+
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+    if (cameraLight) {
+       glEnable(GL_LIGHTING);
+       glEnable(GL_LIGHT0);
+
+       glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+
+       glPushMatrix();
+       glLoadIdentity();
+       GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 0.5 };
+       GLfloat mat_shininess[] = { 50.0 };
+       GLfloat light_color[] = { 1., 1., 1., 0.5 };
+       GLfloat light_position[] = { 0.0, 0.0, 1.0, 0.0 };
+
+       glShadeModel (GL_SMOOTH);
+       glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+       glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+       glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color);
+       glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+       glPopMatrix();
+   }
 
     for (int i = 1; i <= textureCount; i++) {
         textureIndex = i;
@@ -570,8 +624,7 @@ void display(void) {
         if (drawFast) {
             applyTransformations(textureMaster[0].history);
             draw2DPlayerFast();
-        } else {
-
+        } else if (masterFull == textureIndex) {
             glMultMatrixd(textureMaster[textureIndex].matrixA);
             draw2DPlayerFull();
         }
@@ -585,10 +638,11 @@ void display(void) {
 
     drawAllText();
 
-    if (!drawFast) {
-       drawFast = true;
-       display();
-   }
+    if (cameraLight) {
+       glDisable(GL_LIGHT0);
+       glDisable(GL_LIGHTING);
+    }
+
 }
 
 
@@ -688,8 +742,11 @@ void UpdateHistory (int id) {
 
 void keys(unsigned char key, int x, int y) {
 
-    if (key == 'p') {
+    if (key == 'x') {
         textureWire = !textureWire;
+    }
+    if (key == 'p') {
+        cameraLight = !cameraLight;
     }
     if (key == 'w') textureMaster[0].rotate[0] += 2.0;
     if (key == 's') textureMaster[0].rotate[0] -= 2.0;
@@ -697,6 +754,8 @@ void keys(unsigned char key, int x, int y) {
     if (key == 'd') textureMaster[0].rotate[1] -= 2.0;
     if (key == 'e') textureMaster[0].rotate[2] += 2.0;
     if (key == 'q') textureMaster[0].rotate[2] -= 2.0;
+
+    if (key == 'z') textureMaster[0].rotate[1] -= 180.0;
 
     if(key == 'm') textureMaster[0].viewer[0] += 0.2;
     if(key == 'b') textureMaster[0].viewer[0] -= 0.2;
@@ -706,7 +765,7 @@ void keys(unsigned char key, int x, int y) {
     if(key == 'g') textureMaster[0].viewer[2] -= 0.2;
 
     if (key == 'w' || key == 's' || key == 'a' || key == 'd' || key == 'e' || key == 'q' ||
-        key == 'm' || key == 'b' || key == 'h' || key == 'n' || key == 'j' || key == 'g') {
+        key == 'm' || key == 'b' || key == 'h' || key == 'n' || key == 'j' || key == 'g' || key == 'z') {
         UpdateHistory(textureIndex);
     }
 
@@ -821,7 +880,13 @@ void timerFunction(int arg) {
         glPopMatrix();
 
         drawFast = false;
+        for (int i = 1; i <= textureCount; i++) {
+            masterFull = i;
+            display();
+        }
+        drawFast = true;
         display();
+
     }
 }
 
