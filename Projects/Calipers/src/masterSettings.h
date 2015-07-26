@@ -25,6 +25,17 @@ struct MasterTexture {
     float MVmatrix[16];
 };
 
+struct MasterIntrinsic {
+    float k1;
+    float k2;
+    float k3;
+    float k4;
+    float fx;
+    float fy;
+    float cx;
+    float cy;
+};
+
 struct MasterMesh {
     float viewer[3];
     float rotate[3];
@@ -52,15 +63,17 @@ class MasterSettings
         void loadCalibration();
         void loadTextureCalibration();
         void loadMeshCalibration();
-//        void saveTextureCalibration();
+        void loadIntrinsicCalibration();
+        //void saveTextureCalibration();
         void saveMeshCalibration();
         static void CalculateMatrix(MasterMesh master, GLdouble* m);
         static void CalculateMatrix(vector<MasterTransform*> history, GLdouble* m, bool flag);
         MasterMesh* meshMaster;
+        MasterTexture* textureMaster;
+        MasterIntrinsic* intrinsicMaster;
     protected:
     private:
         int textureCount;
-        MasterTexture* textureMaster;
         int meshCount;
 };
 

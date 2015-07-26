@@ -10,6 +10,36 @@ using namespace std;
 void MasterSettings::loadCalibration () {
 }
 
+void MasterSettings::loadIntrinsicCalibration () {
+
+    for (int i = 1; i <= textureCount; i++) {
+        MasterIntrinsic* masterNow = &intrinsicMaster[i];
+        std::stringstream fileName;
+        fileName << "intrinsic" << i << ".txt";
+        std::ifstream in(fileName.str().c_str());
+        std::stringstream buffer;
+        buffer << in.rdbuf();
+
+        string line;
+        if (getline(buffer, line, '\n')) {
+            istringstream subBuffer(line);
+            string value;
+            for (int k = 0; k < 9 && getline(subBuffer, value, ' '); k++) {
+                float param = ::atof(value.c_str());
+                if (k == 0) masterNow->k1 = param;
+                if (k == 1) masterNow->k2 = param;
+                if (k == 2) masterNow->k3 = param;
+                if (k == 3) masterNow->k4 = param;
+                if (k == 4) masterNow->fx = param;
+                if (k == 5) masterNow->fy = param;
+                if (k == 6) masterNow->cx = param;
+                if (k == 7) masterNow->cy = param;
+            }
+        }
+        in.close();
+    }
+}
+
 void MasterSettings::loadMeshCalibration () {
 
     //cout << "/" << endl;
@@ -69,13 +99,6 @@ void MasterSettings::loadTextureCalibration () {
                 masterNow->matrix[i] = ::atof(value.c_str());
             }
         }
-//        if (getline(buffer, line, '\n')) {
-//            istringstream subBuffer(line);
-//            string value;
-//            for (int i = 0; i < 3 && getline(subBuffer, value, ' '); i++) {
-//                masterNow->rotate[i] = ::atof(value.c_str());
-//            }
-//        }
         in.close();
     }
 }
@@ -128,4 +151,5 @@ MasterSettings::MasterSettings(int _textureCount, MasterTexture* _textureMaster,
     textureMaster = _textureMaster;
     meshCount = _meshCount;
     meshMaster = _meshMaster;
+    intrinsicMaster = new MasterIntrinsic[_textureCount + 1];
 }

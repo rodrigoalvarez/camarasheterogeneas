@@ -83,6 +83,19 @@ void saveXmlClient(ofxXmlSettings* pSettings, MasterClient* client, bool isPlaye
         settings.addValue("use2D", camera->is2D);// camera i use 2d
         settings.addValue("use3D", camera->is3D);// camera i use 3d
 
+        if (camera->is2D && !isPlayer) {
+            settings.addTag("coefficients2D");
+            settings.pushTag("coefficients2D");
+            settings.addValue("k1", tMain->settings->intrinsicMaster[i+1].k1);
+            settings.addValue("k2", tMain->settings->intrinsicMaster[i+1].k2);
+            settings.addValue("k3", tMain->settings->intrinsicMaster[i+1].k3);
+            settings.addValue("k4", tMain->settings->intrinsicMaster[i+1].k4);
+            settings.addValue("fx", tMain->settings->intrinsicMaster[i+1].fx);
+            settings.addValue("fy", tMain->settings->intrinsicMaster[i+1].fy);
+            settings.addValue("cx", tMain->settings->intrinsicMaster[i+1].cx);
+            settings.addValue("cy", tMain->settings->intrinsicMaster[i+1].cy);
+            settings.popTag();
+        }
         if (camera->is2D && isPlayer) {
             settings.addTag("matrixA2D");
             settings.pushTag("matrixA2D");
@@ -170,13 +183,6 @@ void IncludeMesh (Model_XYZ* model, Model_XYZ* newModel, MasterMesh master) {
     GLdouble m[16];
     MasterSettings::CalculateMatrix(master, m);
     model->Include(newModel, m);
-    /*GLdouble mm[16];
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            mm[i*4+j] = master.matrix[i*4+0] * m[0*4+j] + master.matrix[i*4+1] * m[1*4+j] + master.matrix[i*4+2] * m[2*4+j] + master.matrix[i*4+3] * m[3*4+j];
-        }
-    }
-    model->Include(newModel, mm);*/
 }
 
 void display(void) {
@@ -191,8 +197,6 @@ void keys(unsigned char key, int x, int y) {
         if (mMain->faces != NULL){
             modeMesh = false;
             tMain->textureModel->MemoryLoadCalibrator(mMain->faces,*(mMain->numberFaces));
-            //tMain->textureModel->Load("mallaUnida.ply");
-
         }
     }
     if (key == ' ') {
@@ -339,8 +343,6 @@ vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster,
                     if (camera->is3D) {
                         camera->masterMesh = &cloudMaster[idCameraM+1];
                         idCameraM++;
-
-                        cout << "3D" << endl;
                     }
 
                     ofDirectory imageDirectory(allClientFiles[j].path());
@@ -353,8 +355,6 @@ vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster,
                     if (camera->is2D) {
                         camera->masterTexture = &textureMaster[idCameraT+1];
                         idCameraT++;
-
-                        cout << "2D" << endl;
                     }
 
                     if (camera->is2D || camera->is3D) {
@@ -410,11 +410,10 @@ int main(int argc, char **argv) {
     /* Settings and files */
     mMain->settings = new MasterSettings(0, NULL, mMain->meshCount, mMain->cloudMaster);
     mMain->settings->loadMeshCalibration();
-    //cout << "*" << endl;
+
     for (int i = 1; i <= mMain->meshCount; i++) {
         for (int j = 0; j < 16; j++) {
             mMain->cloudMaster[i].matrix[j] = mMain->settings->meshMaster[i].matrix[j];
-            //cout << mMain->cloudMaster[i].matrix[j] << " ";
         }
     }
 
@@ -423,9 +422,7 @@ int main(int argc, char **argv) {
         float mm[16];
         for (int j = 0; j < 16; j++) {
             mm[j] = mMain->cloudMaster[i+1].matrix[j];
-            //cout << mm[j] << " ";
         }
-        //cout << endl;
         if (i == 0) {
             mMain->cloudModel[i+1]->Load(files3D[i].c_str(), 0, mm);
         } else {
@@ -438,8 +435,6 @@ int main(int argc, char **argv) {
         IncludeMesh(mMain->cloudModel[0], mMain->cloudModel[i], mMain->cloudMaster[i]);
     }
     mMain->meshIndex = 0;
-
-    ///FIN
 
     ///INICIALIZACION CALIBRACION 2D
 
@@ -471,6 +466,7 @@ int main(int argc, char **argv) {
     /* Settings and files */
     clients = getClients(tMain->textureCount, tMain->textureMaster, mMain->meshCount, mMain->cloudMaster);
     tMain->settings = new MasterSettings(tMain->textureCount, tMain->textureMaster, 0, NULL);
+    tMain->settings->loadIntrinsicCalibration();
 
     /* Texture config */
     glGenTextures(tMain->textureCount, tMain->textures);
@@ -496,10 +492,6 @@ int main(int argc, char **argv) {
         tMain->loadLightMapTexture(&(tMain->textureImage[i]), files2D[i]);
     }
     tMain->textureIndex = 0;
-    ///FIN
-//tMain->textureModel->Load("mallaUnida2.ply");
-//tMain->textureModel->Load("antMesh.ply");
-    //writeText();
 	glutMainLoop();
 }
 
