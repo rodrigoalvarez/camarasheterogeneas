@@ -144,16 +144,16 @@ void ThreadServer::receiveFrame() {
             int recSize = 0;
             int	err = 0;
 
-            /*if(TCPCLI.isConnected()) {
+            if(TCPCLI.isConnected()) {
                 TCPCLI.send("OK");
-            }*/
+            }
 
             if(connError("2", true)) return;
             if(TCPCLI.isConnected()) {
                 if(connError("3", true)) return;
                 recSize = TCPCLI.receiveRawBytes((char*) &v0, sizeof(int));
                 if(connError("4", true)) {
-                    //TCPCLI.send("ERROR");
+                    TCPCLI.send("ERROR");
                     return;
                 }
             } else {
@@ -169,7 +169,7 @@ void ThreadServer::receiveFrame() {
                 if(TCPCLI.isConnected()) {
                     if(connError("6", true)) return;
 
-                    //TCPCLI.send("OK");
+                    TCPCLI.send("OK");
                     TCPCLI.close();
                 } else {
                     unlock();
@@ -228,9 +228,9 @@ void ThreadServer::receiveFrame() {
                         ofLogVerbose() << ">>[ThreadServer::receiveFrame] connError";
 
                         if(connError("11", true)) return;
-                        /*if(TCPCLI.isConnected()) {
+                        if(TCPCLI.isConnected()) {
                             TCPCLI.send("ERROR");
-                        }*/
+                        }
 
                         exit();
                         return;
@@ -248,9 +248,9 @@ void ThreadServer::receiveFrame() {
 
             if(guarda > 0) {
                 if(connError("12", true)) return;
-                /*if(TCPCLI.isConnected()) {
+                if(TCPCLI.isConnected()) {
                     TCPCLI.send("OK");
-                }*/
+                }
 
                 ofLogVerbose() << ">>[ThreadServer::receiveFrame] Se recibio frame de: " << currTotal << " bytes";
 
@@ -268,9 +268,9 @@ void ThreadServer::receiveFrame() {
                 }
             } else {
                 if(connError("13", true)) return;
-                /*if(TCPCLI.isConnected()) {
+                if(TCPCLI.isConnected()) {
                     TCPCLI.send("ERROR");
-                }*/
+                }
             }
 
             unlock();
