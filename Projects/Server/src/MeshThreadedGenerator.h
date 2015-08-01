@@ -60,6 +60,7 @@ class MeshThreadedGenerator : public ofThread {
         int nMTG;
         void threadedFunction();
 		void processFrame(ofEventArgs &e);
+		void processFrame();
 		void setState(int state);
 		int getState();
 		FaceStruct* faces;

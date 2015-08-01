@@ -41,6 +41,7 @@ class MeshGenerator : public ofThread {
         //HINSTANCE memorySharedLibrary;
 		void threadedFunction();
 		void processFrame(ofEventArgs &e);
+		void processFrame();
 		void exit();
 		MainBufferRT * buffer;
 		MeshThreadedGenerator * threads;

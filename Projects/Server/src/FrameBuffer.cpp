@@ -20,7 +20,12 @@ FrameBuffer::~FrameBuffer() {
                 while(prevFrame != NULL) {
                     ThreadData * td = prevFrame;
                     prevFrame = prevFrame->sig;
-                    delete td;
+                    //if(td->deletable) {
+                    //    cout << "DELETABLE EN TRUE" << endl;
+                        delete td;
+                    /*} else {
+                        cout << "DELETABLE EN FALSE" << endl;
+                    }*/
                 }
             }
             buffer[i]   = NULL;
@@ -48,7 +53,12 @@ void FrameBuffer::addFrame(ThreadData * frame, int totalCams) {
                     td->releaseResources();
                 }
             }
-            delete buffer[base];
+            if(buffer[base] /*&& buffer[base]->deletable*/) {
+                cout << "DELETABLE EN TRUE 2" << endl;
+                delete buffer[base];
+            }/* else {
+                cout << "DELETABLE EN FALSE 2" << endl;
+            }*/
         } catch (int e) {
             ofLogWarning() << "[FrameBuffer::addFrame]: An exception occurred. Exception Nr. " << e;
         }

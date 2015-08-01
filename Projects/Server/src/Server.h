@@ -39,12 +39,6 @@ struct t_completeFrame {
     t_rotation * arrRotation;
 };
 
-struct DebugTexture {
-    ofTexture * videoTexture;
-    int         cli;
-    int         cam;
-};
-
 class Server : public ofBaseApp {
 
 	public:
@@ -63,7 +57,6 @@ class Server : public ofBaseApp {
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
         void computeFrames();
-        //void generarMalla(ThreadData);
         void setupGui(string ip);
         void setVideoPreview(int cli, int cam, ofImage img);
 
@@ -84,11 +77,14 @@ class Server : public ofBaseApp {
         bool b_exit;
         bool b_exit_fired;
 
+        std::string drawableTags[100];
+        ofImage drawableImages[100];
+
+        int drawables;
         MainBufferRT * mb;
         ServerGlobalData * gdata;
 
-        std::list<DebugTexture *> list;
-        std::list<DebugTexture *>::iterator it;
-
-        map< string, ofTexture > texture_map;
+        ofTrueTypeFont myfont;
+        void getCamTag(std::string * tagDest, int cliId, int camId);
+		void drawTag(std::string msj, int x, int y);
 };

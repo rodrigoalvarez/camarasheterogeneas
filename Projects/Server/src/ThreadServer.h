@@ -35,6 +35,7 @@ class ThreadServer : public ofThread {
 		void startFoo();
 		void update();
 		void receiveFrame(ofEventArgs &e);
+		void receiveFrame();
 		void exit();
 		//int totCameras;
 		ThreadData * tData;
@@ -48,4 +49,5 @@ class ThreadServer : public ofThread {
 		bool b_exit;
 		bool connectionClosed;
 		bool checkConnError();
+		bool connError(std::string msj, bool unl);
 };

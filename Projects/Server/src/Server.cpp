@@ -9,13 +9,6 @@
 
 #include <string.h>
 
-bool compare_texture(DebugTexture * first, DebugTexture * second) {
-    if(first->cli == second->cli) {
-        return (first->cam < second->cam);
-    }
-    return (first->cli < second->cli);
-}
-
 void Server::setupGui(string ip) {
     ServerGlobalData::debug = false;
     gui.addFPSCounter();
@@ -33,40 +26,6 @@ void Server::setupGui(string ip) {
     gui.show();
 }
 
-void Server::setVideoPreview(int cli, int cam, ofImage img) {
-
-    if(!img.isAllocated()) return;
-    ofImage tmpImg;
-    tmpImg.allocate(img.getWidth(), img.getHeight(), OF_IMAGE_COLOR);
-    tmpImg.setFromPixels(img.getPixelsRef());
-    tmpImg.resize(320, 240);
-
-    ofTexture * txt = NULL;
-    DebugTexture * dt= NULL;
-
-    for (it=list.begin(); it!=list.end(); ++it) {
-        if( ((*it)->cli == cli) && ((*it)->cam == cam) ) {
-            dt  = (*it);
-        }
-    }
-
-    if(dt == NULL) {
-        dt                  = new DebugTexture();
-        dt->videoTexture    = new ofTexture();
-        dt->videoTexture->allocate(320, 240, GL_RGB);
-        dt->cli             = cli;
-        dt->cam             = cam;
-        std::string title   = "Cli: " + ofToString(cli) + ", Cam: " + ofToString(cam);
-        gui.addContent(title, *dt->videoTexture);
-        list.push_back(dt);
-        list.sort(compare_texture);
-    }
-
-    dt->videoTexture->loadData((unsigned char *)tmpImg.getPixels(), 320, 240, GL_RGB);
-    tmpImg.clear();
-    ofLogVerbose() << "[Server::setVideoPreview] end search" << endl;
-}
-
 void Server::exit() {
 
     cout << "[Server::exit]" << endl;
@@ -74,22 +33,11 @@ void Server::exit() {
     for(i = 0; i < totThreadedServers; i++) {
         tservers[i]->stopThread();
     }
-    //generator.exit();
+
     generator.stopThread();
 
     TCP.close();
 
-    int j, size = list.size();
-    for( j = 0; j < size; j++) {
-        DebugTexture * result = list.front();
-        if(size > 0) {
-            if(result != NULL) {
-                delete result->videoTexture;
-                list.remove(result);
-                delete result;
-            }
-        }
-    }
     if(gdata != NULL) {
         delete gdata;
     }
@@ -101,6 +49,8 @@ void Server::setup() {
 
     gdata   = new ServerGlobalData();
     gdata->loadCalibData("settings.xml");
+
+    myfont.loadFont("HelveticaNeueLTStd Bd.otf", 8);
 
     string line;
     string ip;
@@ -224,21 +174,37 @@ void Server::update() {
     computeFrames();
 }
 
+ofImage     tmpImg;
+int ySep    = 170;
+int items   = 1;
+
 void Server::computeFrames() {
-    ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totThreadedServers;
+
+    int totActivos  = 0;
+    drawables       = 0;
+
     for(int i = 0; i < totThreadedServers; i++) {
         if(!tservers[i]->closed) {
+            totActivos ++;
             //cout << "[Server::computeFrames] IS threadRunning " << tservers[i]->connectionClosed << endl;
             int currCam = 1;
             ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer lock " << endl;
             tservers[i]->lock();
             ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer getHeadFrame " << endl;
-            std::pair <int, ThreadData *> head = tservers[i]->fb.getHeadFrame();
+            std::pair <int, ThreadData *> head      = tservers[i]->fb.getHeadFrame();
+            if((ThreadData *) head.second) {
+                ((ThreadData *) head.second)->deletable   = false;
+            }
             ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Tope del buffer tiene " << head.first << " vistas de camaras.";
 
             for(int c = 0; c < head.first; c++) {
                 if(gui.isOn()) {
-                    setVideoPreview(head.second[c].cliId, head.second[c].camId, head.second[c].img);
+                    if(head.second[c].img.isAllocated()) {
+                        getCamTag(&drawableTags[drawables], head.second[c].cliId, head.second[c].camId);
+                        drawableImages[drawables].clone(head.second[c].img);
+                        drawables++;
+                    }
+                    /**/
                 }
 
                 currCam ++;
@@ -253,13 +219,36 @@ void Server::computeFrames() {
             }
         }
     }
+    ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totActivos;
+}
+
+void Server::getCamTag(std::string * tagDest, int cliId, int camId) {
+    *tagDest   = "CLI ID: " + ofToString(cliId) + ", ID CAM: " + ofToString(camId);
+}
+
+void Server::drawTag(std::string msj, int x, int y) {
+    y += 15;
+    ofSetColor(0, 0, 0);
+    myfont.drawString(msj, x+1, y+145+1);
+    ofSetColor(250, 250, 250);
+    myfont.drawString(msj, x, y+145);
+    ofSetColor(256, 256, 256);
 }
 
 //--------------------------------------------------------------
 void Server::draw() {
-
     if(gui.isOn()) {
+        items           = 2;
+        int y           = ySep * items + 15;
+        int x           = 15;
         gui.draw();
+        for(int i=0; i<drawables; i++) {
+            drawTag(drawableTags[i], x, y);
+            drawableImages[i].draw(x, y, 200, 150);
+            items++;
+            if(items >= 3) { x+=216; items = 0; }
+            y = ySep * items;
+        }
     }
 }
 

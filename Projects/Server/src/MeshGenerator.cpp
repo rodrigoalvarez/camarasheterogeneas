@@ -21,7 +21,7 @@ void MeshGenerator::threadedFunction() {
     threads     = new MeshThreadedGenerator[sys_data->totalFreeCores];
     collector   = new MeshCollector();
 
-    ofLogVerbose() << "MeshGenerator :: threadedFunction " << endl;
+    ofLogVerbose() << "--[MeshGenerator::threadedFunction] " << endl;
 
     for(int i=0; i<sys_data->totalFreeCores; i++) {
         threads[i].sys_data  = sys_data;
@@ -34,7 +34,18 @@ void MeshGenerator::threadedFunction() {
     collector->startThread(true, false);
     started         = true;
 
-    ofAddListener(ofEvents().update, this, &MeshGenerator::processFrame);
+    unsigned long long minMillis = 1000/sys_data->fps;
+    unsigned long long currMill, baseMill;
+
+    while(isThreadRunning()) {
+        baseMill = ofGetElapsedTimeMillis();
+        processFrame();
+        currMill = ofGetElapsedTimeMillis();
+        if((currMill - baseMill) < minMillis) {
+            sleep(minMillis - (currMill - baseMill));
+        }
+    }
+    //ofAddListener(ofEvents().update, this, &MeshGenerator::processFrame);
 }
 
 void MeshGenerator::exit() {
@@ -51,28 +62,36 @@ void MeshGenerator::exit() {
 }
 
 void MeshGenerator::processFrame(ofEventArgs &e) {
+}
+
+void MeshGenerator::processFrame() {
 
     if(!started) return;
-    ofLogVerbose() << "MeshGenerator :: FPS " << ofToString(ofGetFrameRate()) << endl;
-
     if(!__idle) {
-        ofLogVerbose() << "MeshGenerator :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+        ofLogVerbose() << "--[MeshGenerator::processFrame] NO IDLE / FPS ";
         return;
     }
     __idle = false;
-    ofLogVerbose() << "MeshGenerator :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+    ofLogVerbose() << "--[MeshGenerator::processFrame] IDLE / FPS ";
+
     int i = 0;
-    for(i=0; (i<sys_data->totalFreeCores && !b_exit); i++) {
-        proc ++;
-        proc = proc % sys_data->totalFreeCores;
-        if(threads[proc].getState() == GENERATOR_IDLE) {
+    while(!b_exit && (i<sys_data->totalFreeCores)) {
+        if(threads[i].getState() == GENERATOR_IDLE) {
             std::pair <ThreadData *, ThreadData *> frame = buffer->getNextFrame();
+            //cout << "Generador " << i << " libre" << endl;
             if((frame.first != NULL) || (frame.second != NULL)) {
-                threads[proc].processMesh(frame, nframe);
+            //    cout << "Asignado a Generador " << i << endl;
+                threads[i].processMesh(frame, nframe);
                 nframe++;
                 break;
+            } else {
+            //    cout << "No había nada para asignar al generador " << i << endl;
             }
+        } else {
+        //    cout << "Generador " << i << " ocupado" << endl;
         }
+        i++;
     }
+
     __idle = true;
 }

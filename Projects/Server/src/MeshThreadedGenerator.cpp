@@ -6,7 +6,7 @@
 
 void MeshThreadedGenerator::threadedFunction() {
     state   = GENERATOR_IDLE;
-    ofLogVerbose() << "MeshThreadedGenerator :: threadedFunction" << endl;
+    ofLogVerbose() << "--||[MeshThreadedGenerator::threadedFunction]" << endl;
     meshGenerate = (f_meshGenerate)GetProcAddress(generateMeshLibrary, "meshGenerate");
 
     /*
@@ -16,7 +16,18 @@ void MeshThreadedGenerator::threadedFunction() {
     }
     */
 
-    ofAddListener(ofEvents().update, this, &MeshThreadedGenerator::processFrame);
+    unsigned long long minMillis = 1000/sys_data->fps;
+    unsigned long long currMill, baseMill;
+
+    while(isThreadRunning()) {
+        baseMill = ofGetElapsedTimeMillis();
+        processFrame();
+        currMill = ofGetElapsedTimeMillis();
+        if((currMill - baseMill) < minMillis) {
+            sleep(minMillis - (currMill - baseMill));
+        }
+    }
+    //ofAddListener(ofEvents().update, this, &MeshThreadedGenerator::processFrame);
 }
 
 MeshThreadedGenerator::~MeshThreadedGenerator() {
@@ -28,6 +39,8 @@ void MeshThreadedGenerator::exit() {
 }
 
 void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
+}
+void MeshThreadedGenerator::processFrame() {
     lock();
     if(state == GENERATOR_LOADED) {
         ThreadData * iter = (ThreadData *) frame.second;
@@ -40,7 +53,7 @@ void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
         int idMesh;
         PointsCloud* nbIN = NULL;
 
-        ofLogVerbose() << "MeshThreadedGenerator :: state == GENERATOR_LOADED " << nMTG << endl;
+        ofLogVerbose() << "--||[MeshThreadedGenerator::processFrame] state == GENERATOR_LOADED " << nMTG << endl;
         state           = GENERATOR_BUSY;
 
         if((frame.first != NULL) && (((ThreadData *) frame.first)->nubeLength >100)) { // En first viene un ThreadData con la nube de puntos.
@@ -64,15 +77,15 @@ void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
             faces            = new FaceStruct;
             numberFaces      = new int;
 
-            cout << "[MeshThreadedGenerator::processFrame] nubeLength " << td->nubeLength << endl;
+            cout << "[Procesando Nube] Generador: " << nMTG <<", Total puntos: " << td->nubeLength << endl;
             try {
                 //if(!descartado) {
                     meshGenerate(nbIN, &faces, numberFaces, nframe);
                 //}
 
-                ofLogVerbose() << "[MeshThreadedGenerator::processFrame] Termino de generar " << nframe << endl;
+                ofLogVerbose() << "--||[MeshThreadedGenerator::processFrame]  Termino de generar " << nframe << endl;
             }  catch (exception& e) {
-                cout << "[MeshThreadedGenerator::processFrame] FALLO EL GENERAR MALLA" << e.what();
+                cout << "--||[MeshThreadedGenerator::processFrame] FALLO EL GENERAR MALLA" << e.what();
                 frame.first = NULL;
             }
 
@@ -118,7 +131,7 @@ int MeshThreadedGenerator::getState() {
 
 void MeshThreadedGenerator::processMesh(std::pair <ThreadData *, ThreadData *> frame, int nframe) {
     lock();
-    ofLogVerbose() << "MeshThreadedGenerator :: processMesh nframe " << nframe << endl;
+    ofLogVerbose() << "--||[MeshThreadedGenerator::processMesh] nframe " << nframe << endl;
     this->frame     = frame;
     this->nframe    = nframe;
     state           = GENERATOR_LOADED;

@@ -63,23 +63,23 @@ void MainBufferRT::addFrame( ThreadData * frame , int cam, int cli) {
         ThreadData * iter = iniData;
         ThreadData * prev = iter;
         while((iter!=NULL) && !((iter->cliId == cli) &&(iter->camId == cam ))) {
-            ofLogVerbose() << "[MainBufferRT::addFrame] iter-cli: " << iter->cliId << ", cli: " << cli << ", camId: " << iter->camId << ", cam: " << cam;
+            //ofLogVerbose() << "[MainBufferRT::addFrame] iter-cli: " << iter->cliId << ", cli: " << cli << ", camId: " << iter->camId << ", cam: " << cam;
             prev = iter;
             iter = iter->sig;
         }
 
         if(iter == NULL) {
             prev->sig = frame;
-            ofLogVerbose() << "[MainBufferRT::addFrame] iter == NULL ";
+            //ofLogVerbose() << "[MainBufferRT::addFrame] iter == NULL ";
         } else {
             if(prev == iter) {
-                ofLogVerbose() << "[MainBufferRT::addFrame] " << prev << " == " << iter;
+               // ofLogVerbose() << "[MainBufferRT::addFrame] " << prev << " == " << iter;
                 iniData = frame;
                 iniData->sig = iter->sig;
                 ThreadData * tmp = iter;
                 tmp->releaseResources();
             } else {
-                ofLogVerbose() << "[MainBufferRT::addFrame] Else ";
+                //ofLogVerbose() << "[MainBufferRT::addFrame] Else ";
                 prev->sig = frame;
                 frame->sig = iter->sig;
                 ThreadData * tmp = iter;
@@ -121,18 +121,18 @@ std::pair <ThreadData *, ThreadData *> MainBufferRT::getNextFrame() {
 
     ThreadData * it = iniData;
     while(it!=NULL) {
-        ofLogVerbose() << "[MainBufferRT::getNextFrame] entro " << it << endl;
+        //ofLogVerbose() << "[MainBufferRT::getNextFrame] entro " << it << endl;
         pthread_mutex_lock(&myMutex);
         it->used = true;
         ThreadData * curr = ThreadData::Clone(it);
         pthread_mutex_unlock(&myMutex);
-        ofLogVerbose() << "[MainBufferRT::getNextFrame] clono " << curr << endl;
+        //ofLogVerbose() << "[MainBufferRT::getNextFrame] clono " << curr << endl;
         if( (curr != NULL) && ((curr->state == 2 ) || (curr->state == 3 ))) {
             if(curr->nubeLength > 0) {
                 if(ret.first == NULL) {
                     ret.first = ThreadData::Clone(curr);
                 } else {
-                    ofLogVerbose() << "[MainBufferRT::getNextFrame] Mergeando puntos.";
+                    //ofLogVerbose() << "[MainBufferRT::getNextFrame] Mergeando puntos.";
                     ret.first->mergePointClouds(curr);
                 }
             }
@@ -141,22 +141,22 @@ std::pair <ThreadData *, ThreadData *> MainBufferRT::getNextFrame() {
         if( (curr != NULL) && ((curr->state == 1 ) || (curr->state == 3 )) ) {
             ThreadData * td = ThreadData::Clone(curr);
             if(ret.second == NULL) {
-                ofLogVerbose() << "[MainBufferRT::getNextFrame] primera imagen RGB.";
+                //ofLogVerbose() << "[MainBufferRT::getNextFrame] primera imagen RGB.";
                 td->sig     = NULL;
             } else {
-                ofLogVerbose() << "[MainBufferRT::getNextFrame] agrego otra imagen imagen RGB. " << td;
+                //ofLogVerbose() << "[MainBufferRT::getNextFrame] agrego otra imagen imagen RGB. " << td;
                 td->sig     = ret.second;
             }
             ret.second  = td;
         }
         delete curr;
-        ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA a " << it << endl;
-        ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA b " << it->sig << endl;
+        //ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA a " << it << endl;
+        //ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA b " << it->sig << endl;
         it = it->sig;
-        ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA c " << it << endl;
+        //ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA c " << it << endl;
     }
 
-    ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA " << endl;
+    //ofLogVerbose() << "[MainBufferRT::getNextFrame] ACA " << endl;
     ThreadData * iter = ret.second;
     bool descartado = false;
     while(iter != NULL) {

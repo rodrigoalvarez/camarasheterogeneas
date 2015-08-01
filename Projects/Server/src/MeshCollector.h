@@ -53,6 +53,7 @@ class MeshCollector : public ofThread {
 
 		void threadedFunction();
 		void processFrame(ofEventArgs &e);
+		void processFrame();
 		void shareNextCompleteFrame();
 		void shareFrame(GeneratedResult *);
 		void exit();

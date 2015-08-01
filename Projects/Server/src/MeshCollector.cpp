@@ -9,7 +9,18 @@ void MeshCollector::threadedFunction() {
     ShareMesh  = (f_compartirMalla)GetProcAddress(memorySharedLibrary, "ShareMesh");
     shareImage = (f_ShareImage)GetProcAddress(memorySharedLibrary, "ShareImage");
 
-    ofAddListener(ofEvents().update, this, &MeshCollector::processFrame);
+    unsigned long long minMillis = 1000/sys_data->fps;
+    unsigned long long currMill, baseMill;
+
+    while(isThreadRunning()) {
+        baseMill = ofGetElapsedTimeMillis();
+        processFrame();
+        currMill = ofGetElapsedTimeMillis();
+        if((currMill - baseMill) < minMillis) {
+            sleep(minMillis - (currMill - baseMill));
+        }
+    }
+    //ofAddListener(ofEvents().update, this, &MeshCollector::processFrame);
 }
 
 void MeshCollector::exit() {
@@ -18,11 +29,13 @@ void MeshCollector::exit() {
 }
 
 void MeshCollector::processFrame(ofEventArgs &e) {
+}
+
+void MeshCollector::processFrame() {
     //Ver en http://www.cplusplus.com/reference/list/list/sort/
     int i = 0;
     for(i=0; ((i<sys_data->totalFreeCores) && !b_exit); i++) {
         if(threads[i].getState() == GENERATOR_COMPLETE) {
-            ofLogVerbose() << "[MeshCollector::processFrame]" << endl;
             bool esta = false;
             for (it=list.begin(); it!=list.end(); ++it) {
                 if((threads[i].result->nframe == (*it)->nframe)) esta = true;
@@ -69,10 +82,10 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
     if(gresult->hasDepth) {
         int numFaces = *gresult->numberFaces;
         //if(!descartado) {
-            ofLogVerbose() << "[MeshCollector::shareFrame] idMesh " << gresult->idMesh << ", numFaces:" << numFaces << endl;
-            for(int i = 0; i<numFaces; i++) {
+            ofLogVerbose() << "--||--[MeshCollector::shareFrame] idMesh " << gresult->idMesh << ", numFaces:" << numFaces << endl;
+            /*for(int i = 0; i<numFaces; i++) {
                 ofLogVerbose() << "[MeshCollector::shareFrame]" << ", p1_0: " << gresult->faces[i].p1[0] << ", p1_1: " << gresult->faces[i].p1[1]  << ", p1_2: " << gresult->faces[i].p1[2] << ", p2_0: " << gresult->faces[i].p2[0] << ", p2_1: " << gresult->faces[i].p2[1]  << ", p2_2: " << gresult->faces[i].p2[2] << ", p3_0: " << gresult->faces[i].p3[0] << ", p3_1: " << gresult->faces[i].p3[1]  << ", p3_2: " << gresult->faces[i].p3[2] << endl;
-            }
+            }*/
             ShareMesh(gresult->idMesh, numFaces, gresult->faces);
         //}
         delete [] gresult->faces;
@@ -87,7 +100,7 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
             i++;
             ofBuffer imageBuffer;
             ofSaveImage(iter->img.getPixelsRef(), imageBuffer, OF_IMAGE_FORMAT_JPEG);
-            iter->img.saveImage("mcollector_share_img_" + ofToString(i) + ".jpg");
+            //iter->img.saveImage("mcollector_share_img_" + ofToString(i) + ".jpg");
             FIMEMORY* stream        = FreeImage_OpenMemory((unsigned char*) imageBuffer.getBinaryBuffer(), imageBuffer.size());
             FREE_IMAGE_FORMAT fif   = FreeImage_GetFileTypeFromMemory( stream, 0 );
             FIBITMAP *dib(0);
@@ -96,7 +109,7 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
             pixels      = (unsigned char*)FreeImage_GetBits(dib);
             width       = FreeImage_GetWidth(dib);
             height      = FreeImage_GetHeight(dib);
-            ofLogVerbose() << "[MeshCollector::shareFrame] dib width: " << width << ", height: " << height << ", img.width: " << iter->img.getWidth() << ", img.height: " << iter->img.getHeight() << endl;
+            //ofLogVerbose() << "[MeshCollector::shareFrame] dib width: " << width << ", height: " << height << ", img.width: " << iter->img.getWidth() << ", img.height: " << iter->img.getHeight() << endl;
             idMomento   = iter->cliId;
             idMomento   = idMomento*10 + iter->cameraType;
             idMomento   = idMomento*10 + iter->camId;

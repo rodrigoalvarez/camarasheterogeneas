@@ -30,6 +30,7 @@ class ThreadData {
         bool compressed;
         bool released;
         bool used;
+        bool deletable;
 
         int cameraType; //0-Unknown, 1-RGB, 2-Depth Camera
         float *         xpix;
@@ -66,6 +67,7 @@ class ThreadData {
             cameraType  = 0;
             sig         = NULL;
             released    = false;
+            deletable   = true;
         }
 
         ~ThreadData() {
