@@ -233,8 +233,8 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
         return;
     }
 
-    //if(connError("7", false)) return;
-    //std::string llego = TCPSVR.receive(0);
+    if(connError("7", false)) return;
+    std::string llego = TCPSVR.receive(0);
 
     if(connError("1", false)) return;
     TCPSVR.sendRawBytesToAll((char*) &val0, sizeof(int));
@@ -287,7 +287,7 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
         ofLogVerbose() << "[Transmitter::sendFrame] HAY CONEXIONES ABIERTAS ";
     }
 
-    //llego = TCPSVR.receive(0);
+    llego = TCPSVR.receive(0);
     /*
     if(connError("7", false)) return;
     std::string llego = TCPSVR.receive(0); //Se tranca acá al recibir...
