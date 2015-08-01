@@ -12,7 +12,9 @@ class Transmitter : public ofThread {
 	public:
 		void threadedFunction();
 		void process(ofEventArgs &e);
+		void process();
 		bool checkConnError();
+		bool connError(std::string, bool);
 		void exit();
         int camWidth;
         int camHeight;
@@ -30,14 +32,16 @@ class Transmitter : public ofThread {
         bool connectionClosed;
         bool started;
         bool idle;
-
+        bool b_exit;
         Transmitter() {
             idle                = true;
             started             = false;
             connectionClosed    = false;
+            b_exit              = false;
         }
 
         ~Transmitter() {
+            b_exit = true;
             if(!started) return;
             //ofRemoveListener(ofEvents().update, this, &Transmitter::process);
         }

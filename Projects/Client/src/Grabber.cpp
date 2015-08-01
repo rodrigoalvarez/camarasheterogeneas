@@ -81,17 +81,20 @@ void Grabber::setup() {
             tONI[iONI].sys_data                   = gdata->sys_data;
             tONI[iONI].context                    = camera;
             tONI[iONI].startThread(true, false);
+            cout << "START THREAD 1" << endl;
             iONI ++;
         } else if(camera->use3D) {
             t3D[i3D]._id = i3D + iONI;
             t3D[i3D].sys_data                   = gdata->sys_data;
             t3D[i3D].context                    = camera;
             t3D[i3D].startThread(true, false);
+            cout << "START THREAD 2" << endl;
             i3D ++;
         } else {
             t2D[i2D].sys_data                   = gdata->sys_data;
             t2D[i2D].context                    = camera;
-            t2D[i2D].startThread(true, true);
+            t2D[i2D].startThread(true, false);
+            cout << "START THREAD 3" << endl;
             i2D ++;
         }
         camera = camera->sig;
@@ -101,9 +104,11 @@ void Grabber::setup() {
         transmitter.grabber     = this;
         transmitter.sys_data    = gdata->sys_data;
         transmitter.startThread(true, true);
+        cout << "START THREAD 4" << endl;
     }
     ofVideoGrabber vid;
     vid.listDevices();
+    myfont.loadFont("HelveticaNeueLTStd Bd.otf", 8);
 }
 
 void Grabber::setupGui() {
@@ -113,15 +118,12 @@ void Grabber::setupGui() {
 
     std::string exstr = "Exit";
     gui.addButton(exstr, b_exit_pressed);
-    //button.setName("Desconectar");
     gui.show();
 }
 
 //--------------------------------------------------------------
 void Grabber::update() {
     if(b_exit_fired) return;
-    cout << "conectar " << connected << " b_exit_pressed " << b_exit_pressed << " transmitter.state " << transmitter.state << endl;
-
     if(b_exit) {
         connected = false;
         if((transmitter.state == -1) || (transmitter.state == 3) || (!transmitter.started)) {
@@ -139,126 +141,90 @@ void Grabber::update() {
 
 }
 
-void Grabber::setVideoPreview(int tipo, int id, ofImage img) {
-
-    if(!img.isAllocated()) return;
-    ofImage tmpImg;
-    tmpImg.allocate(img.getWidth(), img.getHeight(), OF_IMAGE_COLOR);
-    tmpImg.setFromPixels(img.getPixelsRef());
-    tmpImg.resize(320, 240);
-
-    ofTexture * txt = NULL;
-    DebugTexture * dt= NULL;
-
-    for (it=list.begin(); it!=list.end(); ++it) {
-        if( ((*it)->tipo == tipo) && ((*it)->id == id) ) {
-            dt  = (*it);
-        }
+std::string Grabber::getCamTag(int id, int tipo) {
+    std::string stipo;
+    if(tipo == 0) {
+        stipo = "RGB";
+    } else if(tipo == 1) {
+        stipo = "KINECT";
+    } else {
+        stipo = "ONI";
     }
 
-    if(dt == NULL) {
-        dt                  = new DebugTexture();
-        dt->videoTexture    = new ofTexture();
-        dt->videoTexture->allocate(320, 240, GL_RGB);
-        dt->tipo            = tipo;
-        dt->id              = id;
-        //(tipo == 1 ? "KINECT" : "ONI")
-
-        std::string stipo;
-        if(tipo == 0) {
-            stipo = "RGB";
-        } else if(tipo == 1) {
-            stipo = "KINECT";
-        } else {
-            stipo = "ONI";
-        }
-        std::string title   = "TYPE: " + stipo + ", ID CAM: " + ofToString(id);
-        gui.addContent(title, *dt->videoTexture);
-        list.push_back(dt);
-        list.sort(compare_texture);
-    }
-
-    dt->videoTexture->loadData((unsigned char *)tmpImg.getPixels(), 320, 240, GL_RGB);
-    tmpImg.clear();
-    ofLogVerbose() << "[Server::setVideoPreview] end search" << endl;
+    std::string title   = "TYPE: " + stipo + ", ID CAM: " + ofToString(id);
+    return title;
 }
 
+void Grabber::drawTag(std::string msj, int x, int y) {
+    y += 15;
+    ofSetColor(0, 0, 0);
+    myfont.drawString(msj, x+1, y+145+1);
+    ofSetColor(250, 250, 250);
+    myfont.drawString(msj, x, y+145);
+    ofSetColor(256, 256, 256);
+}
+
+ofImage     tmpImg;
+int ySep    = 170;
+int items   = 1;
 //--------------------------------------------------------------
 void Grabber::draw() {
+    //return;
     if(b_exit) return;
-    if(gui.isOn()) {
-        gui.draw();
-    }
-}
-
-void Grabber::exit() {
-    //Stop the thread
-    cout << "[Grabber::exit]" << endl;
-    int i       = 0;
-    for(i; i<gdata->total2D; i++) {
-        if(t2D[i].isThreadRunning()) {
-            t2D[i].exit();
-            t2D[i].waitForThread();
-        }
-    }
-    //cout << "[Grabber::exit] a" << endl;
-    i = 0;
-    for(i; i<gdata->total3D; i++) {
-        if(t3D[i].isThreadRunning()) {
-            t3D[i].exit();
-            t3D[i].waitForThread();
-        }
-    }
-    //cout << "[Grabber::exit] b" << endl;
-    i = 0;
-    for(i; i<gdata->totalONI; i++) {
-        if(tONI[i].isThreadRunning()) {
-            tONI[i].exit();
-            tONI[i].waitForThread();
-        }
-    }
-    //cout << "[Grabber::exit] c" << endl;
-    if(gdata->sys_data->goLive == 1) {
-        if(transmitter.isThreadRunning()) {
-            transmitter.exit();
-            transmitter.waitForThread();
-            //transmitter.stopThread();
-        }
-    }
-    //cout << "[Grabber::exit] d" << endl;
-    //ofSleepMillis(1500);
-
-    if(t2D != NULL) {
-        delete t2D;
-    }
-    //cout << "[Grabber::exit] e" << endl;
-    if(t3D != NULL) {
-        delete t3D;
-    }
-    //cout << "[Grabber::exit] f" << endl;
-    if(tONI != NULL) {
-        delete tONI;
-    }
-    //cout << "[Grabber::exit] g" << endl;
-    if(tData != NULL) {
-        i = 0;
-        //cout << "[Grabber::exit] " << (gdata->total2D + gdata->total3D + gdata->totalONI) << endl;
-        for(i; i<gdata->total2D + gdata->total3D + gdata->totalONI; i++) {
-            if((tData[i].nubeLength > 100) && (tData[i].xpix != NULL)) {
-                delete tData[i].xpix;
-                delete tData[i].ypix;
-                delete tData[i].zpix;
+    //if(gui.isOn()) {
+        //return;
+        items       = 1;
+        int y       = ySep * items;
+        int x       = 15;
+        int i;
+        for(i=0; i<gdata->total2D; i++) {
+            t2D[i].lock();
+            if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) {
+                drawTag(getCamTag(t2D[i].context->id, 0), x, y);
+                if(t2D[i].img.isAllocated()) {
+                    tmpImg.clone(t2D[i].img);
+                    tmpImg.draw(x, y, 200, 150);
+                }
+                items++;
+                if(items >= 3) { x+=216; items = 0; }
+                y = ySep * items;
             }
+            t2D[i].unlock();
         }
-        //cout << "[Grabber::exit] por delete tData " << tData << endl;
-        //delete tData;
-    }
-    //cout << "[Grabber::exit] h" << endl;
-    if(gdata != NULL) {
-        delete gdata;
-    }
-
-    //cout << "[Grabber::exit] END" << endl;
+        for(i=0; i<gdata->total3D; i++) {
+            t3D[i].lock();
+            if(t3D[i].isDeviceInitted()) { //Si la cámara está inicializada.
+                if(t3D[i].context->use2D == 1) {
+                    drawTag(getCamTag(t3D[i].context->id, 1), x, y);
+                    if(t3D[i].img.isAllocated()) {
+                        tmpImg.clone(t3D[i].img);
+                        tmpImg.draw(x, y, 200, 150);
+                    }
+                    items++;
+                    if(items >= 3) { x+=216; items = 0; }
+                    y = ySep * items;
+                }
+            }
+            t3D[i].unlock();
+        }
+        for(i=0; i<gdata->totalONI; i++) {
+            tONI[i].lock();
+            if(tONI[i].isDeviceInitted()) { //Si la cámara está inicializada.
+                if(tONI[i].context->use2D == 1) {
+                    drawTag(getCamTag(tONI[i].context->id, 2), x, y);
+                    if(tONI[i].img.isAllocated()) {
+                        tmpImg.clone(tONI[i].img);
+                        tmpImg.draw(x, y, 200, 150);
+                    }
+                    items++;
+                    if(items >= 3) { x+=216; items = 0; }
+                    y = ySep * items;
+                }
+            }
+            tONI[i].unlock();
+        }
+        gui.draw();
+    //}
 }
 
 bool Grabber::isConnected() {
@@ -267,7 +233,7 @@ bool Grabber::isConnected() {
 
 //Operación invocada por Transmitter para refrezcar la información a trasmitir.
 void Grabber::updateThreadData() {
-
+    //return;
     ofLogVerbose() << "[Grabber::updateThreadData] " << " entrando. " << gdata->total2D;
     int di      = 0;
     int i       = 0;
@@ -283,17 +249,19 @@ void Grabber::updateThreadData() {
         //ofLogVerbose() << "[Grabber::updateThreadData] " << " if " << t2D[i].isDeviceInitted() << " " << t2D[i].isDataAllocated() << " " << t2D[i].context->id;
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
-            tData[di].img.clear();
             tData[di].compressed    = t2D[i].context->useCompression;
-            tData[di].img.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.getWidth(), t2D[i].img.getHeight(), OF_IMAGE_COLOR, true);
+            tData[di].img.clone(t2D[i].img);
             tData[di].qfactor       = t2D[i].context->rgbCompressionQuality;
-            setVideoPreview(0, t2D[i].context->id, t2D[i].img);
 
             int imgW                = (int)t2D[i].img.getWidth()*t2D[i].context->resolutionDownSample;
             int imgH                = (int)t2D[i].img.getHeight()*t2D[i].context->resolutionDownSample;
             tData[di].imgWidth      = imgW;
             tData[di].imgHeight     = imgH;
-            tData[di].img.resize(imgW, imgH);
+
+            if(t2D[i].context->resolutionDownSample != 1) {
+                tData[di].img.resize(imgW, imgH);
+            }
+
             tData[di].img.mirror(false, true);
 
             tData[di].imgrow1.set(t2D[i].context->imgrow1.x, t2D[i].context->imgrow1.y, t2D[i].context->imgrow1.z, t2D[i].context->imgrow1.w);
@@ -330,16 +298,20 @@ void Grabber::updateThreadData() {
                 tData[di].state    = DEVICE_2D;
                 //Clono la imágen
                 tData[di].compressed    = t3D[i].context->useCompression;
-                tData[di].img.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.getWidth(), t3D[i].img.getHeight(), OF_IMAGE_COLOR, true);
-                setVideoPreview(1, t3D[i].context->id, t3D[i].img);
+                tData[di].img.clone(t3D[i].img);
+                //tData[di].img.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.getWidth(), t3D[i].img.getHeight(), OF_IMAGE_COLOR, true);
+                //setVideoPreview(1, t3D[i].context->id, t3D[i].img);
 
                 int imgW                = (int)t3D[i].img.getWidth()*t3D[i].context->resolutionDownSample;
                 int imgH                = (int)t3D[i].img.getHeight()*t3D[i].context->resolutionDownSample;
                 tData[di].imgWidth      = imgW;
                 tData[di].imgHeight     = imgH;
 
-                tData[di].img.resize(imgW, imgH);
-                tData[di].img.mirror(false, true);
+                if(t3D[i].context->resolutionDownSample != 1) {
+                    tData[di].img.resize(imgW, imgH);
+                }
+
+                //tData[di].img.mirror(false, true);
                 tData[di].qfactor       = t3D[i].context->rgbCompressionQuality;
 
                 tData[di].nubeW = tData[di].nubeH = 0;
@@ -464,15 +436,20 @@ void Grabber::updateThreadData() {
                 tData[di].state    = DEVICE_2D;
                 //Clono la imágen
                 tData[di].compressed    = tONI[i].context->useCompression;
-                tData[di].img.setFromPixels(tONI[i].img.getPixels(), tONI[i].img.getWidth(), tONI[i].img.getHeight(), OF_IMAGE_COLOR, true);
-                setVideoPreview(2, tONI[i].context->id, tONI[i].img);
+                tData[di].img.clone(tONI[i].img);
+                //tData[di].img.setFromPixels(tONI[i].img.getPixels(), tONI[i].img.getWidth(), tONI[i].img.getHeight(), OF_IMAGE_COLOR, true);
+                //setVideoPreview(2, tONI[i].context->id, tONI[i].img);
 
                 int imgW                = (int)tONI[i].img.getWidth()*tONI[i].context->resolutionDownSample;
                 int imgH                = (int)tONI[i].img.getHeight()*tONI[i].context->resolutionDownSample;
                 tData[di].imgWidth      = imgW;
                 tData[di].imgHeight     = imgH;
+                //tData[di].img.mirror(false, true);
 
-                tData[di].img.resize(imgW, imgH);
+                if(tONI[i].context->resolutionDownSample != 1) {
+                    tData[di].img.resize(imgW, imgH);
+                }
+
                 tData[di].qfactor       = tONI[i].context->rgbCompressionQuality;
 
                 tData[di].nubeW = tData[di].nubeH = 0;
@@ -595,6 +572,81 @@ ofVec3f * Grabber::transformPoint(ofVec3f point, ofMatrix4x4 transform) {
     v            = transform * v;
     ofVec3f * v3 = new ofVec3f(v.x, v.y, v.z);
     return v3;
+}
+
+void Grabber::exit() {
+    //Stop the thread
+    cout << "[Grabber::exit]" << endl;
+    int i       = 0;
+    for(i; i<gdata->total2D; i++) {
+        if(t2D[i].isThreadRunning()) {
+            t2D[i].exit();
+            t2D[i].waitForThread();
+        }
+    }
+    //cout << "[Grabber::exit] a" << endl;
+    i = 0;
+    for(i; i<gdata->total3D; i++) {
+        if(t3D[i].isThreadRunning()) {
+            t3D[i].exit();
+            t3D[i].waitForThread();
+        }
+    }
+    //cout << "[Grabber::exit] b" << endl;
+    i = 0;
+    for(i; i<gdata->totalONI; i++) {
+        if(tONI[i].isThreadRunning()) {
+            tONI[i].exit();
+            tONI[i].waitForThread();
+        }
+    }
+    //cout << "[Grabber::exit] c" << endl;
+    if(gdata->sys_data->goLive == 1) {
+        if(transmitter.isThreadRunning()) {
+            transmitter.lock();
+            transmitter.exit();
+            cout << "ANTES DEL SLEEP " << ofGetElapsedTimeMillis() << endl;
+            ofSleepMillis(2000);
+            cout << "DESPUES DEL SLEEP " << ofGetElapsedTimeMillis() << endl;
+            transmitter.unlock();
+            transmitter.stopThread();
+            //transmitter.stopThread();
+        }
+    }
+    //cout << "[Grabber::exit] d" << endl;
+    //ofSleepMillis(1500);
+
+    if(t2D != NULL) {
+        delete t2D;
+    }
+    //cout << "[Grabber::exit] e" << endl;
+    if(t3D != NULL) {
+        delete t3D;
+    }
+    //cout << "[Grabber::exit] f" << endl;
+    if(tONI != NULL) {
+        delete tONI;
+    }
+    //cout << "[Grabber::exit] g" << endl;
+    if(tData != NULL) {
+        i = 0;
+        //cout << "[Grabber::exit] " << (gdata->total2D + gdata->total3D + gdata->totalONI) << endl;
+        for(i; i<gdata->total2D + gdata->total3D + gdata->totalONI; i++) {
+            if((tData[i].nubeLength > 100) && (tData[i].xpix != NULL)) {
+                delete tData[i].xpix;
+                delete tData[i].ypix;
+                delete tData[i].zpix;
+            }
+        }
+        //cout << "[Grabber::exit] por delete tData " << tData << endl;
+        //delete tData;
+    }
+    //cout << "[Grabber::exit] h" << endl;
+    if(gdata != NULL) {
+        delete gdata;
+    }
+
+    //cout << "[Grabber::exit] END" << endl;
 }
 
 //--------------------------------------------------------------

@@ -1,6 +1,8 @@
-#pragma once
+#ifndef THREAD2D_H
+#define THREAD2D_H
 
 #include "GlobalData.h"
+
 #include "ofxQTVideoSaver.h"
 #include "ofMain.h"
 
@@ -10,8 +12,10 @@ class Thread2D : public ofThread {
 	public:
 		void threadedFunction();
 		void process(ofEventArgs &e);
+		void process();
 		bool isDeviceInitted();
 		bool isDataAllocated();
+		bool b_exit;
         void exit();
 
         int  device;
@@ -30,14 +34,15 @@ class Thread2D : public ofThread {
         int snapCounter;
 
         Thread2D() {
-            idle = true;
+            idle    = true;
             started = false;
+            b_exit  = false;
         }
 
         ~Thread2D() {
+            b_exit = true;
             if(!started) return;
-
-            ofRemoveListener(ofEvents().update, this, &Thread2D::process);
+            //ofRemoveListener(ofEvents().update, this, &Thread2D::process);
             if(sys_data->goLive == 1) {
                 img.clear();
             }
@@ -47,3 +52,5 @@ class Thread2D : public ofThread {
             }
         }
 };
+
+#endif // THREAD2D_H

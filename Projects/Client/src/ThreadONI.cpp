@@ -9,33 +9,52 @@ void ThreadONI::threadedFunction() {
     openNIRecorder->startPlayer(context->file);
     openNIRecorder->setPaused(false);
     openNIRecorder->setLooped(true);
+    openNIRecorder->setMirror(true);
+
     dataAllocated = false;
 
-	if((context->use2D == 1) && (sys_data->goLive == 1)) {
+	if((context->use2D == 1) /*&& (sys_data->goLive == 1)*/) {
         img.allocate(context->resolutionX, context->resolutionX, OF_IMAGE_COLOR);
 	}
 
     deviceInited    = true;
 
     started = true;
-    ofAddListener(ofEvents().update, this, &ThreadONI::process);
+
+    unsigned long long minMillis = 1000/(sys_data->fps);
+    unsigned long long currMill, baseMill;
+
+    while(!b_exit/*isThreadRunning()*/) {
+        baseMill = ofGetElapsedTimeMillis();
+
+        process();
+        currMill = ofGetElapsedTimeMillis();
+        if((currMill - baseMill) < minMillis) {
+            ofSleepMillis(minMillis - (currMill - baseMill));
+        }
+
+    }
+    //ofAddListener(ofEvents().update, this, &ThreadONI::process);
 
 }
-
 void ThreadONI::process(ofEventArgs &e) {
+}
+
+void ThreadONI::process() {
     if(!started) return;
     if(!idle) {
-        ofLogVerbose() << "[ThreadONI::process] :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+        ofLogVerbose() << "[ThreadONI::process] :: NO IDLE / FPS ";
         return;
     }
     idle = false;
 
-    ofLogVerbose() << "[ThreadONI::process] :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
-
-    openNIRecorder->update();
-
-	updateData();
-
+    ofLogVerbose() << "[ThreadONI::process] :: IDLE / FPS ";
+    lock();
+        //if(!openNIRecorder->isContextReady()) return;
+        //openNIRecorder->nextFrame();
+        openNIRecorder->update();
+        updateData();
+    unlock();
     idle = true;
 }
 
@@ -44,22 +63,25 @@ void ThreadONI::updateData() {
     dataAllocated = false;
 
     if(deviceInited) {
-        lock();
+
         if(context->use2D) {
-            ofPixels&    ipixels    = openNIRecorder->getImagePixels();
-            if((context->use2D == 1) && (sys_data->goLive == 1)) {
+            if((context->use2D == 1) && (openNIRecorder->isNewFrame())) {
+                ofPixels&    ipixels    = openNIRecorder->getImagePixels();
+
                 img.setFromPixels(ipixels.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_COLOR, true);
                 if(context->resolutionDownSample < 1) {
                     img.resize(img.width * context->resolutionDownSample, img.height * context->resolutionDownSample);
                 }
-                //img.saveImage("player3.jpg");
             }
+            /**/
         }
-        if(context->use3D) {
+
+        if(context->use3D && (openNIRecorder->isNewFrame())) {
             spix    = openNIRecorder->getDepthRawPixels();
         }
+        /**/
         dataAllocated = true;
-        unlock();
+
     }
 }
 
@@ -72,6 +94,7 @@ bool ThreadONI::isDataAllocated() {
 }
 
 void ThreadONI::exit() {
+    b_exit = true;
     ofLogVerbose() << "[ThreadONI::exit]";
     stopThread();
 }

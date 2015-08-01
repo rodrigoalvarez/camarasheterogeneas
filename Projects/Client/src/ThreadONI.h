@@ -13,6 +13,7 @@ class ThreadONI : public ofThread {
 		void	threadedFunction();
 		void    updateData();
 		void process(ofEventArgs &e);
+		void process();
 		bool	isDeviceInitted();
         bool	isDataAllocated();
         void exit();
@@ -33,18 +34,21 @@ class ThreadONI : public ofThread {
 
         bool started;
         bool idle;
+        bool b_exit;
 
         ThreadONI() {
             //openNIRecorder  = NULL;
             deviceInited    = false;
             idle = true;
             started = false;
+            b_exit  = false;
         }
 
         ~ThreadONI() {
+            b_exit = true;
             if(!started) return;
 
-            ofRemoveListener(ofEvents().update, this, &ThreadONI::process);
+           // ofRemoveListener(ofEvents().update, this, &ThreadONI::process);
 
             //openNIRecorder->stop();
             // done

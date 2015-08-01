@@ -28,7 +28,7 @@ void Thread3D::threadedFunction() {
     openNIRecorder->setUseDepthRawPixels(true);
 
 
-    if((context->use2D == 1) && (sys_data->goLive == 1)) {
+    if((context->use2D == 1)) {
         img.allocate(context->resolutionX, context->resolutionX, OF_IMAGE_COLOR);
     }
 
@@ -43,25 +43,34 @@ void Thread3D::threadedFunction() {
     }
 
     started = true;
-    ofAddListener(ofEvents().update, this, &Thread3D::process);
+    //ofAddListener(ofEvents().update, this, &Thread3D::process);
 
-	/*while(isThreadRunning()) {
-	    ofSleepMillis(1000/sys_data->fps);
+    unsigned long long minMillis = 1000/sys_data->fps;
+    unsigned long long currMill, baseMill;
 
-	}*/
+    while(isThreadRunning()) {
+        baseMill = ofGetElapsedTimeMillis();
 
+        process();
+        currMill = ofGetElapsedTimeMillis();
+        if((currMill - baseMill) < minMillis) {
+            ofSleepMillis(minMillis - (currMill - baseMill));
+        }
+    }
 
 }
 
-void Thread3D::process(ofEventArgs &e) {
+void Thread3D::process(ofEventArgs &e) {}
+
+void Thread3D::process() {
     if(!started) return;
     if(!idle) {
-        ofLogVerbose() << "[Thread3D::process] :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+        ofLogVerbose() << "[Thread3D::process] :: NO IDLE / FPS ";
         return;
     }
     idle = false;
 
-    ofLogVerbose() << "[Thread3D::process] :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+    ofLogVerbose() << "[Thread3D::process] :: IDLE / FPS ";
 
     openNIRecorder->update();
 	updateData();
@@ -78,8 +87,8 @@ void Thread3D::updateData() {
     if(deviceInited) {
         lock();
         if(context->use2D) {
-            ofPixels&    ipixels    = openNIRecorder->getImagePixels();
-            if((context->use2D == 1) && (sys_data->goLive == 1)) {
+            if((context->use2D == 1) && (openNIRecorder->isNewFrame())) {
+                ofPixels&    ipixels    = openNIRecorder->getImagePixels();
                 img.setFromPixels(ipixels.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_COLOR, true);
 
                 if(context->resolutionDownSample < 1) {
@@ -87,7 +96,7 @@ void Thread3D::updateData() {
                 }
             }
         }
-        if(context->use3D) {
+        if(context->use3D && (openNIRecorder->isNewFrame())) {
             //openNIRecorder->
             spix    = openNIRecorder->getDepthRawPixels();
             //Falta aplicarle la transformación según lo que venga en la matriz.
@@ -107,6 +116,7 @@ bool Thread3D::isDataAllocated() {
 }
 
 void Thread3D::exit() {
+    b_exit = true;
     ofLogVerbose() << "[Thread3D::exit]";
     stopThread();
 }

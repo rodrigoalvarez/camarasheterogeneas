@@ -39,8 +39,8 @@ void Transmitter::threadedFunction() {
         std::cout << "No se pudo cargar la libreria: " << std::endl;
     }
     compress_img    = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
-    retry       = -1;
-    state       = -1;
+    retry           = -1;
+    state           = -1;
 
     std::string str =  ofToString(sys_data->cliId) + "|" + ofToString(sys_data->cliPort);
     cliId           = str;
@@ -55,8 +55,20 @@ void Transmitter::threadedFunction() {
         process();
     }
     */
+    cout << ">> DESCONECTADO " << endl;
+    unsigned long long minMillis = 1000/sys_data->fps;
+    unsigned long long currMill, baseMill;
 
-    ofAddListener(ofEvents().update, this, &Transmitter::process);
+    while(!b_exit/*isThreadRunning()*/) {
+        baseMill = ofGetElapsedTimeMillis();
+        process();
+        currMill = ofGetElapsedTimeMillis();
+        if((currMill - baseMill) < minMillis) {
+            //cout << "Sleep " << minMillis - (currMill - baseMill) << endl;
+            ofSleepMillis(minMillis - (currMill - baseMill));
+        }
+    }
+    //ofAddListener(ofEvents().update, this, &Transmitter::process);
 }
 
 bool Transmitter::checkConnError() {
@@ -98,21 +110,26 @@ bool Transmitter::checkConnError() {
     return connectionClosed;
 }
 
-void Transmitter::process(ofEventArgs &e) {
+int prevState = 0;
+
+void Transmitter::process(ofEventArgs &e) {}
+void Transmitter::process() {
+
     if(connectionClosed) return;
     if(!started) return;
+
     if(!idle) {
-        ofLogVerbose() << "[Transmitter::process] :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+        ofLogVerbose() << "[Transmitter::process] :: NO IDLE / FPS ";
         return;
     }
 
-    cout << "Transmitter::process state " << state << endl;
+    //cout << "Transmitter::process state " << state << endl;
 
-    ofLogVerbose() << "[Transmitter::process] :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
-
+    ofLogVerbose() << "[Transmitter::process] :: IDLE / FPS ";
+//return;
     connected = grabber->isConnected();
     if(connected && (state == -1)) {
-        cout << "Transmitter::process if(connected && (state == -1)) {" << endl;
+        //cout << "Transmitter::process if(connected && (state == -1)) {" << endl;
         state = 0;
         return;
     }
@@ -122,17 +139,17 @@ void Transmitter::process(ofEventArgs &e) {
             retry--;
         }
         if(retry == 0) {
-            cout << " RETRY " << endl;
+            cout << ">> INICIANDO RECONEXIÓN CON EL SERVIDOR " << endl;
+            ofLogVerbose()  << "[Transmitter::process]>> INICIANDO RECONEXIÓN CON EL SERVIDOR";
             state = 0;
         }
     }
 
     idle = false;
 
-
     if(state == 0) { // 0 - Todavía no se conectó al servidor
         try {
-            ofLogVerbose() << "[Transmitter::threadedFunction] state=0, conectando a " << sys_data->serverIp << "-" << sys_data->serverPort;
+            ofLogVerbose() << "[Transmitter::process] state=0, conectando a " << sys_data->serverIp << "-" << sys_data->serverPort;
             TCP.setup( sys_data->serverIp, sys_data->serverPort );
             if(TCP.isConnected()) {
                 TCPSVR.setup(sys_data->cliPort, true);
@@ -142,21 +159,23 @@ void Transmitter::process(ofEventArgs &e) {
                 grabber->setConnected(true);
                 connected = grabber->isConnected();
             }
+            cout << ">> CONECTADO A IP: " << sys_data->serverIp << ", PUERTO: " << sys_data->serverPort << endl;
+            ofLogVerbose()  << "[Transmitter::process]>> CONECTADO A IP: " << sys_data->serverIp << ", PUERTO: " << sys_data->serverPort;
         } catch (int e) {
-            ofLogVerbose() << "[Transmitter::threadedFunction] An exception occurred. Exception Nr. " << e;
+            ofLogVerbose() << "[Transmitter::process] An exception occurred. Exception Nr. " << e;
             state       = 3;
         }
     } else if(state == 2) { // 2 - Tiene cliente asignado.
         try {
+            lock();
             if(TCPSVR.getNumClients() > 0) {
                 if(TCPSVR.isClientConnected(0)) {
-
-                    ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Actualizando ultima informacion:";
+                    ofLogVerbose()  << endl << "[Transmitter::process] Actualizando ultima informacion:";
                     grabber->updateThreadData();
-                    ofLogVerbose()  << endl << "[Transmitter::threadedFunction] Saliendo de actualizar";
+                    ofLogVerbose()  << endl << "[Transmitter::process] Saliendo de actualizar";
                     sendFrame((grabber->total2D + grabber->total3D + grabber->totalONI), grabber->tData);
                 } else {
-                    ofLogVerbose() << "[Transmitter::threadedFunction] El servidor no está conectado.";
+                    ofLogVerbose() << "[Transmitter::process] El servidor no está conectado.";
                     state = -1;
                     grabber->setConnected(false);
                     connected = grabber->isConnected();
@@ -164,18 +183,20 @@ void Transmitter::process(ofEventArgs &e) {
                     retry   = 50;
                 }
             }
+            unlock();
         } catch (int e) {
-            ofLogVerbose() << "[Transmitter::threadedFunction] An exception occurred. Exception Nr. " << e;
+            ofLogVerbose() << "[Transmitter::process] An exception occurred. Exception Nr. " << e;
             state       = 3;
         }
     } else {
-        ofLogVerbose() << "[Transmitter::threadedFunction] state=3";
+        ofLogVerbose() << "[Transmitter::process] state=3";
     }
 
     idle = true;
 }
 
 void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
+    //return;
     //ofLogVerbose() << " al entrar a serdFrame " << tData[0].nubeH << endl;
     /*
     La idea es simular ahora el envío de un frame completo incluyendo sus imágenes y nubes de punto.
@@ -190,17 +211,9 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     int totalBytesSent      = 0;
     int messageSize         = 0;
 
-
-    ofLogVerbose()  << "[Transmitter::sendFrame] Por entrar a hacer compressImages " << totalCams;
     FrameUtils::compressImages(tData, totalCams, compress_img);
 
-
-    ofLogVerbose()  << "[Transmitter::sendFrame] Saliendo de hacer compressImages " << totalCams;
-
-
     int frameSize       = FrameUtils::getFrameSize(tData, totalCams);
-    ofLogVerbose()  << "[Transmitter::frameSize] frameSize:" << frameSize;
-
     //cout << " al entrar a serdFrame2 " << tData[0].nubeH << endl;
     char * bytearray    = FrameUtils::getFrameByteArray(tData, totalCams, frameSize);
 
@@ -220,18 +233,22 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
         return;
     }
 
-    if(checkConnError()) return;
+    if(connError("7", false)) return;
+    std::string llego = TCPSVR.receive(0);
+
+    if(connError("1", false)) return;
     TCPSVR.sendRawBytesToAll((char*) &val0, sizeof(int));
-    if(checkConnError()) return;
+    if(connError("2", false)) return;
     TCPSVR.sendRawBytesToAll((char*) &val1, sizeof(int));
 
     ofLogVerbose()  << endl;
     ofLogVerbose()  << "[Transmitter::sendFrame] ENVIANDO NUEVO FRAME:";
-    ofLogVerbose()  << "[Transmitter::sendFrame] totalCams " << totalCams;
-    ofLogVerbose()  << "[Transmitter::sendFrame] frameSize " << frameSize;
-    ofLogVerbose()  << "[Transmitter::sendFrame] cantidad de paquetes " << (val0 + val1);
-    if(checkConnError()) return;
-    ofLogVerbose()  << "[Transmitter::sendFrame] conexiones " << TCPSVR.getNumClients();
+    ofLogVerbose()  << "[Transmitter::sendFrame] Total de cámaras: " << totalCams;
+    ofLogVerbose()  << "[Transmitter::sendFrame] Tamaño del frame: " << frameSize << " bytes";
+    ofLogVerbose()  << "[Transmitter::sendFrame] v0: " << val0  << ", v1:" << val1;
+    ofLogVerbose()  << "[Transmitter::sendFrame] Cantidad de paquetes enviados: " << (val0 + val1);
+    if(connError("3", false)) return;
+    ofLogVerbose()  << "[Transmitter::sendFrame] Conexiones activas: " << TCPSVR.getNumClients();
     ofLogVerbose()  << endl;
 
     // FIN DE INTENTO ENVIAR FOTO A VER SI FALLA
@@ -239,20 +256,44 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     imageBytesToSend    = frameSize;
     totalBytesSent      = 0;
     messageSize         = sys_data->maxPackageSize;
-
-    while( imageBytesToSend > 1 ) {
+    int guarda          = 100;
+    while( (imageBytesToSend > 1) && (guarda>0) ) {
         if(imageBytesToSend > messageSize) {
-            if(checkConnError()) return;
-            TCPSVR.sendRawBytesToAll((const char*) &bytearray[totalBytesSent], messageSize);
-            imageBytesToSend    -= messageSize;
-            totalBytesSent      += messageSize;
+            if(connError("4", false)) return;
+            if(TCPSVR.getNumClients() > 0) {
+                TCPSVR.sendRawBytesToAll((const char*) &bytearray[totalBytesSent], messageSize);
+                imageBytesToSend    -= messageSize;
+                totalBytesSent      += messageSize;
+            }
         } else {
-            if(checkConnError()) return;
-            TCPSVR.sendRawBytesToAll((char*) &bytearray[totalBytesSent], imageBytesToSend);
-            totalBytesSent += imageBytesToSend;
-            imageBytesToSend = 0;
+            if(TCPSVR.getNumClients() > 0) {
+                if(connError("5", false)) return;
+                TCPSVR.sendRawBytesToAll((char*) &bytearray[totalBytesSent], imageBytesToSend);
+                totalBytesSent += imageBytesToSend;
+                imageBytesToSend = 0;
+            }
         }
+        ofLogVerbose() << "[Transmitter::sendFrame] envando " << guarda;
+        guarda--;
     }
+
+    if(guarda <= 0) {
+        ofLogVerbose() << "[Transmitter::sendFrame] FALLÓ EL ENVÍO ";
+    }
+    if(connError("6", false)) return;
+    if(TCPSVR.getNumClients() <= 0) {
+        ofLogVerbose() << "[Transmitter::sendFrame] NO HAY MÁS CONEXIONES ABIERTAS ";
+    } else {
+        ofLogVerbose() << "[Transmitter::sendFrame] HAY CONEXIONES ABIERTAS ";
+    }
+
+    llego = TCPSVR.receive(0);
+    /*
+    if(connError("7", false)) return;
+    std::string llego = TCPSVR.receive(0); //Se tranca acá al recibir...
+
+    ofLogVerbose() << "[Transmitter::sendFrame] RESPUESTA DEL SERVER " << llego;
+    */
 
     free(bytearray);
     int i = 0;
@@ -266,23 +307,50 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
 
     connected = grabber->isConnected();
     if(!connected && (state == 2)) {
+        cout << ">> DESCONECTANDO DEL SERVIDOR" << endl;
+        ofLogVerbose()  << "[Transmitter::sendFrame] DESCONECTANDO DEL SERVIDOR";
+        ofSleepMillis(2000);
         state    = -1;
         retry    = -1;
         int conn = -10;
+        if(connError("7", false)) return;
         TCPSVR.sendRawBytesToAll((char*) &conn, sizeof(int));
+        if(connError("8", false)) return;
         TCPSVR.close();
+        cout << ">> DESCONECTADO" << endl;
+        ofLogVerbose()  << "[Transmitter::sendFrame] DESCONECTADO";
         return;
     }
+}
+
+bool Transmitter::connError(std::string msj, bool unl) {
+    if(checkConnError()) {
+        ofLogVerbose() << ">>[Transmitter::receiveFrame] connError - Error " << msj;
+        if(unl) unlock();
+        return true;
+    } else {
+        ofLogVerbose() << ">>[Transmitter::receiveFrame] connError - Ok " << msj;
+    }
+    return false;
 }
 
 void Transmitter::exit() {
     ofLogVerbose() << "[Transmitter::exit]";
 
-    lock();
-
-    TCPSVR.close();
-
-    unlock();
-
-    stopThread();
+    b_exit = true;
+    connected   = grabber->isConnected();
+    cout << "[Transmitter::exit] " << endl;
+    if(connected && (state == 2)) {
+        cout << ">> DESCONECTANDO DEL SERVIDOR" << endl;
+        ofLogVerbose()  << "[Transmitter::sendFrame] DESCONECTANDO DEL SERVIDOR";
+        ofSleepMillis(1000);
+        state    = -1;
+        retry    = -1;
+        int conn = -10;
+        TCPSVR.sendRawBytesToAll((char*) &conn, sizeof(int));
+        TCPSVR.close();
+        cout << ">> DESCONECTADO" << endl;
+        ofLogVerbose()  << "[Transmitter::sendFrame] DESCONECTADO";
+        return;
+    }
 }

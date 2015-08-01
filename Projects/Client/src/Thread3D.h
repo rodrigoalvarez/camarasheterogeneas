@@ -13,6 +13,7 @@ class Thread3D : public ofThread {
 		void	threadedFunction();
 		void    updateData();
 		void process(ofEventArgs &e);
+		void process();
 		bool	isDeviceInitted();
         bool	isDataAllocated();
         void exit();
@@ -30,18 +31,21 @@ class Thread3D : public ofThread {
 
         bool started;
         bool idle;
+        bool b_exit;
 
         Thread3D() {
             openNIRecorder  = NULL;
             deviceInited    = false;
             idle = true;
             started = false;
+            b_exit  = false;
         }
 
         ~Thread3D() {
+            b_exit = true;
             if(!started) return;
 
-            ofRemoveListener(ofEvents().update, this, &Thread3D::process);
+            //ofRemoveListener(ofEvents().update, this, &Thread3D::process);
 
             openNIRecorder->stop();
             // done

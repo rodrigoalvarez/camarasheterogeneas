@@ -6,15 +6,19 @@ void Thread2D::threadedFunction() {
     first = true;
     snapCounter = 1;
 
+
     vidGrabber.setVerbose(true);
     vidGrabber.setDeviceID(context->deviceInstance);
+    vidGrabber.setDesiredFrameRate(sys_data->fps);
     vidGrabber.initGrabber(context->resolutionX, context->resolutionY);
+    //vidGrabber.setMirror(true);
+    /**/
     //return;
     string path = "cameras/2D/" + ofToString(context->id);
 
-   if(sys_data->goLive == 1) {
+   //if(sys_data->goLive == 1) {
         img.allocate(context->resolutionX, context->resolutionX, OF_IMAGE_COLOR);
-    }
+    //}
 
     if(sys_data->persistence == 1) {
         ofDirectory::createDirectory(path, true, true);
@@ -25,32 +29,45 @@ void Thread2D::threadedFunction() {
     }
 
     started = true;
-    /*
-    while(isThreadRunning()) {
-        //Thread2D::process();
-    }*/
-    ofAddListener(ofEvents().update, this, &Thread2D::process);
+    //ofAddListener(ofEvents().update, this, &Thread2D::process);
+    unsigned long long minMillis = 1000/sys_data->fps;
+    unsigned long long currMill, baseMill;
+
+    while(!b_exit/*isThreadRunning()*/) {
+        baseMill = ofGetElapsedTimeMillis();
+
+        process();
+        currMill = ofGetElapsedTimeMillis();
+        if((currMill - baseMill) < minMillis) {
+            ofSleepMillis(minMillis - (currMill - baseMill));
+        }
+    }
+
+}
+void Thread2D::process(ofEventArgs &e) {
 }
 
-void Thread2D::process(ofEventArgs &e) {
+void Thread2D::process() {
+
     ofLogVerbose() << "[Thread2D::process] " << endl;
     if(!started) return;
     if(!idle) {
-        ofLogVerbose() << "[Thread2D::process] :: NO IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+        ofLogVerbose() << "[Thread2D::process] :: NO IDLE / FPS ";
         return;
     }
     idle = false;
 
-    ofLogVerbose() << "[Thread2D::process] :: IDLE / FPS " << ofToString(ofGetFrameRate()) << endl;
+    ofLogVerbose() << "[Thread2D::process] :: IDLE / FPS ";
 
     vidGrabber.grabFrame();
+
     if (vidGrabber.isFrameNew()) {
-        //lock();
+        //
+        lock();
         isAllocated = false;
 
-        if(sys_data->goLive == 1) {
-            img.setFromPixels(vidGrabber.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_COLOR, true);
-        }
+
+        img.setFromPixels(vidGrabber.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_COLOR, true);
 
         if(sys_data->persistence == 1) {
             //nuevo QT
@@ -62,10 +79,12 @@ void Thread2D::process(ofEventArgs &e) {
         }
 
         isAllocated = true;
-        //unlock();
+        unlock();
+        //
         snapCounter++;
     }
     idle = true;
+    //return;
 }
 
 bool Thread2D::isDeviceInitted() {
@@ -77,6 +96,7 @@ bool Thread2D::isDataAllocated() {
 }
 
 void Thread2D::exit() {
+    b_exit = true;
     ofLogVerbose() << "[Thread2D::exit]";
     stopThread();
 }

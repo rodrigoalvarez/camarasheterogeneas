@@ -41,6 +41,8 @@ class Grabber : public IGrabber {
 		bool isConnected();
 
 		void setupGui();
+		std::string getCamTag(int id, int tipo);
+		void drawTag(std::string msj, int x, int y);
 		ofVec3f * transformPointDepth(ofVec3f point, ofVec3f vtrans);
         ofVec3f * transformPoint(ofVec3f point, ofMatrix4x4 transform);
         Thread2D * t2D;
@@ -69,6 +71,8 @@ class Grabber : public IGrabber {
         void setConnected(bool);
         ofxOpenNI * openNIRecorder;
         ofxOpenNI * openNIPlayer;
+
+        ofTrueTypeFont myfont;
 
         std::list<DebugTexture *> list;
         std::list<DebugTexture *>::iterator it;
