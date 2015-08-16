@@ -111,11 +111,6 @@
 			<Add library="Iphlpapi" />
 			<Add library="Comdlg32" />
 		</Linker>
-		<ExtraCommands>
-			<Add after='xcopy /e /i /y &quot;$(PROJECT_DIR)C:\openframeworks\export\win_cb\*.dll&quot;  &quot;$(PROJECT_DIR)bin&quot;' />
-			<Add after='cmd /c if not exist &quot;$(PROJECT_DIR)bin/data&quot; mkdir &quot;$(PROJECT_DIR)bin/data&quot;' />
-			<Mode after="always" />
-		</ExtraCommands>
 		<Unit filename="C:/openframeworks/addons/ofxSharedMemory/src/ofxSharedMemory.h">
 			<Option virtualFolder="addons/ofxSharedMemory/src" />
 		</Unit>

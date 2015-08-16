@@ -96,7 +96,6 @@ void MemoryCheck(int* Id) {
 
 void DLL_EXPORT ShareImage(int* imageId, unsigned char* pixels, int* wPixels, int* hPixels) {
 
-
     ofxSharedMemory<int*> memoryMappedImageId;
     ofxSharedMemory<int*> memoryMappedImageSizeW;
     ofxSharedMemory<int*> memoryMappedImageSizeH;
