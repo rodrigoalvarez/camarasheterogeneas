@@ -35,13 +35,13 @@ MeshThreadedGenerator::~MeshThreadedGenerator() {
 }
 
 void MeshThreadedGenerator::exit() {
-    ofRemoveListener(ofEvents().update, this, &MeshThreadedGenerator::processFrame);
+    //ofRemoveListener(ofEvents().update, this, &MeshThreadedGenerator::processFrame);
 }
 
 void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
 }
 void MeshThreadedGenerator::processFrame() {
-    lock();
+
     if(state == GENERATOR_LOADED) {
         ThreadData * iter = (ThreadData *) frame.second;
         /*bool descartado = false;
@@ -113,10 +113,10 @@ void MeshThreadedGenerator::processFrame() {
         //}
 
         /**/
+        lock();
         state   = GENERATOR_COMPLETE;
+        unlock();
     }
-
-    unlock();
 }
 
 void MeshThreadedGenerator::setState(int state) {

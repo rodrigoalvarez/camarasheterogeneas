@@ -16,6 +16,7 @@ struct t_data {
     int      maxReceiveFrameBuffer;
     int      processMostRecent;
     int      totalFreeCores;
+    bool     allowCompression;
 };
 
 class ServerGlobalData {

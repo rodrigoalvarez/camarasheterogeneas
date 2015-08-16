@@ -26,6 +26,8 @@ class FrameBuffer {
 		*/
 		std::pair <int, ThreadData *> getHeadFrame();
 
+		int length();
+
 		FrameBuffer();
 		~FrameBuffer();
 };

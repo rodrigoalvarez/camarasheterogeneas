@@ -41,6 +41,17 @@ void ThreadServer::threadedFunction() {
     }
     decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
 
+    pthread_mutex_init(&myMutex, NULL);
+
+    HINSTANCE hGetProcIDDLLPC;
+    hGetProcIDDLLPC   =  LoadLibraryA("FrameCompression.dll");
+    if (!hGetProcIDDLLPC) {
+        std::cout << "No se pudo cargar la libreria: " << std::endl;
+    }
+
+	frame_compress     = (f_compress)       GetProcAddress(hGetProcIDDLLPC, "frame_compress");
+    frame_uncompress   = (f_uncompress)     GetProcAddress(hGetProcIDDLLPC, "frame_uncompress");
+
     ofLogVerbose() << "[ThreadServer::threadedFunction] " << this->ip << ":" << this->port;
     TCPCLI.setup(this->ip, this->port, true);
 
@@ -58,6 +69,9 @@ void ThreadServer::threadedFunction() {
             sleep(minMillis - (currMill - baseMill));
         }
     }
+
+
+
     //ofAddListener(ofEvents().update, this, &ThreadServer::receiveFrame);
 }
 
@@ -107,11 +121,11 @@ void ThreadServer::receiveFrame(ofEventArgs &e) {}
 
 bool ThreadServer::connError(std::string msj, bool unl) {
     if(checkConnError()) {
-        ofLogVerbose() << ">>[ThreadServer::receiveFrame] connError - Error " << msj;
-        if(unl) unlock();
+        //ofLogVerbose() << ">>[ThreadServer::receiveFrame] connError - Error " << msj;
+        //if(unl) unlock();
         return true;
     } else {
-        ofLogVerbose() << ">>[ThreadServer::receiveFrame] connError - Ok " << msj;
+        //ofLogVerbose() << ">>[ThreadServer::receiveFrame] connError - Ok " << msj;
     }
     return false;
 }
@@ -130,7 +144,7 @@ void ThreadServer::receiveFrame() {
         if(connError("1", false)) return;
         if(TCPCLI.isConnected()) {
 
-            lock();
+            //lock();
             int currTotal        = 0;
             int numBytes         = 0;
 
@@ -157,7 +171,7 @@ void ThreadServer::receiveFrame() {
                     return;
                 }
             } else {
-                unlock();
+                //unlock();
                 return;
             }
 
@@ -172,15 +186,17 @@ void ThreadServer::receiveFrame() {
                     TCPCLI.send("OK");
                     TCPCLI.close();
                 } else {
-                    unlock();
+                    //unlock();
                     return;
                 }
 
                 connectionClosed    = true;
                 idle                = true;
                 closed              = true;
+                pthread_mutex_lock(&myMutex);
                 fb.~FrameBuffer();
-                unlock();
+                pthread_mutex_unlock(&myMutex);
+                //unlock();
                 return;
             }
             if(connError("7", true)) return;
@@ -188,7 +204,7 @@ void ThreadServer::receiveFrame() {
                 if(connError("8", true)) return;
                 recSize = TCPCLI.receiveRawBytes((char*) &v1, sizeof(int));
             } else {
-                unlock();
+                //unlock();
                 return;
             }
 
@@ -202,28 +218,29 @@ void ThreadServer::receiveFrame() {
 
             float millisNow = ofGetElapsedTimeMillis();
             ofLogVerbose() << ">>[ThreadServer::receiveFrame] RECIBIENDO NUEVO FRAME: " << currentTime << ", v0: " << v0 << ", v1: " << v1;
-            int guarda = 100;
+            int guarda = 5000;
             do {
                 char * recBytearray  = new char [sys_data->maxPackageSize];
-                ofLogVerbose() << ">>[ThreadServer::receiveFrame] Inicio del DO";
+                //ofLogVerbose() << ">>[ThreadServer::receiveFrame] Inicio del DO";
+                //ofLogVerbose() << ">>[ThreadServer::receiveFrame] MAX_PACKAGE_SIZE " << sys_data->maxPackageSize;
                 if(connError("9", true)) return;
                 if(TCPCLI.isConnected()) {
-                    ofLogVerbose() << ">>[ThreadServer::receiveFrame] isConnected";
+                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] isConnected";
                     if(connError("10", true)) return;
                     numBytes             = TCPCLI.receiveRawBytes((char*) &recBytearray[0], sys_data->maxPackageSize);
                 } else {
                     ofLogVerbose() << ">>[ThreadServer::receiveFrame] !isConnected - delete y return";
                     delete recBytearray;
-                    unlock();
+                    //unlock();
                     return;
                 }
 
                 if(numBytes > 0 ) {
-                    ofLogVerbose() << ">>[ThreadServer::receiveFrame] numBytes > 0";
+                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] numBytes > 0";
                     currBytearray        = FrameUtils::addToBytearray(recBytearray, numBytes, currBytearray, currTotal);
                     currTotal           += numBytes;
                 } else {
-                    ofLogVerbose() << ">>[ThreadServer::receiveFrame] numBytes < 0";
+                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] numBytes < 0";
                     if(checkConnError()) {
                         ofLogVerbose() << ">>[ThreadServer::receiveFrame] connError";
 
@@ -242,7 +259,7 @@ void ThreadServer::receiveFrame() {
             } while((currTotal < (v0*sys_data->maxPackageSize + v1)) && (guarda>0) && !(b_exit));
 
             if(b_exit) {
-                unlock();
+                //unlock();
                 return;
             }
 
@@ -255,16 +272,30 @@ void ThreadServer::receiveFrame() {
                 ofLogVerbose() << ">>[ThreadServer::receiveFrame] Se recibio frame de: " << currTotal << " bytes";
 
                 if(currTotal > 0) {
+                    vector< unsigned char > uncompressed;
+
+                    if(sys_data->allowCompression) {
+                        std::vector<unsigned char> result(currBytearray, currBytearray + currTotal);
+                        uncompressed    = frame_uncompress(result);
+                        delete currBytearray;
+                        currBytearray   = new char[uncompressed.size()];
+                        memcpy(currBytearray, (char *) &uncompressed[0], uncompressed.size());
+                        //currBytearray   = (char *) &uncompressed[0];
+                    }
+
+                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] por hacer el getThreadDataFromByteArray";
 
                     std::pair <int, ThreadData *>  tPair = FrameUtils::getThreadDataFromByteArray( currBytearray );
 
-                    ofLogVerbose() << ">>[ThreadServer::receiveFrame] Por agregar frame a buffer con " << tPair.first;
+                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] Por agregar frame a buffer con " << tPair.first;
 
                     FrameUtils::decompressImages(tPair.second, tPair.first, decompress_img);
 
+                    pthread_mutex_lock(&myMutex);
                     fb.addFrame(tPair.second, tPair.first);
-
+                    ofLogVerbose() << ">>[ThreadServer::receiveFrame] BUFFER LENGHT " << fb.length();
                     ofLogVerbose() << ">>[ThreadServer::receiveFrame] Estado del buffer de este ThreadServer: fb.tope " << fb.tope  << ", fb.base " << fb.base;
+                    pthread_mutex_unlock(&myMutex);
                 }
             } else {
                 if(connError("13", true)) return;
@@ -273,7 +304,7 @@ void ThreadServer::receiveFrame() {
                 }
             }
 
-            unlock();
+            //unlock();
         }
 
     } catch (exception& e) {
@@ -288,7 +319,7 @@ char * ThreadServer::getFrame() {
     ofLogVerbose() << "[ThreadServer::getFrame]";
     lock();
     return currBytearray;
-    unlock();
+    //unlock();
 }
 
 void ThreadServer::exit() {
@@ -303,6 +334,7 @@ void ThreadServer::exit() {
         TCPCLI.close();
     }
 
-    unlock();
+    pthread_mutex_destroy(&myMutex);
+    //unlock();
     stopThread();
 }

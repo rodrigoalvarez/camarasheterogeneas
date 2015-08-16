@@ -12,8 +12,8 @@
 #include "FreeImage.h"
 
 using namespace std;
-
-int proc = 0;
+int i       = 0;
+int proc    = 0;
 void MeshGenerator::threadedFunction() {
     if(buffer == NULL) return;
     currTProcesor   = 0;
@@ -34,12 +34,13 @@ void MeshGenerator::threadedFunction() {
     collector->startThread(true, false);
     started         = true;
 
-    unsigned long long minMillis = 1000/sys_data->fps;
+    unsigned long long minMillis = 1000/(sys_data->fps);
     unsigned long long currMill, baseMill;
 
     while(isThreadRunning()) {
         baseMill = ofGetElapsedTimeMillis();
         processFrame();
+
         currMill = ofGetElapsedTimeMillis();
         if((currMill - baseMill) < minMillis) {
             sleep(minMillis - (currMill - baseMill));
@@ -67,31 +68,29 @@ void MeshGenerator::processFrame(ofEventArgs &e) {
 void MeshGenerator::processFrame() {
 
     if(!started) return;
-    if(!__idle) {
-        ofLogVerbose() << "--[MeshGenerator::processFrame] NO IDLE / FPS ";
-        return;
-    }
-    __idle = false;
-    ofLogVerbose() << "--[MeshGenerator::processFrame] IDLE / FPS ";
 
-    int i = 0;
-    while(!b_exit && (i<sys_data->totalFreeCores)) {
+    //int i = 0;
+    int j = 0;
+    while(!b_exit && (j<sys_data->totalFreeCores)) {
         if(threads[i].getState() == GENERATOR_IDLE) {
+            srvinst->computeFrames();
             std::pair <ThreadData *, ThreadData *> frame = buffer->getNextFrame();
-            //cout << "Generador " << i << " libre" << endl;
+            ofLogVerbose() << "Generador " << i << " libre";
             if((frame.first != NULL) || (frame.second != NULL)) {
-            //    cout << "Asignado a Generador " << i << endl;
+                ofLogVerbose() << "Asignado a Generador " << i;
                 threads[i].processMesh(frame, nframe);
                 nframe++;
+                i = (i + 1) % sys_data->totalFreeCores;
                 break;
             } else {
-            //    cout << "No había nada para asignar al generador " << i << endl;
+                ofLogVerbose() << "No había nada para asignar al generador " << i;
             }
         } else {
-        //    cout << "Generador " << i << " ocupado" << endl;
+            ofLogVerbose() <<  "Generador " << i << " ocupado" << endl;
         }
-        i++;
+        j++;
+        //i++;
+        i = (i + 1) % sys_data->totalFreeCores;
     }
 
-    __idle = true;
 }

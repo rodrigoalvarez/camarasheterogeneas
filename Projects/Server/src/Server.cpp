@@ -109,9 +109,9 @@ void Server::setup() {
         tservers[i] = NULL;
 	}
 
-
     generator.sys_data  = gdata->sys_data;
     generator.buffer    = mb;
+    generator.srvinst   = this;
     generator.startThread(true, false);
 
 }
@@ -124,13 +124,10 @@ void Server::setup() {
 void Server::update() {
     if(b_exit_fired) return;
     if(b_exit) {
-        //connected = false;
-        //if((transmitter.state == -1) || (transmitter.state == 3) || (!transmitter.started)) {
-            if(!b_exit_fired) {
-                b_exit_fired = true;
-                ofExit();
-            }
-        //}
+        if(!b_exit_fired) {
+            b_exit_fired = true;
+            ofExit();
+        }
         return;
     }
 
@@ -138,7 +135,6 @@ void Server::update() {
         b_exit = true;
     }
 
-    ofLogVerbose() << "Server :: FPS " << ofToString(ofGetFrameRate()) << endl;
     for(int i = 0; i < TCP.getLastID(); i++) { // getLastID is UID of all clients
         if( TCP.isClientConnected(i) ) { // check and see if it's still around
             string str = TCP.receive(i);
@@ -171,7 +167,6 @@ void Server::update() {
             }
         }
     }
-    computeFrames();
 }
 
 ofImage     tmpImg;
@@ -189,13 +184,18 @@ void Server::computeFrames() {
             //cout << "[Server::computeFrames] IS threadRunning " << tservers[i]->connectionClosed << endl;
             int currCam = 1;
             ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer lock " << endl;
-            tservers[i]->lock();
+            //tservers[i]->lock();
+            pthread_mutex_lock(&tservers[i]->myMutex);
+
             ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer getHeadFrame " << endl;
+            ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Largo del buffer " << tservers[i]->fb.length();
             std::pair <int, ThreadData *> head      = tservers[i]->fb.getHeadFrame();
+            ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Largo del buffer despues de tomar " << tservers[i]->fb.length() << endl;
+            pthread_mutex_unlock(&tservers[i]->myMutex);
+
             if((ThreadData *) head.second) {
                 ((ThreadData *) head.second)->deletable   = false;
             }
-            ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Tope del buffer tiene " << head.first << " vistas de camaras.";
 
             for(int c = 0; c < head.first; c++) {
                 if(gui.isOn()) {
@@ -211,7 +211,7 @@ void Server::computeFrames() {
                 mb->addFrame(&head.second[c], head.second[c].camId, head.second[c].cliId);
             }
 
-            tservers[i]->unlock();
+            //tservers[i]->unlock();
         } else {
             if(tservers[i]->isThreadRunning()) {
                 cout << "STOP THREAD" << endl;
@@ -242,13 +242,13 @@ void Server::draw() {
         int y           = ySep * items + 15;
         int x           = 15;
         gui.draw();
-        for(int i=0; i<drawables; i++) {
-            drawTag(drawableTags[i], x, y);
+        /*for(int i=0; i<drawables; i++) {
+            //drawTag(drawableTags[i], x, y);
             drawableImages[i].draw(x, y, 200, 150);
             items++;
             if(items >= 3) { x+=216; items = 0; }
             y = ySep * items;
-        }
+        }*/
     }
 }
 

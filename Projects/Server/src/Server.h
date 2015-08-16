@@ -13,6 +13,8 @@
 #include "MeshGenerator.h"
 #include "Constants.h"
 #include "ServerGlobalData.h"
+#include "IServer.h"
+#include <pthread.h>
 
 struct t_translation {
     int translationX;
@@ -39,7 +41,7 @@ struct t_completeFrame {
     t_rotation * arrRotation;
 };
 
-class Server : public ofBaseApp {
+class Server : public IServer {
 
 	public:
 		void setup();

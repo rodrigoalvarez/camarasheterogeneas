@@ -7,6 +7,10 @@
 #include "FrameUtils.h"
 #include "ServerGlobalData.h"
 #include "FrameBuffer.h"
+#include <pthread.h>
+
+typedef std::vector< unsigned char > (*f_compress) (const std::vector< unsigned char > & src);
+typedef std::vector< unsigned char > (*f_uncompress) (const std::vector< unsigned char > & src);
 
 class ThreadServer : public ofThread {
 
@@ -23,9 +27,9 @@ class ThreadServer : public ofThread {
 
         ~ThreadServer() {
             if(!started) return;
-            //ofRemoveListener(ofEvents().update, this, &ThreadServer::receiveFrame);
         }
 
+        pthread_mutex_t myMutex;
 		void threadedFunction();
 		bool closed;
 		int port;
@@ -50,4 +54,6 @@ class ThreadServer : public ofThread {
 		bool connectionClosed;
 		bool checkConnError();
 		bool connError(std::string msj, bool unl);
+		f_compress       frame_compress;
+        f_uncompress     frame_uncompress;
 };

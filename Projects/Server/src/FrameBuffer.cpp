@@ -56,9 +56,7 @@ void FrameBuffer::addFrame(ThreadData * frame, int totalCams) {
             if(buffer[base] /*&& buffer[base]->deletable*/) {
                 cout << "DELETABLE EN TRUE 2" << endl;
                 delete buffer[base];
-            }/* else {
-                cout << "DELETABLE EN FALSE 2" << endl;
-            }*/
+            }
         } catch (int e) {
             ofLogWarning() << "[FrameBuffer::addFrame]: An exception occurred. Exception Nr. " << e;
         }
@@ -85,4 +83,16 @@ std::pair <int, ThreadData *> FrameBuffer::getHeadFrame() {
 
     base         = ((base + 1) % MAX_BUFF_SIZE);
     return retVal;
+}
+
+int FrameBuffer::length() {
+    ofLogVerbose() << "[FrameBuffer::length] " << tope << ", " << base;
+    if(tope == base){
+        if(buffer[base] == NULL) return 0;
+        //int max = MAX_BUFFER_SIZE;
+        if(buffer[base] != NULL) return MAX_BUFF_SIZE;
+    }
+
+    if(tope > base) return tope - base;
+    return tope + (MAX_BUFF_SIZE - base);
 }

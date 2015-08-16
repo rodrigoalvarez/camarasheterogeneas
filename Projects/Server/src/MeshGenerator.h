@@ -10,6 +10,7 @@
 #include "ServerGlobalData.h"
 #include "MeshThreadedGenerator.h"
 #include "MeshCollector.h"
+#include "IServer.h"
 //#include "ofxSharedMemory.h"
 
 /*struct FaceStruct
@@ -44,6 +45,7 @@ class MeshGenerator : public ofThread {
 		void processFrame();
 		void exit();
 		MainBufferRT * buffer;
+		IServer * srvinst;
 		MeshThreadedGenerator * threads;
 		MeshCollector * collector;
 		t_data * sys_data;
