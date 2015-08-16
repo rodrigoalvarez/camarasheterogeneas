@@ -2,5 +2,7 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
 		<Project filename="Client.cbp" active="1" />
+		<Project filename="../Servidor/Servidor.cbp" />
+		<Project filename="../../prueba_kinect_openni/prueba_kinect_openni.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

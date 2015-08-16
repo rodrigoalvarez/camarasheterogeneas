@@ -139,7 +139,7 @@ class FrameUtils {
 
                         //ofPixels p = tData[i].img.getPixelsRef();
                         //totSize += p.size();
-                        ofLogVerbose() << "[FrameUtils::getFrameSize] sumando el size " << tData[i].compSize << endl;
+                        //ofLogVerbose() << "[FrameUtils::getFrameSize] sumando el size " << tData[i].compSize << endl;
                         totSize += tData[i].compSize;
 
                         totSize += sizeof(int)*3; //imgWidth, imgHeight, compressed
@@ -230,7 +230,7 @@ class FrameUtils {
                     memcpy(&(tData[i].cameraType),  (off_cameraType), sizeof(int));
                     memcpy(&(tData[i].curTime),     (off_curTime),    sizeof(timeval));
 
-                    ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - cliId: " << tData[i].cliId << ", camId: " << tData[i].camId << ", state: " << tData[i].state  << ", cameraType: " << tData[i].cameraType;
+                    //ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - recuperado - cliId: " << tData[i].cliId << ", camId: " << tData[i].camId << ", state: " << tData[i].state  << ", cameraType: " << tData[i].cameraType;
 
                     start = off_curTime   + sizeof(timeval);
 
@@ -251,7 +251,7 @@ class FrameUtils {
 
                             memcpy(&(tData[i].compSize),     (off_imgBArrSize),     sizeof(int));
 
-                            ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - Recibida imagen de size: " << tData[i].compSize;
+                            //ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - Recibida imagen de size: " << tData[i].compSize;
 
                             memcpy(&(tData[i].imgrow1.x),   (off_imgXYZ),                        sizeof(float));
                             memcpy(&(tData[i].imgrow1.y),   (off_imgXYZ + sizeof(float)),        sizeof(float));
@@ -273,10 +273,12 @@ class FrameUtils {
                             memcpy(&(tData[i].imgrow4.z),   (off_imgXYZ + sizeof(float) * 14),   sizeof(float));
                             memcpy(&(tData[i].imgrow4.w),   (off_imgXYZ + sizeof(float) * 15),   sizeof(float));
 
+                            /*
                             ofLogVerbose() << "[FrameUtils::getFrameByteArray] - imgrow1.x: " << tData[i].imgrow1.x << ", imgrow1.y: " << tData[i].imgrow1.y << ", imgrow1.z: " << tData[i].imgrow1.z << ", imgrow1.w: " << tData[i].imgrow1.w;
                             ofLogVerbose() << "[FrameUtils::getFrameByteArray] - imgrow2.x: " << tData[i].imgrow2.x << ", imgrow2.y: " << tData[i].imgrow2.y << ", imgrow2.z: " << tData[i].imgrow2.z << ", imgrow2.w: " << tData[i].imgrow2.w;
                             ofLogVerbose() << "[FrameUtils::getFrameByteArray] - imgrow3.x: " << tData[i].imgrow3.x << ", imgrow3.y: " << tData[i].imgrow3.y << ", imgrow3.z: " << tData[i].imgrow3.z << ", imgrow3.w: " << tData[i].imgrow3.w;
                             ofLogVerbose() << "[FrameUtils::getFrameByteArray] - imgrow4.x: " << tData[i].imgrow4.x << ", imgrow4.y: " << tData[i].imgrow4.y << ", imgrow4.z: " << tData[i].imgrow4.z << ", imgrow4.w: " << tData[i].imgrow4.w;
+                            */
 
                             tData[i].compImg    = new char[tData[i].compSize];
                             memcpy((tData[i].compImg), ((unsigned char *) off_imagebytearray), tData[i].compSize);
@@ -313,7 +315,7 @@ class FrameUtils {
                             memcpy(&(h),            (off_pcHeight),    sizeof(int));
                             memcpy(&(nubeLength),   (off_pcLength),    sizeof(int));
 
-                            ofLogVerbose() << "Recibida nube de: " << w << "x" << h << " - total puntos: " << nubeLength;
+                            //ofLogVerbose() << "Recibida nube de: " << w << "x" << h << " - total puntos: " << nubeLength;
 
                             tData[i].nubeW  = w;
                             tData[i].nubeH  = h;
@@ -402,7 +404,7 @@ class FrameUtils {
                 memcpy(off_cameraType,      &tData[i].cameraType,   sizeof(int));
                 memcpy(off_curTime,         &tData[i].curTime,      sizeof(timeval));
 
-                ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - guardado - cliId: " << tData[i].cliId << ", camId: " << tData[i].camId << ", state: " << tData[i].state  << ", cameraType: " << tData[i].cameraType;
+                //ofLogVerbose() << "[FrameUtils::getThreadDataFromByteArray] - guardado - cliId: " << tData[i].cliId << ", camId: " << tData[i].camId << ", state: " << tData[i].state  << ", cameraType: " << tData[i].cameraType;
 
                 start = off_curTime + sizeof(timeval);
 
@@ -419,12 +421,14 @@ class FrameUtils {
                         int w = tData[i].img.getWidth();
                         int h = tData[i].img.getHeight();
 
+                        /*
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - guardado - w: " << w;
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - guardado - h: " << h;
+                        */
 
                         memcpy(off_imgBArrSize,    &tData[i].compSize,    sizeof(int));
 
-                        ofLogVerbose() << "[FrameUtils::getFrameByteArray] - Peso de la imagen guardada: " << tData[i].compSize;
+                        //ofLogVerbose() << "[FrameUtils::getFrameByteArray] - Peso de la imagen guardada: " << tData[i].compSize;
 
                         memcpy(off_imgXYZ,                    &tData[i].imgrow1.x,    sizeof(float));
                         memcpy(off_imgXYZ + sizeof(float),    &tData[i].imgrow1.y,    sizeof(float));
@@ -446,10 +450,12 @@ class FrameUtils {
                         memcpy(off_imgXYZ + sizeof(float)*14, &tData[i].imgrow4.z,    sizeof(float));
                         memcpy(off_imgXYZ + sizeof(float)*15, &tData[i].imgrow4.w,    sizeof(float));
 
+                        /*
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row1.x: " << tData[i].imgrow1.x << ", row1.y: " << tData[i].imgrow1.y << ", row1.z: " << tData[i].imgrow1.z << ", row1.w: " << tData[i].imgrow1.w;
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row2.x: " << tData[i].imgrow2.x << ", row2.y: " << tData[i].imgrow2.y << ", row2.z: " << tData[i].imgrow2.z << ", row2.w: " << tData[i].imgrow2.w;
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row3.x: " << tData[i].imgrow3.x << ", row3.y: " << tData[i].imgrow3.y << ", row3.z: " << tData[i].imgrow3.z << ", row3.w: " << tData[i].imgrow3.w;
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - row4.x: " << tData[i].imgrow4.x << ", row4.y: " << tData[i].imgrow4.y << ", row4.z: " << tData[i].imgrow4.z << ", row4.w: " << tData[i].imgrow4.w;
+                        */
 
                         memcpy(off_imagebytearray, tData[i].compImg, tData[i].compSize);
 
@@ -478,9 +484,11 @@ class FrameUtils {
                         int h           = tData[i].nubeH;
                         int nubeLength  = tData[i].nubeLength;
 
+                        /*
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube guardado - w: " << tData[i].nubeW;
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube guardado - h: " << tData[i].nubeH;
                         ofLogVerbose() << "[FrameUtils::getFrameByteArray] - nube guardado - nubeLength: " << nubeLength;
+                        */
 
                         memcpy(off_pcWidth,       &w,           sizeof(int));
                         memcpy(off_pcHeight,      &h,           sizeof(int));
@@ -530,12 +538,42 @@ class FrameUtils {
         return NULL;
     }
 
+    /*
+    static void compressPointCloud(ThreadData * tData, int totalCams, f_compress_pc compress_pc) {
+        try {
+            void * srcBuff;
+            int i;
+            for(i=0; i<totalCams; i++) {
+                if(tData[i].state > 0) {
+                    if((tData[i].state == 1) || (tData[i].state == 3)) {
+                        srcBuff           = (void *) tData[i].img.getPixels();
+                        if(!tData[i].compressed) {
+                            int orig_buf_size       = tData[i].img.getWidth() * tData[i].img.getHeight() * 3;
+                            tData[i].compImg        = malloc(orig_buf_size);
+                            memcpy(tData[i].compImg, srcBuff, orig_buf_size);
+                            tData[i].compSize       = orig_buf_size;
+                        } else {
+                            compress_img(&srcBuff, tData[i].img.getWidth(), tData[i].img.getHeight(), &tData[i].compImg, &tData[i].compSize, tData[i].qfactor);
+                            ofLogWarning() << "[FrameUtils::compressImages] - tData[i].compSize " << tData[i].compSize;
+                        }
+                    }
+                    if((tData[i].state == 2) || (tData[i].state == 3)) {
+                        //@TODO: Acá falta integrar la compresión de la nube.
+                    }
+                }
+            }
+        } catch (...) {
+            ofLogWarning() << "[FrameUtils::compressImages] - Exception occurred.";
+        }
+    }*/
+
     /**
     * Recorre los totalCams ThreadData y comprime todas las imágenes.
     */
     static void compressImages(ThreadData * tData, int totalCams, f_compress_img compress_img) {
         try {
             void * srcBuff;
+            void * srcPCBArray;
             int i;
             for(i=0; i<totalCams; i++) {
                 if(tData[i].state > 0) {

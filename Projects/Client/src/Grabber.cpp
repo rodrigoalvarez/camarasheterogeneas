@@ -81,20 +81,17 @@ void Grabber::setup() {
             tONI[iONI].sys_data                   = gdata->sys_data;
             tONI[iONI].context                    = camera;
             tONI[iONI].startThread(true, false);
-            cout << "START THREAD 1" << endl;
             iONI ++;
         } else if(camera->use3D) {
             t3D[i3D]._id = i3D + iONI;
             t3D[i3D].sys_data                   = gdata->sys_data;
             t3D[i3D].context                    = camera;
             t3D[i3D].startThread(true, false);
-            cout << "START THREAD 2" << endl;
             i3D ++;
         } else {
             t2D[i2D].sys_data                   = gdata->sys_data;
             t2D[i2D].context                    = camera;
             t2D[i2D].startThread(true, false);
-            cout << "START THREAD 3" << endl;
             i2D ++;
         }
         camera = camera->sig;
@@ -104,7 +101,6 @@ void Grabber::setup() {
         transmitter.grabber     = this;
         transmitter.sys_data    = gdata->sys_data;
         transmitter.startThread(true, true);
-        cout << "START THREAD 4" << endl;
     }
     ofVideoGrabber vid;
     vid.listDevices();
@@ -169,10 +165,11 @@ int ySep    = 170;
 int items   = 1;
 //--------------------------------------------------------------
 void Grabber::draw() {
-    //return;
+
     if(b_exit) return;
     //if(gui.isOn()) {
         //return;
+        /*
         items       = 1;
         int y       = ySep * items;
         int x       = 15;
@@ -207,11 +204,12 @@ void Grabber::draw() {
             }
             t3D[i].unlock();
         }
+
         for(i=0; i<gdata->totalONI; i++) {
             tONI[i].lock();
             if(tONI[i].isDeviceInitted()) { //Si la cámara está inicializada.
                 if(tONI[i].context->use2D == 1) {
-                    drawTag(getCamTag(tONI[i].context->id, 2), x, y);
+                    //drawTag(getCamTag(tONI[i].context->id, 2), x, y);
                     if(tONI[i].img.isAllocated()) {
                         tmpImg.clone(tONI[i].img);
                         tmpImg.draw(x, y, 200, 150);
@@ -222,8 +220,9 @@ void Grabber::draw() {
                 }
             }
             tONI[i].unlock();
-        }
+        }*/
         gui.draw();
+        return;
     //}
 }
 
@@ -231,16 +230,23 @@ bool Grabber::isConnected() {
     return connected;
 }
 
+
 //Operación invocada por Transmitter para refrezcar la información a trasmitir.
 void Grabber::updateThreadData() {
     //return;
-    ofLogVerbose() << "[Grabber::updateThreadData] " << " entrando. " << gdata->total2D;
+
     int di      = 0;
     int i       = 0;
+    ofxCvColorImage cvim;
 
+    /*tData = new ThreadData[gdata->total2D + gdata->total3D + gdata->totalONI];
+    for(int w = 0; w < (gdata->total2D + gdata->total3D + gdata->totalONI); w++) {
+        tData[w].cliId = gdata->sys_data->cliId;
+    }*/
     /**
     * ACTUALIZO LA INFO DE LAS CÁMARAS 2D
     */
+    ofLogVerbose() << "ACTUALIZO LA INFO DE LAS CÁMARAS 2D";
     for(i; i<gdata->total2D; i++) {
         t2D[i].lock();
         tData[di].camId         = t2D[i].context->id;
@@ -250,7 +256,17 @@ void Grabber::updateThreadData() {
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
             tData[di].compressed    = t2D[i].context->useCompression;
-            tData[di].img.clone(t2D[i].img);
+
+            if(t2D[i].context->hasCoef2D) {
+                cvim.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.getWidth(), t2D[i].img.getHeight());
+                IplImage* src = cvim.getCvImage();
+                cvim.undistort( t2D[i].context->coef2Da.x, t2D[i].context->coef2Da.y, t2D[i].context->coef2Da.z, t2D[i].context->coef2Da.w,
+                                t2D[i].context->coef2Db.x, t2D[i].context->coef2Db.y, t2D[i].context->coef2Db.z, t2D[i].context->coef2Db.w);
+                tData[di].img.setFromPixels(cvim.getPixels(), cvim.getWidth(), cvim.getHeight(), OF_IMAGE_COLOR);
+            } else {
+                tData[di].img.clone(t2D[i].img);
+            }
+
             tData[di].qfactor       = t2D[i].context->rgbCompressionQuality;
 
             int imgW                = (int)t2D[i].img.getWidth()*t2D[i].context->resolutionDownSample;
@@ -269,10 +285,6 @@ void Grabber::updateThreadData() {
             tData[di].imgrow3.set(t2D[i].context->imgrow3.x, t2D[i].context->imgrow3.y, t2D[i].context->imgrow3.z, t2D[i].context->imgrow3.w);
             tData[di].imgrow4.set(t2D[i].context->imgrow4.x, t2D[i].context->imgrow4.y, t2D[i].context->imgrow4.z, t2D[i].context->imgrow4.w);
 
-            ofLogVerbose() << "[Grabber::updateThreadData] 2D - imgrow1.x: " << tData[di].imgrow1.x << ", imgrow1.y: " << tData[di].imgrow1.y << ", imgrow1.z: " << tData[di].imgrow1.z << ", imgrow1.w: " << tData[di].imgrow1.w;
-            ofLogVerbose() << "[Grabber::updateThreadData] 2D - imgrow2.x: " << tData[di].imgrow2.x << ", imgrow2.y: " << tData[di].imgrow2.y << ", imgrow2.z: " << tData[di].imgrow2.z << ", imgrow2.w: " << tData[di].imgrow2.w;
-            ofLogVerbose() << "[Grabber::updateThreadData] 2D - imgrow3.x: " << tData[di].imgrow3.x << ", imgrow3.y: " << tData[di].imgrow3.y << ", imgrow3.z: " << tData[di].imgrow3.z << ", imgrow3.w: " << tData[di].imgrow3.w;
-            ofLogVerbose() << "[Grabber::updateThreadData] 2D - imgrow4.x: " << tData[di].imgrow4.x << ", imgrow4.y: " << tData[di].imgrow4.y << ", imgrow4.z: " << tData[di].imgrow4.z << ", imgrow4.w: " << tData[di].imgrow4.w;
         }
         tData[di].nubeW = tData[di].nubeH = 0;
         gettimeofday(&tData[di].curTime, NULL);
@@ -283,9 +295,10 @@ void Grabber::updateThreadData() {
     /**
     * ACTUALIZO LA INFO DE LAS CÁMARAS 3D
     */
-    ofLogVerbose() << "ACTUALIZO LA INFO DE LAS CÁMARAS 3D" << endl;
+    ofLogVerbose() << "ACTUALIZO LA INFO DE LAS CÁMARAS 3D";
     //cout << "ACTUALIZO LA INFO DE LAS CÁMARAS 3D" << endl;
     i = 0;
+
     for(i; i<gdata->total3D; i++) {
         t3D[i].lock();
         tData[di].state         = 0;
@@ -298,23 +311,23 @@ void Grabber::updateThreadData() {
                 tData[di].state    = DEVICE_2D;
                 //Clono la imágen
                 tData[di].compressed    = t3D[i].context->useCompression;
-                tData[di].img.clone(t3D[i].img);
-                //tData[di].img.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.getWidth(), t3D[i].img.getHeight(), OF_IMAGE_COLOR, true);
-                //setVideoPreview(1, t3D[i].context->id, t3D[i].img);
 
-                int imgW                = (int)t3D[i].img.getWidth()*t3D[i].context->resolutionDownSample;
-                int imgH                = (int)t3D[i].img.getHeight()*t3D[i].context->resolutionDownSample;
-                tData[di].imgWidth      = imgW;
-                tData[di].imgHeight     = imgH;
-
-                if(t3D[i].context->resolutionDownSample != 1) {
-                    tData[di].img.resize(imgW, imgH);
+                if(t3D[i].context->hasCoef2D) {
+                    cvim.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.getWidth(), t3D[i].img.getHeight());
+                    IplImage* src = cvim.getCvImage();
+                    cvim.undistort( t3D[i].context->coef2Da.x, t3D[i].context->coef2Da.y, t3D[i].context->coef2Da.z, t3D[i].context->coef2Da.w,
+                                    t3D[i].context->coef2Db.x, t3D[i].context->coef2Db.y, t3D[i].context->coef2Db.z, t3D[i].context->coef2Db.w);
+                    tData[di].img.setFromPixels(cvim.getPixels(), cvim.getWidth(), cvim.getHeight(), OF_IMAGE_COLOR);
+                } else {
+                    tData[di].img.clone(t3D[i].img);
                 }
 
-                //tData[di].img.mirror(false, true);
-                tData[di].qfactor       = t3D[i].context->rgbCompressionQuality;
+                if(t3D[i].context->resolutionDownSample != 1) {
+                    tData[di].img.resize(tData[di].imgWidth, tData[di].imgHeight);
+                }
 
-                tData[di].nubeW = tData[di].nubeH = 0;
+                tData[di].qfactor   = t3D[i].context->rgbCompressionQuality;
+                tData[di].nubeW     = tData[di].nubeH = 0;
             }
 
             if(t3D[i].context->use3D == 1) {
@@ -409,8 +422,6 @@ void Grabber::updateThreadData() {
                     delete tmpZ;
                 }
 
-                //ofLogVerbose() << "[Grabber::updateThreadData] " << " saliendo del for for.";
-
             }
         }
         gettimeofday(&tData[di].curTime, NULL);
@@ -436,18 +447,21 @@ void Grabber::updateThreadData() {
                 tData[di].state    = DEVICE_2D;
                 //Clono la imágen
                 tData[di].compressed    = tONI[i].context->useCompression;
-                tData[di].img.clone(tONI[i].img);
-                //tData[di].img.setFromPixels(tONI[i].img.getPixels(), tONI[i].img.getWidth(), tONI[i].img.getHeight(), OF_IMAGE_COLOR, true);
-                //setVideoPreview(2, tONI[i].context->id, tONI[i].img);
+                if(tONI[i].context->hasCoef2D) {
+                    cvim.setFromPixels(tONI[i].img.getPixels(), tONI[i].img.getWidth(), tONI[i].img.getHeight());
+                    IplImage* src = cvim.getCvImage();
+                    cvim.undistort( tONI[i].context->coef2Da.x, tONI[i].context->coef2Da.y, tONI[i].context->coef2Da.z, tONI[i].context->coef2Da.w,
+                                    tONI[i].context->coef2Db.x, tONI[i].context->coef2Db.y, tONI[i].context->coef2Db.z, tONI[i].context->coef2Db.w);
+                    tData[di].img.setFromPixels(cvim.getPixels(), cvim.getWidth(), cvim.getHeight(), OF_IMAGE_COLOR);
+                } else {
+                    tData[di].img.clone(tONI[i].img);
+                }
 
-                int imgW                = (int)tONI[i].img.getWidth()*tONI[i].context->resolutionDownSample;
-                int imgH                = (int)tONI[i].img.getHeight()*tONI[i].context->resolutionDownSample;
-                tData[di].imgWidth      = imgW;
-                tData[di].imgHeight     = imgH;
-                //tData[di].img.mirror(false, true);
+                tData[di].imgWidth      = (int)tONI[i].img.getWidth()*tONI[i].context->resolutionDownSample;
+                tData[di].imgHeight     = (int)tONI[i].img.getHeight()*tONI[i].context->resolutionDownSample;
 
                 if(tONI[i].context->resolutionDownSample != 1) {
-                    tData[di].img.resize(imgW, imgH);
+                    tData[di].img.resize(tData[di].imgWidth, tData[di].imgHeight);
                 }
 
                 tData[di].qfactor       = tONI[i].context->rgbCompressionQuality;

@@ -7,6 +7,9 @@
 #include "GlobalData.h"
 #include "FrameUtils.h"
 
+typedef std::vector< unsigned char > (*f_compress) (const std::vector< unsigned char > & src);
+typedef std::vector< unsigned char > (*f_uncompress) (const std::vector< unsigned char > & src);
+
 class Transmitter : public ofThread {
 
 	public:
@@ -20,6 +23,8 @@ class Transmitter : public ofThread {
         int camHeight;
         IGrabber * grabber;
         f_compress_img      compress_img;
+        f_compress          frame_compress;
+        f_uncompress        frame_uncompress;
         ofxTCPClient TCP;
         ofxTCPServer TCPSVR;
 

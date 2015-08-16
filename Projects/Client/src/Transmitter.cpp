@@ -31,6 +31,7 @@
 
 bool connected = false;
 int retry;
+
 void Transmitter::threadedFunction() {
 
     HINSTANCE hGetProcIDDLL;
@@ -39,6 +40,16 @@ void Transmitter::threadedFunction() {
         std::cout << "No se pudo cargar la libreria: " << std::endl;
     }
     compress_img    = (f_compress_img)   GetProcAddress(hGetProcIDDLL, "compress_img");
+
+    HINSTANCE hGetProcIDDLLPC;
+    hGetProcIDDLLPC   =  LoadLibraryA("FrameCompression.dll");
+    if (!hGetProcIDDLLPC) {
+        std::cout << "No se pudo cargar la libreria: " << std::endl;
+    }
+
+	frame_compress     = (f_compress)       GetProcAddress(hGetProcIDDLLPC, "frame_compress");
+    frame_uncompress   = (f_uncompress)     GetProcAddress(hGetProcIDDLLPC, "frame_uncompress");
+
     retry           = -1;
     state           = -1;
 
@@ -47,14 +58,6 @@ void Transmitter::threadedFunction() {
 
     started = true;
 
-    /*
-    while(isThreadRunning()) {
-        ofLogVerbose()  << endl << "[Transmitter::threadedFunction] while(isThreadRunning())";
-        ofSleepMillis(1000/sys_data->fps);
-
-        process();
-    }
-    */
     cout << ">> DESCONECTADO " << endl;
     unsigned long long minMillis = 1000/sys_data->fps;
     unsigned long long currMill, baseMill;
@@ -64,11 +67,9 @@ void Transmitter::threadedFunction() {
         process();
         currMill = ofGetElapsedTimeMillis();
         if((currMill - baseMill) < minMillis) {
-            //cout << "Sleep " << minMillis - (currMill - baseMill) << endl;
             ofSleepMillis(minMillis - (currMill - baseMill));
         }
     }
-    //ofAddListener(ofEvents().update, this, &Transmitter::process);
 }
 
 bool Transmitter::checkConnError() {
@@ -119,17 +120,12 @@ void Transmitter::process() {
     if(!started) return;
 
     if(!idle) {
-        ofLogVerbose() << "[Transmitter::process] :: NO IDLE / FPS ";
         return;
     }
 
-    //cout << "Transmitter::process state " << state << endl;
-
-    ofLogVerbose() << "[Transmitter::process] :: IDLE / FPS ";
-//return;
     connected = grabber->isConnected();
+
     if(connected && (state == -1)) {
-        //cout << "Transmitter::process if(connected && (state == -1)) {" << endl;
         state = 0;
         return;
     }
@@ -172,8 +168,14 @@ void Transmitter::process() {
                 if(TCPSVR.isClientConnected(0)) {
                     ofLogVerbose()  << endl << "[Transmitter::process] Actualizando ultima informacion:";
                     grabber->updateThreadData();
-                    ofLogVerbose()  << endl << "[Transmitter::process] Saliendo de actualizar";
-                    sendFrame((grabber->total2D + grabber->total3D + grabber->totalONI), grabber->tData);
+                    ofLogVerbose()  << "[Transmitter::process] Saliendo de actualizar";
+                    ofLogVerbose() << "[Transmitter::process] suma de camaras: " << (grabber->total2D + grabber->total3D + grabber->totalONI);
+                    ofSleepMillis(20);
+                    if(grabber->tData && (grabber->total2D + grabber->total3D + grabber->totalONI)>0) {
+                        ofLogVerbose() << "[Transmitter::process] " << grabber->tData;
+                        sendFrame((grabber->total2D + grabber->total3D + grabber->totalONI), grabber->tData);
+                    }
+
                 } else {
                     ofLogVerbose() << "[Transmitter::process] El servidor no está conectado.";
                     state = -1;
@@ -196,7 +198,7 @@ void Transmitter::process() {
 }
 
 void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
-    //return;
+    ofLogVerbose() << "[Transmitter::sendFrame]";
     //ofLogVerbose() << " al entrar a serdFrame " << tData[0].nubeH << endl;
     /*
     La idea es simular ahora el envío de un frame completo incluyendo sus imágenes y nubes de punto.
@@ -214,13 +216,25 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     FrameUtils::compressImages(tData, totalCams, compress_img);
 
     int frameSize       = FrameUtils::getFrameSize(tData, totalCams);
-    //cout << " al entrar a serdFrame2 " << tData[0].nubeH << endl;
+    int origFrameSize   = frameSize;
     char * bytearray    = FrameUtils::getFrameByteArray(tData, totalCams, frameSize);
 
+    //COMPRESION
+    vector< unsigned char > result;
+    if(sys_data->allowCompression) {
+        std::vector<unsigned char> src(bytearray, bytearray + frameSize);
+        result      = frame_compress(src);
+        frameSize   = result.size();
+        free(bytearray);
+        bytearray   = new char[result.size()];
+        memcpy(bytearray, (char *) &result[0], result.size());
+    }
+    //FIN COMPRESION
+
+    // new
     int val0  = floor(frameSize / sys_data->maxPackageSize);   //totMaxRecSize
     int val1  = frameSize - val0 * sys_data->maxPackageSize; //resto
-
-    if(!((val0 >= -10) && (val0 <= 1000) && (val1 >= 0) && (val1 <= 70000))) {
+    if(!((val0 >= -10) && (val0 <= 1000) && (val1 >= 0) && (val1 <= sys_data->maxPackageSize))) {
         free(bytearray);
         int i = 0;
         for(i=0; i<totalCams; i++) {
@@ -244,9 +258,12 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     ofLogVerbose()  << endl;
     ofLogVerbose()  << "[Transmitter::sendFrame] ENVIANDO NUEVO FRAME:";
     ofLogVerbose()  << "[Transmitter::sendFrame] Total de cámaras: " << totalCams;
-    ofLogVerbose()  << "[Transmitter::sendFrame] Tamaño del frame: " << frameSize << " bytes";
+    ofLogVerbose()  << "[Transmitter::sendFrame] Tamaño original del frame: " << origFrameSize << " bytes";
+    if(sys_data->allowCompression) {
+        ofLogVerbose()  << "[Transmitter::sendFrame] Tamaño comprimido del frame: " << frameSize << " bytes";
+    }
     ofLogVerbose()  << "[Transmitter::sendFrame] v0: " << val0  << ", v1:" << val1;
-    ofLogVerbose()  << "[Transmitter::sendFrame] Cantidad de paquetes enviados: " << (val0 + val1);
+    ofLogVerbose()  << "[Transmitter::sendFrame] Cantidad de paquetes enviados: " << (val0 + 1);
     if(connError("3", false)) return;
     ofLogVerbose()  << "[Transmitter::sendFrame] Conexiones activas: " << TCPSVR.getNumClients();
     ofLogVerbose()  << endl;
@@ -273,7 +290,7 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
                 imageBytesToSend = 0;
             }
         }
-        ofLogVerbose() << "[Transmitter::sendFrame] envando " << guarda;
+        //ofLogVerbose() << "[Transmitter::sendFrame] envando " << guarda;
         guarda--;
     }
 
@@ -288,12 +305,6 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     }
 
     llego = TCPSVR.receive(0);
-    /*
-    if(connError("7", false)) return;
-    std::string llego = TCPSVR.receive(0); //Se tranca acá al recibir...
-
-    ofLogVerbose() << "[Transmitter::sendFrame] RESPUESTA DEL SERVER " << llego;
-    */
 
     free(bytearray);
     int i = 0;
@@ -325,11 +336,11 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
 
 bool Transmitter::connError(std::string msj, bool unl) {
     if(checkConnError()) {
-        ofLogVerbose() << ">>[Transmitter::receiveFrame] connError - Error " << msj;
+        //ofLogVerbose() << ">>[Transmitter::receiveFrame] connError - Error " << msj;
         if(unl) unlock();
         return true;
     } else {
-        ofLogVerbose() << ">>[Transmitter::receiveFrame] connError - Ok " << msj;
+        //ofLogVerbose() << ">>[Transmitter::receiveFrame] connError - Ok " << msj;
     }
     return false;
 }

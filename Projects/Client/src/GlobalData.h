@@ -32,6 +32,10 @@ struct t_camera {
     ofVec4f row3;
     ofVec4f row4;
 
+    bool hasCoef2D;
+    ofVec4f coef2Da;
+    ofVec4f coef2Db;
+
     ofVec4f imgrow1;
     ofVec4f imgrow2;
     ofVec4f imgrow3;
@@ -51,6 +55,7 @@ struct t_data {
     int      serverPort;
     int      fps;
     int      maxPackageSize;
+    bool     allowCompression;
 };
 
 class GlobalData {
