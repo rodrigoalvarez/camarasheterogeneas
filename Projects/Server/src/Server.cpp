@@ -33,7 +33,6 @@ void Server::exit() {
     for(i = 0; i < totThreadedServers; i++) {
         tservers[i]->stopThread();
     }
-
     generator.stopThread();
 
     TCP.close();
@@ -42,13 +41,17 @@ void Server::exit() {
         delete gdata;
     }
     delete mb;
+    pthread_mutex_destroy(&uiMutex);
     cout << "[Server::exit] END" << endl;
 }
 
 void Server::setup() {
 
-    gdata   = new ServerGlobalData();
+    drawables   = 0;
+    gdata       = new ServerGlobalData();
     gdata->loadCalibData("settings.xml");
+
+    pthread_mutex_init(&uiMutex, NULL);
 
     myfont.loadFont("HelveticaNeueLTStd Bd.otf", 8);
 
@@ -175,8 +178,9 @@ int items   = 1;
 
 void Server::computeFrames() {
 
-    int totActivos  = 0;
-    drawables       = 0;
+    int totActivos      = 0;
+    int tmpDrawables    = 0;
+    //drawables       = 0;
 
     for(int i = 0; i < totThreadedServers; i++) {
         if(!tservers[i]->closed) {
@@ -200,9 +204,13 @@ void Server::computeFrames() {
             for(int c = 0; c < head.first; c++) {
                 if(gui.isOn()) {
                     if(head.second[c].img.isAllocated()) {
-                        getCamTag(&drawableTags[drawables], head.second[c].cliId, head.second[c].camId);
-                        drawableImages[drawables].clone(head.second[c].img);
-                        drawables++;
+                        //getCamTag(&drawableTags[tmpDrawables], head.second[c].cliId, head.second[c].camId);
+                        pthread_mutex_lock(&uiMutex);
+                        drawableImages[tmpDrawables].clone(head.second[c].img);
+                        //drawableImages[tmpDrawables].draw(300, 200);
+                        //drawableImages[tmpDrawables].saveImage("tmp.jpg");
+                        pthread_mutex_unlock(&uiMutex);
+                        tmpDrawables++;
                     }
                     /**/
                 }
@@ -218,6 +226,9 @@ void Server::computeFrames() {
                 tservers[i]->stopThread();
             }
         }
+    }
+    if(drawables < tmpDrawables) {
+        drawables = tmpDrawables;
     }
     ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totActivos;
 }
@@ -242,13 +253,19 @@ void Server::draw() {
         int y           = ySep * items + 15;
         int x           = 15;
         gui.draw();
-        /*for(int i=0; i<drawables; i++) {
+        for(int i=0; i<drawables; i++) {
             //drawTag(drawableTags[i], x, y);
-            drawableImages[i].draw(x, y, 200, 150);
+            pthread_mutex_lock(&uiMutex);
+            //drawableImages[i].draw(x, y, 200, 150);
+            ofImage clon;
+            clon.clone(drawableImages[i]);
+            clon.draw(x, y, 200, 150);
+            //drawableImages[i].saveImage("tmp.jpg");
+            pthread_mutex_unlock(&uiMutex);
             items++;
             if(items >= 3) { x+=216; items = 0; }
             y = ySep * items;
-        }*/
+        }
     }
 }
 

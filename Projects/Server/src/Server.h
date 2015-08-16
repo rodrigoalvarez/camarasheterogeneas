@@ -62,6 +62,8 @@ class Server : public IServer {
         void setupGui(string ip);
         void setVideoPreview(int cli, int cam, ofImage img);
 
+        pthread_mutex_t uiMutex;
+
 		ofxUDPManager udpConnection;
 		ofxTCPServer TCP;
 
