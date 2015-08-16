@@ -5,7 +5,7 @@
 
 #include "ofxQTVideoSaver.h"
 #include "ofMain.h"
-
+#include <pthread.h>
 
 class Thread2D : public ofThread {
 
@@ -31,7 +31,8 @@ class Thread2D : public ofThread {
         bool idle;
         float mTimestamp;
         bool first;
-        int snapCounter;
+
+        pthread_mutex_t uiMutex;
 
         Thread2D() {
             idle    = true;

@@ -8,7 +8,7 @@ void Thread3D::threadedFunction() {
 	openNIRecorder->setup();
 
 	cout << "openNIRecorder->getNumDevices() " << openNIRecorder->getNumDevices() << endl;
-
+    pthread_mutex_init(&uiMutex, NULL);
 	if(context->use2D == 1) {
 	    openNIRecorder->addImageGenerator();
 	}
@@ -85,7 +85,8 @@ void Thread3D::updateData() {
     }
 
     if(deviceInited) {
-        lock();
+        //lock();
+        pthread_mutex_lock(&uiMutex);
         if(context->use2D) {
             if((context->use2D == 1) && (openNIRecorder->isNewFrame())) {
                 ofPixels&    ipixels    = openNIRecorder->getImagePixels();
@@ -97,13 +98,11 @@ void Thread3D::updateData() {
             }
         }
         if(context->use3D && (openNIRecorder->isNewFrame())) {
-            //openNIRecorder->
             spix    = openNIRecorder->getDepthRawPixels();
-            //Falta aplicarle la transformación según lo que venga en la matriz.
-            //Falta aplicarle el downsample.
         }
         dataAllocated = true;
-        unlock();
+        pthread_mutex_unlock(&uiMutex);
+        //unlock();
     }
 }
 
@@ -118,5 +117,6 @@ bool Thread3D::isDataAllocated() {
 void Thread3D::exit() {
     b_exit = true;
     ofLogVerbose() << "[Thread3D::exit]";
+    pthread_mutex_destroy(&uiMutex);
     stopThread();
 }

@@ -4,9 +4,8 @@ void Thread2D::threadedFunction() {
     isAllocated = false;
 
     first = true;
-    snapCounter = 1;
 
-
+    pthread_mutex_init(&uiMutex, NULL);
     vidGrabber.setVerbose(true);
     vidGrabber.setDeviceID(context->deviceInstance);
     vidGrabber.setDesiredFrameRate(sys_data->fps);
@@ -63,11 +62,12 @@ void Thread2D::process() {
 
     if (vidGrabber.isFrameNew()) {
         //
-        lock();
+        //lock();
         isAllocated = false;
 
-
+        pthread_mutex_lock(&uiMutex);
         img.setFromPixels(vidGrabber.getPixels(), context->resolutionX, context->resolutionY, OF_IMAGE_COLOR, true);
+        pthread_mutex_unlock(&uiMutex);
 
         if(sys_data->persistence == 1) {
             //nuevo QT
@@ -79,9 +79,8 @@ void Thread2D::process() {
         }
 
         isAllocated = true;
-        unlock();
-        //
-        snapCounter++;
+        //unlock();
+
     }
     idle = true;
     //return;
@@ -98,5 +97,6 @@ bool Thread2D::isDataAllocated() {
 void Thread2D::exit() {
     b_exit = true;
     ofLogVerbose() << "[Thread2D::exit]";
+    pthread_mutex_destroy(&uiMutex);
     stopThread();
 }

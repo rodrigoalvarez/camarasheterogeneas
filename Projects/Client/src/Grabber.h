@@ -12,6 +12,7 @@
 #include "ofMatrix4x4.h"
 
 #include "ofxOpenNI.h"
+#include <pthread.h>
 
 struct DebugTexture {
     ofTexture * videoTexture;

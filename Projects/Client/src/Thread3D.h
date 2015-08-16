@@ -3,6 +3,7 @@
 #include "ofxOpenNI.h"
 #include "GlobalData.h"
 #include "ofMain.h"
+#include <pthread.h>
 
 class Thread3D : public ofThread {
 
@@ -32,6 +33,7 @@ class Thread3D : public ofThread {
         bool started;
         bool idle;
         bool b_exit;
+        pthread_mutex_t uiMutex;
 
         Thread3D() {
             openNIRecorder  = NULL;

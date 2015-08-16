@@ -3,6 +3,7 @@
 #include "ofxOpenNI.h"
 #include "GlobalData.h"
 #include "ofMain.h"
+#include <pthread.h>
 
 class ThreadONI : public ofThread {
 
@@ -35,6 +36,7 @@ class ThreadONI : public ofThread {
         bool started;
         bool idle;
         bool b_exit;
+        pthread_mutex_t uiMutex;
 
         ThreadONI() {
             //openNIRecorder  = NULL;

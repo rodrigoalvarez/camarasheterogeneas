@@ -167,9 +167,8 @@ int items   = 1;
 void Grabber::draw() {
 
     if(b_exit) return;
-    //if(gui.isOn()) {
+    if(gui.isOn()) {
         //return;
-        /*
         items       = 1;
         int y       = ySep * items;
         int x       = 15;
@@ -178,10 +177,12 @@ void Grabber::draw() {
             t2D[i].lock();
             if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) {
                 drawTag(getCamTag(t2D[i].context->id, 0), x, y);
+                pthread_mutex_lock(&t2D[i].uiMutex);
                 if(t2D[i].img.isAllocated()) {
                     tmpImg.clone(t2D[i].img);
                     tmpImg.draw(x, y, 200, 150);
                 }
+                pthread_mutex_unlock(&t2D[i].uiMutex);
                 items++;
                 if(items >= 3) { x+=216; items = 0; }
                 y = ySep * items;
@@ -193,10 +194,12 @@ void Grabber::draw() {
             if(t3D[i].isDeviceInitted()) { //Si la cámara está inicializada.
                 if(t3D[i].context->use2D == 1) {
                     drawTag(getCamTag(t3D[i].context->id, 1), x, y);
+                    pthread_mutex_lock(&t3D[i].uiMutex);
                     if(t3D[i].img.isAllocated()) {
                         tmpImg.clone(t3D[i].img);
                         tmpImg.draw(x, y, 200, 150);
                     }
+                    pthread_mutex_unlock(&t3D[i].uiMutex);
                     items++;
                     if(items >= 3) { x+=216; items = 0; }
                     y = ySep * items;
@@ -209,21 +212,23 @@ void Grabber::draw() {
             tONI[i].lock();
             if(tONI[i].isDeviceInitted()) { //Si la cámara está inicializada.
                 if(tONI[i].context->use2D == 1) {
-                    //drawTag(getCamTag(tONI[i].context->id, 2), x, y);
+                    drawTag(getCamTag(tONI[i].context->id, 2), x, y);
+                    pthread_mutex_lock(&tONI[i].uiMutex);
                     if(tONI[i].img.isAllocated()) {
                         tmpImg.clone(tONI[i].img);
                         tmpImg.draw(x, y, 200, 150);
                     }
+                    pthread_mutex_unlock(&tONI[i].uiMutex);
                     items++;
                     if(items >= 3) { x+=216; items = 0; }
                     y = ySep * items;
                 }
             }
             tONI[i].unlock();
-        }*/
+        }
         gui.draw();
         return;
-    //}
+    }
 }
 
 bool Grabber::isConnected() {
@@ -248,7 +253,7 @@ void Grabber::updateThreadData() {
     */
     ofLogVerbose() << "ACTUALIZO LA INFO DE LAS CÁMARAS 2D";
     for(i; i<gdata->total2D; i++) {
-        t2D[i].lock();
+        //t2D[i].lock();
         tData[di].camId         = t2D[i].context->id;
         tData[di].state         = 0;
         tData[di].cameraType    = 1;
@@ -256,6 +261,8 @@ void Grabber::updateThreadData() {
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
             tData[di].compressed    = t2D[i].context->useCompression;
+
+            pthread_mutex_lock(&t2D[i].uiMutex);
 
             if(t2D[i].context->hasCoef2D) {
                 cvim.setFromPixels(t2D[i].img.getPixels(), t2D[i].img.getWidth(), t2D[i].img.getHeight());
@@ -267,10 +274,13 @@ void Grabber::updateThreadData() {
                 tData[di].img.clone(t2D[i].img);
             }
 
-            tData[di].qfactor       = t2D[i].context->rgbCompressionQuality;
-
             int imgW                = (int)t2D[i].img.getWidth()*t2D[i].context->resolutionDownSample;
             int imgH                = (int)t2D[i].img.getHeight()*t2D[i].context->resolutionDownSample;
+
+            pthread_mutex_unlock(&t2D[i].uiMutex);
+
+            tData[di].qfactor       = t2D[i].context->rgbCompressionQuality;
+
             tData[di].imgWidth      = imgW;
             tData[di].imgHeight     = imgH;
 
@@ -288,7 +298,7 @@ void Grabber::updateThreadData() {
         }
         tData[di].nubeW = tData[di].nubeH = 0;
         gettimeofday(&tData[di].curTime, NULL);
-        t2D[i].unlock();
+        //t2D[i].unlock();
         di++;
     }
 
@@ -300,7 +310,7 @@ void Grabber::updateThreadData() {
     i = 0;
 
     for(i; i<gdata->total3D; i++) {
-        t3D[i].lock();
+        //t3D[i].lock();
         tData[di].state         = 0;
         tData[di].camId         = t3D[i].context->id;
         tData[di].cameraType    = 2;
@@ -312,6 +322,8 @@ void Grabber::updateThreadData() {
                 //Clono la imágen
                 tData[di].compressed    = t3D[i].context->useCompression;
 
+                pthread_mutex_lock(&t3D[i].uiMutex);
+
                 if(t3D[i].context->hasCoef2D) {
                     cvim.setFromPixels(t3D[i].img.getPixels(), t3D[i].img.getWidth(), t3D[i].img.getHeight());
                     IplImage* src = cvim.getCvImage();
@@ -322,9 +334,13 @@ void Grabber::updateThreadData() {
                     tData[di].img.clone(t3D[i].img);
                 }
 
+                tData[di].imgWidth      = (int)t3D[i].img.getWidth()*t3D[i].context->resolutionDownSample;
+                tData[di].imgHeight     = (int)t3D[i].img.getHeight()*t3D[i].context->resolutionDownSample;
+
                 if(t3D[i].context->resolutionDownSample != 1) {
                     tData[di].img.resize(tData[di].imgWidth, tData[di].imgHeight);
                 }
+                pthread_mutex_unlock(&t3D[i].uiMutex);
 
                 tData[di].qfactor   = t3D[i].context->rgbCompressionQuality;
                 tData[di].nubeW     = tData[di].nubeH = 0;
@@ -333,11 +349,12 @@ void Grabber::updateThreadData() {
             if(t3D[i].context->use3D == 1) {
                 ((t3D[i].context->use2D == 1) ? tData[di].state = DEVICE_2D_3D : tData[di].state = DEVICE_3D);
                 //Hacer que esta nube de puntos, cuando tela de, ya te la de transformada.
-
+                pthread_mutex_lock(&t3D[i].uiMutex);
                 tData[di].nubeW = t3D[i].spix.getWidth();
                 tData[di].nubeH = t3D[i].spix.getHeight();
 
                 rawPix          = t3D[i].spix.getPixels();
+                pthread_mutex_unlock(&t3D[i].uiMutex);
                 Xn_depth        = &t3D[i].openNIRecorder->getDepthGenerator();
 
                 y   = 0;
@@ -425,7 +442,7 @@ void Grabber::updateThreadData() {
             }
         }
         gettimeofday(&tData[di].curTime, NULL);
-        t3D[i].unlock();
+        //t3D[i].unlock();
         di++;
     }
 
@@ -436,7 +453,7 @@ void Grabber::updateThreadData() {
     //cout << "ACTUALIZO LA INFO DE LAS CÁMARAS ONI" << endl;
     i = 0;
     for(i; i<gdata->totalONI; i++) {
-        tONI[i].lock();
+        //tONI[i].lock();
         tData[di].state         = 0;
         tData[di].camId         = tONI[i].context->id;
         tData[di].cameraType    = 2;
@@ -447,6 +464,9 @@ void Grabber::updateThreadData() {
                 tData[di].state    = DEVICE_2D;
                 //Clono la imágen
                 tData[di].compressed    = tONI[i].context->useCompression;
+
+                pthread_mutex_lock(&tONI[i].uiMutex);
+
                 if(tONI[i].context->hasCoef2D) {
                     cvim.setFromPixels(tONI[i].img.getPixels(), tONI[i].img.getWidth(), tONI[i].img.getHeight());
                     IplImage* src = cvim.getCvImage();
@@ -464,6 +484,8 @@ void Grabber::updateThreadData() {
                     tData[di].img.resize(tData[di].imgWidth, tData[di].imgHeight);
                 }
 
+                pthread_mutex_unlock(&tONI[i].uiMutex);
+
                 tData[di].qfactor       = tONI[i].context->rgbCompressionQuality;
 
                 tData[di].nubeW = tData[di].nubeH = 0;
@@ -473,11 +495,14 @@ void Grabber::updateThreadData() {
 
                 ((tONI[i].context->use2D == 1) ? tData[di].state = DEVICE_2D_3D : tData[di].state = DEVICE_3D);
                 //Hacer que esta nube de puntos, cuando tela de, ya te la de transformada.
+                pthread_mutex_lock(&tONI[i].uiMutex);
 
                 tData[di].nubeW = tONI[i].spix.getWidth();
                 tData[di].nubeH = tONI[i].spix.getHeight();
-
                 rawPix          = tONI[i].spix.getPixels();
+
+                pthread_mutex_unlock(&tONI[i].uiMutex);
+
                 Xn_depth        = &tONI[i].openNIRecorder->getDepthGenerator();
 
                 y   = 0;
@@ -574,7 +599,7 @@ void Grabber::updateThreadData() {
             }
         }
         gettimeofday(&tData[di].curTime, NULL);
-        tONI[i].unlock();
+        //tONI[i].unlock();
         di++;
     }
 
