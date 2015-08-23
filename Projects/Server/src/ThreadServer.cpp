@@ -64,10 +64,10 @@ void ThreadServer::threadedFunction() {
     while(isThreadRunning()) {
         baseMill = ofGetElapsedTimeMillis();
         receiveFrame();
-        currMill = ofGetElapsedTimeMillis();
+        /*currMill = ofGetElapsedTimeMillis();
         if((currMill - baseMill) < minMillis) {
             sleep(minMillis - (currMill - baseMill));
-        }
+        }*/
     }
 
 
@@ -139,12 +139,9 @@ void ThreadServer::receiveFrame() {
     }
     idle = false;
 
-    ofLogVerbose() << ">>[ThreadServer::receiveFrame] :: IDLE / FPS ";
     try {
-        if(connError("1", false)) return;
         if(TCPCLI.isConnected()) {
 
-            //lock();
             int currTotal        = 0;
             int numBytes         = 0;
 
@@ -158,32 +155,20 @@ void ThreadServer::receiveFrame() {
             int recSize = 0;
             int	err = 0;
 
+            /*
             if(TCPCLI.isConnected()) {
                 TCPCLI.send("OK");
             }
+            */
 
-            if(connError("2", true)) return;
-            if(TCPCLI.isConnected()) {
-                if(connError("3", true)) return;
-                recSize = TCPCLI.receiveRawBytes((char*) &v0, sizeof(int));
-                if(connError("4", true)) {
-                    TCPCLI.send("ERROR");
-                    return;
-                }
-            } else {
-                //unlock();
-                return;
-            }
+            recSize = TCPCLI.receiveRawBytes((char*) &v0, sizeof(int));
 
             if(v0 == -10) {
                 ofLogVerbose() << ">>[ThreadServer::receiveFrame] Conexión cerrada por el cliente"<< endl;
                 cout << ">>[ThreadServer::receiveFrame] Conexión cerrada por el cliente"<< endl;
 
-                if(connError("5", true)) return;
                 if(TCPCLI.isConnected()) {
-                    if(connError("6", true)) return;
-
-                    TCPCLI.send("OK");
+                    //TCPCLI.send("OK");
                     TCPCLI.close();
                 } else {
                     //unlock();
@@ -199,14 +184,8 @@ void ThreadServer::receiveFrame() {
                 //unlock();
                 return;
             }
-            if(connError("7", true)) return;
-            if(TCPCLI.isConnected()) {
-                if(connError("8", true)) return;
-                recSize = TCPCLI.receiveRawBytes((char*) &v1, sizeof(int));
-            } else {
-                //unlock();
-                return;
-            }
+
+            recSize = TCPCLI.receiveRawBytes((char*) &v1, sizeof(int));
 
             timeval curTime;
             gettimeofday(&curTime, NULL);
@@ -221,50 +200,23 @@ void ThreadServer::receiveFrame() {
             int guarda = 5000;
             do {
                 char * recBytearray  = new char [sys_data->maxPackageSize];
-                //ofLogVerbose() << ">>[ThreadServer::receiveFrame] Inicio del DO";
-                //ofLogVerbose() << ">>[ThreadServer::receiveFrame] MAX_PACKAGE_SIZE " << sys_data->maxPackageSize;
-                if(connError("9", true)) return;
                 if(TCPCLI.isConnected()) {
-                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] isConnected";
-                    if(connError("10", true)) return;
                     numBytes             = TCPCLI.receiveRawBytes((char*) &recBytearray[0], sys_data->maxPackageSize);
                 } else {
                     ofLogVerbose() << ">>[ThreadServer::receiveFrame] !isConnected - delete y return";
                     delete recBytearray;
-                    //unlock();
                     return;
                 }
-
                 if(numBytes > 0 ) {
-                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] numBytes > 0";
                     currBytearray        = FrameUtils::addToBytearray(recBytearray, numBytes, currBytearray, currTotal);
                     currTotal           += numBytes;
-                } else {
-                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] numBytes < 0";
-                    if(checkConnError()) {
-                        ofLogVerbose() << ">>[ThreadServer::receiveFrame] connError";
-
-                        if(connError("11", true)) return;
-                        if(TCPCLI.isConnected()) {
-                            TCPCLI.send("ERROR");
-                        }
-
-                        exit();
-                        return;
-                    }
                 }
                 delete recBytearray;
                 ofLogVerbose() << ">>[ThreadServer::receiveFrame] RECIBIENDO currTotal: " << currTotal << ", total esperado: " << (v0*sys_data->maxPackageSize + v1);
                 guarda--;
             } while((currTotal < (v0*sys_data->maxPackageSize + v1)) && (guarda>0) && !(b_exit));
 
-            if(b_exit) {
-                //unlock();
-                return;
-            }
-
             if(guarda > 0) {
-                if(connError("12", true)) return;
                 if(TCPCLI.isConnected()) {
                     TCPCLI.send("OK");
                 }
@@ -280,14 +232,9 @@ void ThreadServer::receiveFrame() {
                         delete currBytearray;
                         currBytearray   = new char[uncompressed.size()];
                         memcpy(currBytearray, (char *) &uncompressed[0], uncompressed.size());
-                        //currBytearray   = (char *) &uncompressed[0];
                     }
 
-                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] por hacer el getThreadDataFromByteArray";
-
                     std::pair <int, ThreadData *>  tPair = FrameUtils::getThreadDataFromByteArray( currBytearray );
-
-                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] Por agregar frame a buffer con " << tPair.first;
 
                     FrameUtils::decompressImages(tPair.second, tPair.first, decompress_img);
 
@@ -298,13 +245,11 @@ void ThreadServer::receiveFrame() {
                     pthread_mutex_unlock(&myMutex);
                 }
             } else {
-                if(connError("13", true)) return;
                 if(TCPCLI.isConnected()) {
                     TCPCLI.send("ERROR");
                 }
             }
 
-            //unlock();
         }
 
     } catch (exception& e) {

@@ -112,11 +112,11 @@ void Server::setup() {
         tservers[i] = NULL;
 	}
 
+
     generator.sys_data  = gdata->sys_data;
     generator.buffer    = mb;
     generator.srvinst   = this;
     generator.startThread(true, false);
-
 }
 
 //Dejo abierto el puerto PORT_0
@@ -212,7 +212,6 @@ void Server::computeFrames() {
                         pthread_mutex_unlock(&uiMutex);
                         tmpDrawables++;
                     }
-                    /**/
                 }
 
                 currCam ++;
@@ -253,6 +252,7 @@ void Server::draw() {
         int y           = ySep * items + 15;
         int x           = 15;
         gui.draw();
+        /*
         for(int i=0; i<drawables; i++) {
             //drawTag(drawableTags[i], x, y);
             pthread_mutex_lock(&uiMutex);
@@ -265,7 +265,7 @@ void Server::draw() {
             items++;
             if(items >= 3) { x+=216; items = 0; }
             y = ySep * items;
-        }
+        }*/
     }
 }
 
