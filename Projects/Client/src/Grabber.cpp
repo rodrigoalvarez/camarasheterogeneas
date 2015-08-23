@@ -27,7 +27,7 @@ void Grabber::setup() {
     b_exit_fired    = false;
     b_exit_pressed  = false;
     setupGui();
-    downsampling = 4;
+    downsampling    = 4;
     switch(gdata->sys_data->logLevel) {
         case 0: ofSetLogLevel(OF_LOG_VERBOSE); break;
         case 1: ofSetLogLevel(OF_LOG_NOTICE); break;
@@ -169,7 +169,7 @@ void Grabber::draw() {
     if(b_exit) return;
     if(gui.isOn()) {
         //return;
-        items       = 1;
+        /*items       = 1;
         int y       = ySep * items;
         int x       = 15;
         int i;
@@ -225,7 +225,7 @@ void Grabber::draw() {
                 }
             }
             tONI[i].unlock();
-        }
+        }*/
         gui.draw();
         return;
     }

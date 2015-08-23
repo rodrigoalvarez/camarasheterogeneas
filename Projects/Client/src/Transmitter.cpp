@@ -31,9 +31,9 @@
 
 bool connected = false;
 int retry;
-
+ofImage im;
 void Transmitter::threadedFunction() {
-
+    im.loadImage("tibu.jpg");
     HINSTANCE hGetProcIDDLL;
     hGetProcIDDLL   =  LoadLibraryA("imageCompression.dll");
     if (!hGetProcIDDLL) {
@@ -66,9 +66,10 @@ void Transmitter::threadedFunction() {
         baseMill = ofGetElapsedTimeMillis();
         process();
         currMill = ofGetElapsedTimeMillis();
+        /*
         if((currMill - baseMill) < minMillis) {
             ofSleepMillis(minMillis - (currMill - baseMill));
-        }
+        }*/
     }
 }
 
@@ -170,7 +171,7 @@ void Transmitter::process() {
                     grabber->updateThreadData();
                     ofLogVerbose()  << "[Transmitter::process] Saliendo de actualizar";
                     ofLogVerbose() << "[Transmitter::process] suma de camaras: " << (grabber->total2D + grabber->total3D + grabber->totalONI);
-                    ofSleepMillis(20);
+
                     if(grabber->tData && (grabber->total2D + grabber->total3D + grabber->totalONI)>0) {
                         ofLogVerbose() << "[Transmitter::process] " << grabber->tData;
                         sendFrame((grabber->total2D + grabber->total3D + grabber->totalONI), grabber->tData);
@@ -218,7 +219,7 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     int frameSize       = FrameUtils::getFrameSize(tData, totalCams);
     int origFrameSize   = frameSize;
     char * bytearray    = FrameUtils::getFrameByteArray(tData, totalCams, frameSize);
-
+    //ofLogVerbose()  << "[Transmitter::sendFrame] a";
     //COMPRESION
     vector< unsigned char > result;
     if(sys_data->allowCompression) {
@@ -247,13 +248,8 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
         return;
     }
 
-    if(connError("7", false)) return;
-    std::string llego = TCPSVR.receive(0);
-
-    if(connError("1", false)) return;
-    TCPSVR.sendRawBytesToAll((char*) &val0, sizeof(int));
-    if(connError("2", false)) return;
-    TCPSVR.sendRawBytesToAll((char*) &val1, sizeof(int));
+    TCPSVR.sendRawBytes(0, (char*) &val0, sizeof(int));
+    TCPSVR.sendRawBytes(0, (char*) &val1, sizeof(int));
 
     ofLogVerbose()  << endl;
     ofLogVerbose()  << "[Transmitter::sendFrame] ENVIANDO NUEVO FRAME:";
@@ -264,7 +260,6 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     }
     ofLogVerbose()  << "[Transmitter::sendFrame] v0: " << val0  << ", v1:" << val1;
     ofLogVerbose()  << "[Transmitter::sendFrame] Cantidad de paquetes enviados: " << (val0 + 1);
-    if(connError("3", false)) return;
     ofLogVerbose()  << "[Transmitter::sendFrame] Conexiones activas: " << TCPSVR.getNumClients();
     ofLogVerbose()  << endl;
 
@@ -276,16 +271,14 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     int guarda          = 100;
     while( (imageBytesToSend > 1) && (guarda>0) ) {
         if(imageBytesToSend > messageSize) {
-            if(connError("4", false)) return;
             if(TCPSVR.getNumClients() > 0) {
-                TCPSVR.sendRawBytesToAll((const char*) &bytearray[totalBytesSent], messageSize);
+                TCPSVR.sendRawBytes(0, (const char*) &bytearray[totalBytesSent], messageSize);
                 imageBytesToSend    -= messageSize;
                 totalBytesSent      += messageSize;
             }
         } else {
             if(TCPSVR.getNumClients() > 0) {
-                if(connError("5", false)) return;
-                TCPSVR.sendRawBytesToAll((char*) &bytearray[totalBytesSent], imageBytesToSend);
+                TCPSVR.sendRawBytes(0, (char*) &bytearray[totalBytesSent], imageBytesToSend);
                 totalBytesSent += imageBytesToSend;
                 imageBytesToSend = 0;
             }
@@ -297,14 +290,13 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
     if(guarda <= 0) {
         ofLogVerbose() << "[Transmitter::sendFrame] FALLÓ EL ENVÍO ";
     }
-    if(connError("6", false)) return;
     if(TCPSVR.getNumClients() <= 0) {
         ofLogVerbose() << "[Transmitter::sendFrame] NO HAY MÁS CONEXIONES ABIERTAS ";
     } else {
         ofLogVerbose() << "[Transmitter::sendFrame] HAY CONEXIONES ABIERTAS ";
     }
 
-    llego = TCPSVR.receive(0);
+    string llego = TCPSVR.receive(0);
 
     free(bytearray);
     int i = 0;
@@ -324,9 +316,7 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
         state    = -1;
         retry    = -1;
         int conn = -10;
-        if(connError("7", false)) return;
         TCPSVR.sendRawBytesToAll((char*) &conn, sizeof(int));
-        if(connError("8", false)) return;
         TCPSVR.close();
         cout << ">> DESCONECTADO" << endl;
         ofLogVerbose()  << "[Transmitter::sendFrame] DESCONECTADO";

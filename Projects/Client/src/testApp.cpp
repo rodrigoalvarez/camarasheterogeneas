@@ -2,7 +2,7 @@
 
 class myUser : public ofxOpenNIUser {
 public:
-    void test(){
+    void test() {
         cout << "test" << endl;
     }
 };
