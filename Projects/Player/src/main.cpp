@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <time.h>
 #include "ModelSetting.h"
 
 #include "FreeImage.h"
@@ -28,6 +29,13 @@ Model_SET* textureSetting = NULL;
 Model_IMG* textureImage = NULL;
 Model_PLY* textureModel = NULL;
 MasterTexture* textureMaster = NULL;
+
+//time_t tStart;
+//time_t tEnd;
+
+bool masterMove = false;
+bool isMovingKey = false;
+bool isMovingMouse = false;
 bool drawFast = false;
 bool textureWire = true;
 
@@ -48,6 +56,13 @@ float drawXmin;
 float drawXmax;
 float drawYmin;
 float drawYmax;
+
+float meshXmin;
+float meshXmax;
+float meshYmin;
+float meshYmax;
+float meshZmin;
+float meshZmax;
 
 bool cameraLight = true;
 bool cameraLightColor = true;
@@ -157,6 +172,11 @@ void setFaceVertex(int index, bool isFront) {
     }
 }
 
+void xsetFaceVertex(int index) {
+    GLfloat vert[3] = { textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2] };
+    glVertex3fv(vert);
+}
+
 GLdouble mv[16];
 GLdouble mvCamera[10][16];
 
@@ -230,8 +250,9 @@ void calcBackground(GLfloat* vert) {
 
  void draw2DBackground() {
     glColor3f(1.0f, 1.0f, 1.0f);
-    float wImg = textureImage[textureIndex-1].Width / 58.0;
-    float hImg = textureImage[textureIndex-1].Height / 58.0;
+    float alfa = 58.0;
+    float wImg = textureImage[textureIndex-1].Width / alfa;
+    float hImg = textureImage[textureIndex-1].Height / alfa;
     GLfloat vert1[3] = { -wImg, -hImg, -19.0 };
     GLfloat vert2[3] = { -wImg, hImg, -19.0 };
     GLfloat vert3[3] = { wImg, hImg, -19.0 };
@@ -385,7 +406,10 @@ void ExtractFrustum() {
     frustum[5][3] /= t;
 }
 
-bool PointInFrustum(float x, float y, float z) {
+bool PointInFrustum(int index) {
+    float x = textureModel->Faces_Triangles[index * 3];
+    float y = textureModel->Faces_Triangles[index * 3 + 1];
+    float z = textureModel->Faces_Triangles[index * 3 + 2];
     int p;
     for (p = 0; p < 6; p++) {
         if (frustum[p][0] * x + frustum[p][1] * y + frustum[p][2] * z + frustum[p][3] <= 0) {
@@ -395,6 +419,84 @@ bool PointInFrustum(float x, float y, float z) {
     return true;
 }
 
+bool SimilarFace(int indexT1, int indexT2) {
+    float Ax = textureModel->Faces_Triangles[indexT1];
+    float Ay = textureModel->Faces_Triangles[indexT1 + 1];
+    float Az = textureModel->Faces_Triangles[indexT1 + 2];
+    float Bx = textureModel->Faces_Triangles[indexT1 + 3];
+    float By = textureModel->Faces_Triangles[indexT1 + 4];
+    float Bz = textureModel->Faces_Triangles[indexT1 + 5];
+    float Cx = textureModel->Faces_Triangles[indexT1 + 6];
+    float Cy = textureModel->Faces_Triangles[indexT1 + 7];
+    float Cz = textureModel->Faces_Triangles[indexT1 + 8];
+
+    float newAx = textureModel->Faces_Triangles[indexT2];
+    float newAy = textureModel->Faces_Triangles[indexT2 + 1];
+    float newAz = textureModel->Faces_Triangles[indexT2 + 2];
+    float newBx = textureModel->Faces_Triangles[indexT2 + 3];
+    float newBy = textureModel->Faces_Triangles[indexT2 + 4];
+    float newBz = textureModel->Faces_Triangles[indexT2 + 5];
+    float newCx = textureModel->Faces_Triangles[indexT2 + 6];
+    float newCy = textureModel->Faces_Triangles[indexT2 + 7];
+    float newCz = textureModel->Faces_Triangles[indexT2 + 8];
+
+    bool result = (Ax == newAx && Ay == newAy && Az == newAz) || (Ax == newBx && Ay == newBy && Az == newBz) || (Ax == newCx && Ay == newCy && Az == newCz) ||
+            (Bx == newAx && By == newAy && Bz == newAz) || (Bx == newBx && By == newBy && Bz == newBz) || (Bx == newCx && By == newCy && Bz == newCz) ||
+            (Cx == newAx && Cy == newAy && Cz == newAz) || (Cx == newBx && Cy == newBy && Cz == newBz) || (Cx == newCx && Cy == newCy && Cz == newCz);
+
+    return result;
+}
+
+int* treeBlocks = new int[1000];
+int fullDrawCount = 0;
+
+int PointToBlock(float x, float y, float z) {
+    return floor((x - meshXmin) / ((meshXmax - meshXmin) / 10)) * 100
+            + floor((y - meshYmin) / ((meshYmax - meshYmin) / 10)) * 10
+            + floor((z - meshZmin) / ((meshZmax - meshZmin) / 10));
+}
+
+void DefineBlocks() {
+    meshXmin = std::numeric_limits<float>::max();
+    meshXmax = std::numeric_limits<float>::min();
+    meshYmin = std::numeric_limits<float>::max();
+    meshYmax = std::numeric_limits<float>::min();
+    meshZmin = std::numeric_limits<float>::max();
+    meshZmax = std::numeric_limits<float>::min();
+
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        meshXmin = std::min(meshXmin, textureModel->Faces_Triangles[i * 9]);
+        meshXmax = std::max(meshXmax, textureModel->Faces_Triangles[i * 9]);
+
+        meshYmin = std::min(meshYmin, textureModel->Faces_Triangles[i * 9 + 1]);
+        meshYmax = std::max(meshYmax, textureModel->Faces_Triangles[i * 9 + 1]);
+
+        meshZmin = std::min(meshZmin, textureModel->Faces_Triangles[i * 9 + 2]);
+        meshZmax = std::max(meshZmax, textureModel->Faces_Triangles[i * 9 + 2]);
+    }
+}
+
+void UpdateBlocks() {
+    for (int i = 0; i < 1000; i++) {
+        treeBlocks[i] = 0;
+    }
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        float x = textureModel->Faces_Triangles[i * 9];
+        float y = textureModel->Faces_Triangles[i * 9 + 1];
+        float z = textureModel->Faces_Triangles[i * 9 + 2];
+        int block = PointToBlock(x, y, z);
+
+        for (int k = 1; k <= textureCount; k++) {
+            if (faces[k][i] > 0) {
+                if (treeBlocks[block] == 0) {
+                    treeBlocks[block] = k;
+                } else if (treeBlocks[block] != k) {
+                    treeBlocks[block] = -1;
+                }
+            }
+        }
+    }
+}
 
 void xdraw2DElement(int index) {
 
@@ -421,8 +523,11 @@ void xdraw2DElement(int index) {
     glColor3f(1.0f, 1.0f, 1.0f);
 }
 
-
 void draw2DPlayerFull() {
+
+    fullDrawCount++;
+    DefineBlocks();
+    int bb = 0;
 
     drawXmin = std::numeric_limits<float>::max();
     drawXmax = std::numeric_limits<float>::min();
@@ -435,27 +540,6 @@ void draw2DPlayerFull() {
 
     ExtractFrustum();
 
-    glBeginQueryARB = (PFNGLBEGINQUERYARBPROC)wglGetProcAddress("glBeginQueryARB");
-    glGenQueriesARB = (PFNGLGENQUERIESARBPROC)wglGetProcAddress("glGenQueriesARB");
-    glEndQueryARB = (PFNGLENDQUERYARBPROC)wglGetProcAddress("glEndQueryARB");
-    glGetQueryObjectuivARB = (PFNGLGETQUERYOBJECTUIVPROC)wglGetProcAddress("glGetQueryObjectuivARB");
-    glDeleteQueriesARB = (PFNGLDELETEQUERIESARBPROC)wglGetProcAddress("glDeleteQueriesARB");
-    GLuint* queries = new GLuint[textureModel->TotalFaces];
-    GLuint sampleCount;
-    glGenQueriesARB(textureModel->TotalFaces, queries);
-    glDisable(GL_BLEND);
-    glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
-
-    for (int i = 0; i < textureModel->TotalFaces; i++)
-    {
-        int index = i * 3;
-        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
-            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[i]);
-            xdraw2DElement(i);
-            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
-        }
-    }
     glEnable(GL_BLEND);
     glDepthFunc(GL_EQUAL);
     glDepthMask(GL_FALSE);
@@ -472,12 +556,15 @@ void draw2DPlayerFull() {
         mvCamera[textureIndex][i] = mv[i];
     }
 
-    for (int i = 0; i < textureModel->TotalFaces; i++)
-    {
+    //cout << "a" << endl;
+
+    bool* dwFaces = new bool[textureModel->TotalFaces];
+    int dwCount = 0;
+
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
         int index = i * 3;
-        if (textureIndex > 0) {
-            faces[textureIndex][i] = 0;
-        }
+        dwFaces[i] = false;
+        faces[textureIndex][i] = 0;
 
         GLdouble pos3D_x, pos3D_y, pos3D_z;
         pos3D_x = textureModel->Faces_Triangles[index * 3];
@@ -488,29 +575,95 @@ void draw2DPlayerFull() {
             model_view, projection, viewport,
             &winX, &winY, &winZ);
 
-        if (PointInFrustum(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2])) {
-            glGetQueryObjectuivARB(queries[i], GL_QUERY_RESULT_ARB, &sampleCount);
-            if (sampleCount > 0)
-            {
-                if (winX > drawXmin && winX < drawXmax && winY > drawYmin && winY < drawYmax && textureIndex > 0)
-                {
-                    faces[textureIndex][i] = sampleCount;
-                }
-                glEnable(GL_CULL_FACE);
-                glFrontFace(GL_CW);
-                glCullFace(GL_FRONT);
-                xdraw2DElement(i);
+        int block = PointToBlock(textureModel->Faces_Triangles[index * 3], textureModel->Faces_Triangles[index * 3 + 1], textureModel->Faces_Triangles[index * 3 + 2]);
+
+        if (
+        // No redibujo triangulos que ya pueden ser texturizados por otra camara
+        //(textureIndex < 2 || faces[textureIndex-1][i] < 2) &&
+        // No dibujo triangulos que salgan de la textura
+        (winX > drawXmin && winX < drawXmax && winY > drawYmin && winY < drawYmax && textureIndex > 0) &&
+        // No dibujo triangulos que salgan de la escena
+        PointInFrustum(index)
+        ) {
+            if (treeBlocks[block] == textureIndex) {
+                faces[textureIndex][i] = -2;
+                bb++;
+            // No redibujo triangulo N si es similar al triangulo N-1 o N-2
+            } else if (i % 3 == 1 && SimilarFace(index * 3, index * 3 - 9)) {
+                faces[textureIndex][i] = -1;
+            } else if (i % 3 == 2 && (SimilarFace(index * 3, index * 3 - 9) || SimilarFace(index * 3, index * 3 - 18))) {
+                faces[textureIndex][i] = -1;
+            } else {
+                dwFaces[i] = true;
+                dwCount++;
             }
+            //dwFaces[i] = true;
+            //dwCount++;
         }
     }
+
+    //cout << "b" << endl;
+
     glDisable(GL_BLEND);
     glDepthFunc(GL_LESS);
     glDepthMask(GL_TRUE);
-    glDeleteQueriesARB(textureModel->TotalFaces, queries);
+
+    glBeginQueryARB = (PFNGLBEGINQUERYARBPROC)wglGetProcAddress("glBeginQueryARB");
+    glGenQueriesARB = (PFNGLGENQUERIESARBPROC)wglGetProcAddress("glGenQueriesARB");
+    glEndQueryARB = (PFNGLENDQUERYARBPROC)wglGetProcAddress("glEndQueryARB");
+    glGetQueryObjectuivARB = (PFNGLGETQUERYOBJECTUIVPROC)wglGetProcAddress("glGetQueryObjectuivARB");
+    glDeleteQueriesARB = (PFNGLDELETEQUERIESARBPROC)wglGetProcAddress("glDeleteQueriesARB");
+    GLuint* queries = new GLuint[dwCount];
+    glGenQueriesARB(dwCount, queries);
+    GLuint sampleCount;
+
+    int k = 0;
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        if (dwFaces[i]) {
+            glBeginQueryARB(GL_SAMPLES_PASSED_ARB, queries[k]);
+            xdraw2DElement(i);
+            glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+            k++;
+        }
+    }
+
+    //cout << "c" << endl;
+
+    glEnable(GL_BLEND);
+    glDepthFunc(GL_EQUAL);
+    glDepthMask(GL_FALSE);
+
+    k = 0;
+    for (int i = 0; i < textureModel->TotalFaces; i++) {
+        if (dwFaces[i]) {
+            glGetQueryObjectuivARB(queries[k], GL_QUERY_RESULT_ARB, &sampleCount);
+            if (sampleCount > 0) {
+                faces[textureIndex][i] = sampleCount;
+            }
+            k++;
+        } else if (faces[textureIndex][i] == -2) {
+            faces[textureIndex][i] = 100;
+        } else if (faces[textureIndex][i] == -1 && i % 3 == 1) {
+            faces[textureIndex][i] = faces[textureIndex][i-1];
+        } else if (faces[textureIndex][i] == -1 && i % 3 == 2) {
+            faces[textureIndex][i] = faces[textureIndex][i-2];
+        }
+    }
+
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+
+    cout << fullDrawCount << " - " << dwCount << " - " << bb <<endl;
+
+    glDeleteQueriesARB(dwCount, queries);
     delete [] queries;
 }
 
 void draw2DPlayerFast() {
+    //glEnable(GL_CULL_FACE);
+    //glFrontFace(GL_CW);
+    //glCullFace(GL_FRONT);
     for (int i = 0; i < textureModel->TotalFaces; i++) {
         int hits = 0;
         for (int k = 1; k <= textureCount; k++) {
@@ -519,6 +672,73 @@ void draw2DPlayerFast() {
         if (hits > 0 && faces[textureIndex][i] == hits) {
             cameraLightColor = true;
             draw2DElement(i);
+        }
+    }
+    //glDisable(GL_CULL_FACE);
+}
+
+void drawBlockOne(float xm, float xM, float ym, float yM, float zm, float zM) {
+
+    glColor3f(0.0f, 1.0f, 0.0f);
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xm, ym, zm); glVertex3f(xM, ym, zm); glVertex3f(xm, yM, zm);
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xM, yM, zm); glVertex3f(xM, ym, zm); glVertex3f(xm, yM, zm);
+    glEnd();
+
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xm, ym, zM); glVertex3f(xM, ym, zM); glVertex3f(xm, yM, zM);
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xM, yM, zM); glVertex3f(xM, ym, zM); glVertex3f(xm, yM, zM);
+    glEnd();
+
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xm, ym, zm); glVertex3f(xm, ym, zM); glVertex3f(xm, yM, zm);
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xm, yM, zM); glVertex3f(xm, ym, zM); glVertex3f(xm, yM, zm);
+    glEnd();
+
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xM, ym, zm); glVertex3f(xM, ym, zM); glVertex3f(xM, yM, zm);
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xM, yM, zM); glVertex3f(xM, ym, zM); glVertex3f(xM, yM, zm);
+    glEnd();
+
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xm, ym, zm); glVertex3f(xM, ym, zm); glVertex3f(xM, ym, zM);
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xm, ym, zm); glVertex3f(xm, ym, zM); glVertex3f(xM, ym, zM);
+    glEnd();
+
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xm, yM, zm); glVertex3f(xM, yM, zm); glVertex3f(xM, yM, zM);
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+        glVertex3f(xm, yM, zm); glVertex3f(xm, yM, zM); glVertex3f(xM, yM, zM);
+    glEnd();
+    glColor3f(1.0f, 1.0f, 1.0f);
+}
+
+void drawBlocks() {
+    for (int x = 0; x < 10; x++) {
+        float xm = meshXmin + x * ((meshXmax - meshXmin) / 10);
+        float xM = meshXmin + (x+1) * ((meshXmax - meshXmin) / 10);
+        for (int y = 0; y < 10; y++) {
+            float ym = meshYmin + y * ((meshYmax - meshYmin) / 10);
+            float yM = meshYmin + (y+1) * ((meshYmax - meshYmin) / 10);
+            for (int z = 0; z < 10; z++) {
+                float zm = meshZmin + z * ((meshZmax - meshZmin) / 10);
+                float zM = meshZmin + (z+1) * ((meshZmax - meshZmin) / 10);
+                int block = PointToBlock(xm, ym, zm);
+                if (treeBlocks[block] == 0) {
+                    //drawBlockOne(xm, xM, ym, yM, zm, zM);
+                }
+            }
         }
     }
 }
@@ -595,7 +815,7 @@ int masterFull = 0;
 void display(void) {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    if (cameraLight) {
+    if (cameraLight && drawFast) {
        glEnable(GL_LIGHTING);
        glEnable(GL_LIGHT0);
 
@@ -624,9 +844,11 @@ void display(void) {
         if (drawFast) {
             applyTransformations(textureMaster[0].history);
             draw2DPlayerFast();
+            drawBlocks();
         } else if (masterFull == textureIndex) {
             glMultMatrixd(textureMaster[textureIndex].matrixA);
             draw2DPlayerFull();
+            drawBlocks();
         }
         stepClearTexture();
     }
@@ -634,14 +856,16 @@ void display(void) {
     if (drawFast) {
         glFlush();
         glutSwapBuffers();
+    } else if (fullDrawCount % 2 == 0) {
+        UpdateBlocks();
     }
 
     drawAllText();
 
     if (cameraLight) {
-       glDisable(GL_LIGHT0);
-       glDisable(GL_LIGHTING);
     }
+    glDisable(GL_LIGHT0);
+    glDisable(GL_LIGHTING);
 
 }
 
@@ -742,11 +966,16 @@ void UpdateHistory (int id) {
 
 void keys(unsigned char key, int x, int y) {
 
+    isMovingKey = true;
+
     if (key == 'x') {
         textureWire = !textureWire;
     }
     if (key == 'p') {
         cameraLight = !cameraLight;
+    }
+    if (key == 'o') {
+        masterMove = !masterMove;
     }
     if (key == 'w') textureMaster[0].rotate[0] += 2.0;
     if (key == 's') textureMaster[0].rotate[0] -= 2.0;
@@ -772,7 +1001,14 @@ void keys(unsigned char key, int x, int y) {
     display();
 }
 
+void keysUp(unsigned char key, int x, int y) {
+
+    isMovingKey = false;
+}
+
 void mouse(int btn, int state, int x, int y) {
+
+    isMovingMouse = state == GLUT_DOWN;
 
     cameraAxis = state == GLUT_DOWN ? btn : -1;
     if (state == GLUT_DOWN) {
@@ -858,35 +1094,37 @@ bool loadLightMapTexture(Model_IMG* model) {
 
 void timerFunction(int arg) {
     glutTimerFunc(reDrawRate, timerFunction, 0);
-    bool shouldRedraw = true;
-    shouldRedraw = textureModel->MemoryLoad();
 
-    //textureModel->Load("mallaUnida.ply");
-    for (int i = 0; !shouldRedraw && i < textureCount; i++) {
-        shouldRedraw = shouldRedraw || textureImage[i].MemoryCheck();
-    }
-    if (shouldRedraw) {
+    if (!isMovingKey && !isMovingMouse && !masterMove) {
+        bool shouldRedraw = true;
+        shouldRedraw = textureModel->MemoryLoad();
 
-        glPushMatrix();
-        glLoadIdentity();
-        for (int i = 0; i < textureCount; i++) {
-            glActiveTextureARB(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, textures[i]);
-            glDisable(GL_TEXTURE_2D);
-            textureIndex = i + 1;
-            loadLightMapTexture(&textureImage[i]);
+        //textureModel->Load("mallaUnida.ply");
+        for (int i = 0; !shouldRedraw && i < textureCount; i++) {
+            shouldRedraw = shouldRedraw || textureImage[i].MemoryCheck();
         }
-        textureIndex = 0;
-        glPopMatrix();
+        if (shouldRedraw) {
 
-        drawFast = false;
-        for (int i = 1; i <= textureCount; i++) {
-            masterFull = i;
+            glPushMatrix();
+            glLoadIdentity();
+            for (int i = 0; i < textureCount; i++) {
+                glActiveTextureARB(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, textures[i]);
+                glDisable(GL_TEXTURE_2D);
+                textureIndex = i + 1;
+                loadLightMapTexture(&textureImage[i]);
+            }
+            textureIndex = 0;
+            glPopMatrix();
+
+            drawFast = false;
+            for (int i = 1; i <= textureCount; i++) {
+                masterFull = i;
+                display();
+            }
+            drawFast = true;
             display();
         }
-        drawFast = true;
-        display();
-
     }
 }
 
@@ -914,6 +1152,7 @@ int main(int argc, char **argv) {
     glutMouseFunc(mouse);
     glutMotionFunc(mouseMove);
     glutKeyboardFunc(keys);
+    glutKeyboardUpFunc(keysUp);
     glEnable(GL_DEPTH_TEST);
 
     /* Settings */
