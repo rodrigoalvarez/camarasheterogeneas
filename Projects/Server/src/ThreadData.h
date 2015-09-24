@@ -154,13 +154,13 @@ class ThreadData {
             sYpix.clear();
             sZpix.clear();
 
-            ofLogVerbose() << "[ThreadData::~ThreadData] fin";
+            //ofLogVerbose() << "[ThreadData::~ThreadData] fin";
             released    = true;
         }
 
         void mergePointClouds(ThreadData * td) {
             if(td->nubeLength > 0) {
-                ofLogVerbose() << "[ThreadData::mergePointClouds] - Mergeando 2 Frames - " << nubeLength << " - " << td->nubeLength;
+                //ofLogVerbose() << "[ThreadData::mergePointClouds] - Mergeando 2 Frames - " << nubeLength << " - " << td->nubeLength;
 
                 int curLength   = nubeLength;
 

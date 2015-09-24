@@ -30,8 +30,9 @@
 
 
 using namespace std;
-
+ofFile file("stats.csv",ofFile::WriteOnly);
 void ThreadServer::threadedFunction() {
+    file << "Hora" << ";" << "Tamaño en bytes" << ";" << "Largo de la nube" << ";" << "Ancho nube" << ";" << "Alto nube" << ";" << "Ancho imagen" << ";" << "Alto imagen" << endl ;
     closed           = false;
     connectionClosed = false;
     HINSTANCE hGetProcIDDLL;
@@ -64,13 +65,13 @@ void ThreadServer::threadedFunction() {
     while(isThreadRunning()) {
         baseMill = ofGetElapsedTimeMillis();
         receiveFrame();
-        /*currMill = ofGetElapsedTimeMillis();
+        currMill = ofGetElapsedTimeMillis();
         if((currMill - baseMill) < minMillis) {
             sleep(minMillis - (currMill - baseMill));
-        }*/
+        }
     }
 
-
+    file.close();
 
     //ofAddListener(ofEvents().update, this, &ThreadServer::receiveFrame);
 }
@@ -134,7 +135,7 @@ void ThreadServer::receiveFrame() {
     if(connectionClosed) return;
     if(!started) return;
     if(!idle) {
-        ofLogVerbose() << ">>[ThreadServer::receiveFrame] :: NO IDLE / FPS ";
+        //ofLogVerbose() << ">>[ThreadServer::receiveFrame] :: NO IDLE / FPS ";
         return;
     }
     idle = false;
@@ -196,7 +197,8 @@ void ThreadServer::receiveFrame() {
             sprintf(currentTime, "%s:%d", buffer, milli);
 
             float millisNow = ofGetElapsedTimeMillis();
-            ofLogVerbose() << ">>[ThreadServer::receiveFrame] RECIBIENDO NUEVO FRAME: " << currentTime << ", v0: " << v0 << ", v1: " << v1;
+            ofLogWarning() << ">>[ThreadServer::receiveFrame] RECIBIENDO NUEVO FRAME: " << currentTime << ", v0: " << v0 << ", v1: " << v1;
+
             int guarda = 5000;
             do {
                 char * recBytearray  = new char [sys_data->maxPackageSize];
@@ -212,7 +214,7 @@ void ThreadServer::receiveFrame() {
                     currTotal           += numBytes;
                 }
                 delete recBytearray;
-                ofLogVerbose() << ">>[ThreadServer::receiveFrame] RECIBIENDO currTotal: " << currTotal << ", total esperado: " << (v0*sys_data->maxPackageSize + v1);
+                //ofLogVerbose() << ">>[ThreadServer::receiveFrame] RECIBIENDO currTotal: " << currTotal << ", total esperado: " << (v0*sys_data->maxPackageSize + v1);
                 guarda--;
             } while((currTotal < (v0*sys_data->maxPackageSize + v1)) && (guarda>0) && !(b_exit));
 
@@ -235,14 +237,17 @@ void ThreadServer::receiveFrame() {
                     }
 
                     std::pair <int, ThreadData *>  tPair = FrameUtils::getThreadDataFromByteArray( currBytearray );
-
+                    ThreadData * tdtmp = tPair.second;
                     FrameUtils::decompressImages(tPair.second, tPair.first, decompress_img);
+
+                    file << currentTime << ";" << currTotal << ";" << tdtmp->nubeLength << ";" << tdtmp->nubeW << ";" << tdtmp->nubeH << ";" << tdtmp->img.getWidth() << ";" << tdtmp->img.getHeight() << endl ;
 
                     pthread_mutex_lock(&myMutex);
                     fb.addFrame(tPair.second, tPair.first);
-                    ofLogVerbose() << ">>[ThreadServer::receiveFrame] BUFFER LENGHT " << fb.length();
-                    ofLogVerbose() << ">>[ThreadServer::receiveFrame] Estado del buffer de este ThreadServer: fb.tope " << fb.tope  << ", fb.base " << fb.base;
+                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] BUFFER LENGHT " << fb.length();
+                    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] Estado del buffer de este ThreadServer: fb.tope " << fb.tope  << ", fb.base " << fb.base;
                     pthread_mutex_unlock(&myMutex);
+                    ofGetFrameRate();
                 }
             } else {
                 if(TCPCLI.isConnected()) {
@@ -256,7 +261,7 @@ void ThreadServer::receiveFrame() {
         ofLogVerbose() << ">>[ThreadServer::receiveFrame] CATCH " << e.what();
         ofLogVerbose() << ">>[ThreadServer::receiveFrame] An exception occurred. ";
     }
-    ofLogVerbose() << ">>[ThreadServer::receiveFrame] saliendo. ";
+    //ofLogVerbose() << ">>[ThreadServer::receiveFrame] saliendo. ";
     idle = true;
 }
 

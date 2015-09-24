@@ -22,11 +22,10 @@ void MeshGenerator::threadedFunction() {
     collector   = new MeshCollector();
 
     ofLogVerbose() << "--[MeshGenerator::threadedFunction] " << endl;
-
     for(int i=0; i<sys_data->totalFreeCores; i++) {
         threads[i].sys_data  = sys_data;
         threads[i].nMTG      = i;
-        threads[i].startThread(true, false);
+        threads[i].startThread(true, true);
     }
 
     collector->sys_data  = sys_data;
@@ -75,7 +74,8 @@ void MeshGenerator::processFrame() {
         if(threads[i].getState() == GENERATOR_IDLE) {
             srvinst->computeFrames();
             std::pair <ThreadData *, ThreadData *> frame = buffer->getNextFrame();
-            ofLogVerbose() << "Generador " << i << " libre";
+            //cout << "Generador " << i << " libre" << endl;
+            //ofLogVerbose() << "Generador " << i << " libre";
             if((frame.first != NULL) || (frame.second != NULL)) {
                 ofLogVerbose() << "Asignado a Generador " << i;
                 threads[i].processMesh(frame, nframe);
@@ -83,10 +83,11 @@ void MeshGenerator::processFrame() {
                 i = (i + 1) % sys_data->totalFreeCores;
                 break;
             } else {
-                ofLogVerbose() << "No había nada para asignar al generador " << i;
+                //ofLogVerbose() << "No había nada para asignar al generador " << i;
+                //cout << "No había nada para asignar al generador " << i << endl;
             }
         } else {
-            ofLogVerbose() <<  "Generador " << i << " ocupado" << endl;
+            //ofLogVerbose() <<  "Generador " << i << " ocupado" << endl;
         }
         j++;
         //i++;

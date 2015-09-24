@@ -9,13 +9,18 @@ void MeshThreadedGenerator::threadedFunction() {
     ofLogVerbose() << "--||[MeshThreadedGenerator::threadedFunction]" << endl;
     meshGenerate = (f_meshGenerate)GetProcAddress(generateMeshLibrary, "meshGenerate");
 
+    if(!ofFile::doesFileExist("stats_generacion.csv")) {
+        ofFile statsFile("stats_generacion.csv",ofFile::Append);
+        statsFile << "Generador" << ";"  << "Hora" << ";" << "Duración" << ";" << "Largo de la nube" << endl ;
+        statsFile.close();
+    }
+
     /*
     while(isThreadRunning()) {
         //ofSleepMillis(1000/sys_data->fps);
         processFrame();
     }
     */
-
     unsigned long long minMillis = 1000/sys_data->fps;
     unsigned long long currMill, baseMill;
 
@@ -28,6 +33,7 @@ void MeshThreadedGenerator::threadedFunction() {
         }
     }
     //ofAddListener(ofEvents().update, this, &MeshThreadedGenerator::processFrame);
+
 }
 
 MeshThreadedGenerator::~MeshThreadedGenerator() {
@@ -40,27 +46,28 @@ void MeshThreadedGenerator::exit() {
 
 void MeshThreadedGenerator::processFrame(ofEventArgs &e) {
 }
+
 void MeshThreadedGenerator::processFrame() {
 
     if(state == GENERATOR_LOADED) {
+        statsBaseMill = ofGetElapsedTimeMillis();
         ThreadData * iter = (ThreadData *) frame.second;
         /*bool descartado = false;
         while(iter != NULL) {
             descartado = descartado || ((iter->img.getWidth() <= 0) || (iter->img.getHeight() <= 0));
             iter = iter->sig;
         }*/
-
+        int nubeLength = -1;
         int idMesh;
         PointsCloud* nbIN = NULL;
 
-        ofLogVerbose() << "--||[MeshThreadedGenerator::processFrame] state == GENERATOR_LOADED " << nMTG << endl;
         state           = GENERATOR_BUSY;
 
         if((frame.first != NULL) && (((ThreadData *) frame.first)->nubeLength >100)) { // En first viene un ThreadData con la nube de puntos.
             //float   wait    = 5000;
             //ofSleepMillis(wait);
             //ofLogVerbose() << "MeshThreadedGenerator :: Waited " << wait << endl;
-
+            nubeLength = ((ThreadData *) frame.first)->nubeLength;
             ThreadData* td = ((ThreadData *) frame.first);
             time_t now = time(0);
             tm *ltm = localtime(&now);
@@ -110,8 +117,22 @@ void MeshThreadedGenerator::processFrame() {
             frame.first = NULL;
             delete nbIN;
         }
-        //}
 
+        /*Stats*/
+        statsCurrMill = ofGetElapsedTimeMillis();
+        timeval curTime;
+        gettimeofday(&curTime, NULL);
+        int milli = curTime.tv_usec / 1000;
+        char buffer [80];
+        strftime(buffer, 80, "%Y-%m-%d %H:%M:%S", localtime(&curTime.tv_sec));
+        char currentTime[84] = "";
+        sprintf(currentTime, "%s:%d", buffer, milli);
+
+        ofFile statsFile("stats_generacion.csv",ofFile::Append);
+        statsFile << nMTG << ";" << currentTime << ";" << (statsCurrMill - statsBaseMill) << ";" << nubeLength << endl ;
+        statsFile.close();
+
+        /*Fin: Stats*/
         /**/
         lock();
         state   = GENERATOR_COMPLETE;

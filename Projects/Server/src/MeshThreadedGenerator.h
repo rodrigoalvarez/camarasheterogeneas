@@ -72,4 +72,7 @@ class MeshThreadedGenerator : public ofThread {
 		void exit();
 		f_meshGenerate meshGenerate;
 		~MeshThreadedGenerator();
+		unsigned long long statsCurrMill;
+		unsigned long long statsBaseMill;
+
 };

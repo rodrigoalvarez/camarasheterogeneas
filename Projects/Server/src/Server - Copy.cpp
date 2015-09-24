@@ -47,15 +47,12 @@ void Server::exit() {
 
 void Server::setup() {
 
-    /*ofFile file("filename.txt",ofFile::WriteOnly);
-    file << "saving some data";
-    file.close();*/
 
     drawables   = 0;
     gdata       = new ServerGlobalData();
     gdata->loadCalibData("settings.xml");
 
-    pthread_mutex_init(&uiMutex, NULL);
+    /*pthread_mutex_init(&uiMutex, NULL);
 
     myfont.loadFont("HelveticaNeueLTStd Bd.otf", 8);
 
@@ -96,12 +93,12 @@ void Server::setup() {
         case 5: ofSetLogLevel(OF_LOG_SILENT); break;
         default:ofSetLogLevel(OF_LOG_VERBOSE); break;
     }
-
+    */
     ofLogToFile("server_log.txt", false);
+    cout << "gdata->sys_data->serverPort " << gdata->sys_data->serverPort << endl;
+    TCP.setup(gdata->sys_data->serverPort, true);
 
-    TCP.setup(gdata->sys_data->serverPort);
-
-	currCliPort         = gdata->sys_data->serverPort + 1;
+	/*currCliPort         = gdata->sys_data->serverPort + 1;
 	totThreadedServers  = 0;
     buffLastIndex       = 0;
     buffCurrIndex       = 0;
@@ -120,7 +117,7 @@ void Server::setup() {
     generator.sys_data  = gdata->sys_data;
     generator.buffer    = mb;
     generator.srvinst   = this;
-    generator.startThread(true, true);
+    generator.startThread(true, false);*/
 }
 
 //Dejo abierto el puerto PORT_0
@@ -129,6 +126,13 @@ void Server::setup() {
         //Le retorno al cliente el puerto (PUERTO_X) asignado.
 //--------------------------------------------------------------
 void Server::update() {
+    //for each client lets send them a message letting them know what port they are connected on
+	for(int i = 0; i < TCP.getLastID(); i++){
+		if( !TCP.isClientConnected(i) )continue;
+
+		TCP.send(i, "hello client - you are connected on port - " + ofToString(TCP.getClientPort(i)) );
+	}
+	return;
     if(b_exit_fired) return;
     if(b_exit) {
         if(!b_exit_fired) {
@@ -189,14 +193,16 @@ void Server::computeFrames() {
     for(int i = 0; i < totThreadedServers; i++) {
         if(!tservers[i]->closed) {
             totActivos ++;
+            //cout << "[Server::computeFrames] IS threadRunning " << tservers[i]->connectionClosed << endl;
             int currCam = 1;
-            //ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer lock " << endl;
+            ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer lock " << endl;
+            //tservers[i]->lock();
             pthread_mutex_lock(&tservers[i]->myMutex);
 
-            //ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer getHeadFrame " << endl;
-            //ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Largo del buffer " << tservers[i]->fb.length();
+            ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer getHeadFrame " << endl;
+            ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Largo del buffer " << tservers[i]->fb.length();
             std::pair <int, ThreadData *> head      = tservers[i]->fb.getHeadFrame();
-            //ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Largo del buffer despues de tomar " << tservers[i]->fb.length() << endl;
+            ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : Largo del buffer despues de tomar " << tservers[i]->fb.length() << endl;
             pthread_mutex_unlock(&tservers[i]->myMutex);
 
             if((ThreadData *) head.second) {
@@ -223,7 +229,7 @@ void Server::computeFrames() {
             //tservers[i]->unlock();
         } else {
             if(tservers[i]->isThreadRunning()) {
-                //cout << "STOP THREAD" << endl;
+                cout << "STOP THREAD" << endl;
                 tservers[i]->stopThread();
             }
         }
@@ -231,7 +237,7 @@ void Server::computeFrames() {
     if(drawables < tmpDrawables) {
         drawables = tmpDrawables;
     }
-    //ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totActivos;
+    ofLogVerbose() << "[Server::computeFrames] - Total de Threads activos: " << totActivos;
 }
 
 void Server::getCamTag(std::string * tagDest, int cliId, int camId) {

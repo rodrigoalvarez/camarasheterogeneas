@@ -179,7 +179,7 @@ class FrameUtils {
         try {
             int totCameras;
             memcpy(&(totCameras), (bytearray),     sizeof(int));
-            ofLogVerbose() << ">>>>[FrameUtils::getThreadDataFromByteArray] - totCameras " << totCameras;
+            //ofLogVerbose() << ">>>>[FrameUtils::getThreadDataFromByteArray] - totCameras " << totCameras;
             if(totCameras > 0) {
                 ThreadData * tData  = new ThreadData[totCameras];
                 int i;
@@ -230,7 +230,7 @@ class FrameUtils {
                     memcpy(&(tData[i].cameraType),  (off_cameraType), sizeof(int));
                     memcpy(&(tData[i].curTime),     (off_curTime),    sizeof(timeval));
 
-                    ofLogVerbose() << ">>>>[FrameUtils::getThreadDataFromByteArray] - recuperado - cliId: " << tData[i].cliId << ", camId: " << tData[i].camId << ", state: " << tData[i].state  << ", cameraType: " << tData[i].cameraType;
+                    //ofLogVerbose() << ">>>>[FrameUtils::getThreadDataFromByteArray] - recuperado - cliId: " << tData[i].cliId << ", camId: " << tData[i].camId << ", state: " << tData[i].state  << ", cameraType: " << tData[i].cameraType;
 
                     start = off_curTime   + sizeof(timeval);
 
@@ -251,7 +251,7 @@ class FrameUtils {
 
                             memcpy(&(tData[i].compSize),     (off_imgBArrSize),     sizeof(int));
 
-                            ofLogVerbose() << ">>>>[FrameUtils::getThreadDataFromByteArray] - Recibida imagen de size: " << tData[i].compSize;
+                            //ofLogVerbose() << ">>>>[FrameUtils::getThreadDataFromByteArray] - Recibida imagen de size: " << tData[i].compSize;
 
                             memcpy(&(tData[i].imgrow1.x),   (off_imgXYZ),                        sizeof(float));
                             memcpy(&(tData[i].imgrow1.y),   (off_imgXYZ + sizeof(float)),        sizeof(float));

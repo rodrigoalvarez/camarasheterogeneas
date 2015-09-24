@@ -53,7 +53,7 @@ int MainBufferRT::buffLength() {
 * Asumo que en frame viene una única cámara.
 */
 void MainBufferRT::addFrame( ThreadData * frame , int cam, int cli) {
-    ofLogVerbose() << "[MainBufferRT::addFrame] ";
+    //ofLogVerbose() << "[MainBufferRT::addFrame] ";
     pthread_mutex_lock(&myMutex);
     frame->used = false;
     if(iniData == NULL) {
@@ -112,7 +112,7 @@ std::pair <ThreadData *, ThreadData *> MainBufferRT::getNextFrame() {
     ret.second  = NULL;
 
     if(!hasNewData(iniData)) {
-        ofLogVerbose() << "[MainBufferRT::getNextFrame()] hasNewData = false";
+        //ofLogVerbose() << "[MainBufferRT::getNextFrame()] hasNewData = false";
         return ret;
     }
 

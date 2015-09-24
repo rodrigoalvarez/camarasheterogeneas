@@ -37,7 +37,7 @@ FrameBuffer::~FrameBuffer() {
 
 void FrameBuffer::addFrame(ThreadData * frame, int totalCams) {
     if(totalCameras == 0 ) return;
-    ofLogVerbose() << "[FFrameBuffer::addFrame] - " << "base " << base << ", tope " << tope << ", totalCams " << totalCams;
+    //ofLogVerbose() << "[FFrameBuffer::addFrame] - " << "base " << base << ", tope " << tope << ", totalCams " << totalCams;
 
     if((tope == base) && (buffer[base] != NULL)) {
         try {
@@ -73,7 +73,7 @@ std::pair <int, ThreadData *> FrameBuffer::getHeadFrame() {
     if(buffer[base] == NULL) {
         retVal.first    = 0;
         retVal.second   = NULL;
-        ofLogWarning() << "[FrameBuffer::getHeadFrame]: Se llamó a getHeadFrame y estaba vacío. "  << "base " << base << ", tope " << tope;
+        //ofLogWarning() << "[FrameBuffer::getHeadFrame]: Se llamó a getHeadFrame y estaba vacío. "  << "base " << base << ", tope " << tope;
         return retVal;
         //return NULL;
     }
