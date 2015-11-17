@@ -77,4 +77,5 @@ class Grabber : public IGrabber {
 
         std::list<DebugTexture *> list;
         std::list<DebugTexture *>::iterator it;
+
 };

@@ -568,7 +568,7 @@ void Grabber::updateThreadData() {
                         tData[di].state    = DEVICE_2D;
                     }
                 }
-
+                cout << " tData[di].nubeLength " << tData[di].nubeLength << endl;
                 if(tData[di].xpix != NULL) {
                     delete tData[di].xpix;
                     delete tData[di].ypix;

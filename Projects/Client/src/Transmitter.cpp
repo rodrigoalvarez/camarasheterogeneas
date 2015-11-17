@@ -31,9 +31,9 @@
 
 bool connected = false;
 int retry;
-ofImage im;
+//ofImage im;
 void Transmitter::threadedFunction() {
-    im.loadImage("tibu.jpg");
+    //im.loadImage("tibu.jpg");
     HINSTANCE hGetProcIDDLL;
     hGetProcIDDLL   =  LoadLibraryA("imageCompression.dll");
     if (!hGetProcIDDLL) {
@@ -66,10 +66,10 @@ void Transmitter::threadedFunction() {
         baseMill = ofGetElapsedTimeMillis();
         process();
         currMill = ofGetElapsedTimeMillis();
-        /*
+
         if((currMill - baseMill) < minMillis) {
             ofSleepMillis(minMillis - (currMill - baseMill));
-        }*/
+        }
     }
 }
 
@@ -148,6 +148,7 @@ void Transmitter::process() {
         try {
             ofLogVerbose() << "[Transmitter::process] state=0, conectando a " << sys_data->serverIp << "-" << sys_data->serverPort;
             TCP.setup( sys_data->serverIp, sys_data->serverPort );
+            ofLogVerbose()  << "[Transmitter::process] TCP.isClientConnected(0) " << TCP.isConnected();
             if(TCP.isConnected()) {
                 TCPSVR.setup(sys_data->cliPort, true);
                 TCP.send( cliId );
@@ -155,6 +156,7 @@ void Transmitter::process() {
                 state = 2;
                 grabber->setConnected(true);
                 connected = grabber->isConnected();
+                ofLogVerbose() << " IS CONNECTED CON EL SERVIDOR " << TCPSVR.isConnected();
             }
             cout << ">> CONECTADO A IP: " << sys_data->serverIp << ", PUERTO: " << sys_data->serverPort << endl;
             ofLogVerbose()  << "[Transmitter::process]>> CONECTADO A IP: " << sys_data->serverIp << ", PUERTO: " << sys_data->serverPort;
@@ -165,6 +167,7 @@ void Transmitter::process() {
     } else if(state == 2) { // 2 - Tiene cliente asignado.
         try {
             lock();
+            ofLogVerbose()  << "[Transmitter::process] TCPSVR.getNumClients() " << TCPSVR.getNumClients() << ", TCPSVR.isClientConnected(0) " << TCPSVR.isClientConnected(0) << ",  TCPSVR.isConnected() " <<  TCPSVR.isConnected();
             if(TCPSVR.getNumClients() > 0) {
                 if(TCPSVR.isClientConnected(0)) {
                     ofLogVerbose()  << endl << "[Transmitter::process] Actualizando ultima informacion:";
@@ -192,7 +195,7 @@ void Transmitter::process() {
             state       = 3;
         }
     } else {
-        ofLogVerbose() << "[Transmitter::process] state=3";
+        //ofLogVerbose() << "[Transmitter::process] state=3";
     }
 
     idle = true;
@@ -247,49 +250,51 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
         }
         return;
     }
+    if((TCPSVR.getNumClients() > 0) && (TCPSVR.isClientConnected(0) > 0)) {
+        TCPSVR.sendRawBytes(0, (char*) &val0, sizeof(int));
+        TCPSVR.sendRawBytes(0, (char*) &val1, sizeof(int));
 
-    TCPSVR.sendRawBytes(0, (char*) &val0, sizeof(int));
-    TCPSVR.sendRawBytes(0, (char*) &val1, sizeof(int));
-
-    ofLogVerbose()  << endl;
-    ofLogVerbose()  << "[Transmitter::sendFrame] ENVIANDO NUEVO FRAME:";
-    ofLogVerbose()  << "[Transmitter::sendFrame] Total de cámaras: " << totalCams;
-    ofLogVerbose()  << "[Transmitter::sendFrame] Tamaño original del frame: " << origFrameSize << " bytes";
-    if(sys_data->allowCompression) {
-        ofLogVerbose()  << "[Transmitter::sendFrame] Tamaño comprimido del frame: " << frameSize << " bytes";
-    }
-    ofLogVerbose()  << "[Transmitter::sendFrame] v0: " << val0  << ", v1:" << val1;
-    ofLogVerbose()  << "[Transmitter::sendFrame] Cantidad de paquetes enviados: " << (val0 + 1);
-    ofLogVerbose()  << "[Transmitter::sendFrame] Conexiones activas: " << TCPSVR.getNumClients();
-    ofLogVerbose()  << endl;
-
-    // FIN DE INTENTO ENVIAR FOTO A VER SI FALLA
-
-    imageBytesToSend    = frameSize;
-    totalBytesSent      = 0;
-    messageSize         = sys_data->maxPackageSize;
-    int guarda          = 100;
-    while( (imageBytesToSend > 1) && (guarda>0) ) {
-        if(imageBytesToSend > messageSize) {
-            if(TCPSVR.getNumClients() > 0) {
-                TCPSVR.sendRawBytes(0, (const char*) &bytearray[totalBytesSent], messageSize);
-                imageBytesToSend    -= messageSize;
-                totalBytesSent      += messageSize;
-            }
-        } else {
-            if(TCPSVR.getNumClients() > 0) {
-                TCPSVR.sendRawBytes(0, (char*) &bytearray[totalBytesSent], imageBytesToSend);
-                totalBytesSent += imageBytesToSend;
-                imageBytesToSend = 0;
-            }
+        ofLogVerbose()  << endl;
+        ofLogVerbose()  << "[Transmitter::sendFrame] ENVIANDO NUEVO FRAME:";
+        ofLogVerbose()  << "[Transmitter::sendFrame] Total de cámaras: " << totalCams;
+        ofLogVerbose()  << "[Transmitter::sendFrame] Tamaño original del frame: " << origFrameSize << " bytes";
+        if(sys_data->allowCompression) {
+            ofLogVerbose()  << "[Transmitter::sendFrame] Tamaño comprimido del frame: " << frameSize << " bytes";
         }
-        //ofLogVerbose() << "[Transmitter::sendFrame] envando " << guarda;
-        guarda--;
+        ofLogVerbose()  << "[Transmitter::sendFrame] v0: " << val0  << ", v1:" << val1;
+        ofLogVerbose()  << "[Transmitter::sendFrame] Cantidad de paquetes enviados: " << (val0 + 1);
+        ofLogVerbose()  << "[Transmitter::sendFrame] Conexiones activas: " << TCPSVR.getNumClients();
+        ofLogVerbose()  << endl;
+
+        // FIN DE INTENTO ENVIAR FOTO A VER SI FALLA
+
+        imageBytesToSend    = frameSize;
+        totalBytesSent      = 0;
+        messageSize         = sys_data->maxPackageSize;
+        int guarda          = 100;
+        while( (imageBytesToSend > 1) && (guarda>0) ) {
+            ofLogVerbose()  << "[Transmitter::sendFrame] TCPSVR.getNumClients() " << TCPSVR.getNumClients() << ", TCPSVR.isClientConnected(0) " << TCPSVR.isClientConnected(0) << ",  TCPSVR.isConnected() " <<  TCPSVR.isConnected();
+            if(imageBytesToSend > messageSize) {
+                if(TCPSVR.getNumClients() > 0) {
+                    TCPSVR.sendRawBytes(0, (const char*) &bytearray[totalBytesSent], messageSize);
+                    imageBytesToSend    -= messageSize;
+                    totalBytesSent      += messageSize;
+                }
+            } else {
+                if(TCPSVR.getNumClients() > 0) {
+                    TCPSVR.sendRawBytes(0, (char*) &bytearray[totalBytesSent], imageBytesToSend);
+                    totalBytesSent += imageBytesToSend;
+                    imageBytesToSend = 0;
+                }
+            }
+            //ofLogVerbose() << "[Transmitter::sendFrame] envando " << guarda;
+            guarda--;
+        }
+        if(guarda <= 0) {
+            ofLogVerbose() << "[Transmitter::sendFrame] FALLÓ EL ENVÍO ";
+        }
     }
 
-    if(guarda <= 0) {
-        ofLogVerbose() << "[Transmitter::sendFrame] FALLÓ EL ENVÍO ";
-    }
     if(TCPSVR.getNumClients() <= 0) {
         ofLogVerbose() << "[Transmitter::sendFrame] NO HAY MÁS CONEXIONES ABIERTAS ";
     } else {
@@ -316,9 +321,9 @@ void Transmitter::sendFrame(int totalCams, ThreadData * tData) {
         state    = -1;
         retry    = -1;
         int conn = -10;
+        cout << ">> DESCONECTADO" << endl;
         TCPSVR.sendRawBytesToAll((char*) &conn, sizeof(int));
         TCPSVR.close();
-        cout << ">> DESCONECTADO" << endl;
         ofLogVerbose()  << "[Transmitter::sendFrame] DESCONECTADO";
         return;
     }
