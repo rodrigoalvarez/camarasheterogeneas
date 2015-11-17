@@ -38,6 +38,7 @@ void MeshGenerator::threadedFunction() {
 
     while(isThreadRunning()) {
         baseMill = ofGetElapsedTimeMillis();
+        ofLogVerbose() << "[MeshGenerator::threadedFunction] en el while del MeshGenerator " << endl;
         processFrame();
 
         currMill = ofGetElapsedTimeMillis();
@@ -45,6 +46,7 @@ void MeshGenerator::threadedFunction() {
             sleep(minMillis - (currMill - baseMill));
         }
     }
+    ofLogVerbose() << "[MeshGenerator::threadedFunction] FIN" << endl;
     //ofAddListener(ofEvents().update, this, &MeshGenerator::processFrame);
 }
 
@@ -72,6 +74,7 @@ void MeshGenerator::processFrame() {
     int j = 0;
     while(!b_exit && (j<sys_data->totalFreeCores)) {
         if(threads[i].getState() == GENERATOR_IDLE) {
+            ofLogVerbose() << "[MeshGenerator::processFrame] por hacer computeFrames";
             srvinst->computeFrames();
             std::pair <ThreadData *, ThreadData *> frame = buffer->getNextFrame();
             //cout << "Generador " << i << " libre" << endl;

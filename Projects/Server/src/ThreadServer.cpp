@@ -30,9 +30,9 @@
 
 
 using namespace std;
-ofFile file("stats.csv",ofFile::WriteOnly);
+//ofFile file("stats.csv",ofFile::WriteOnly);
 void ThreadServer::threadedFunction() {
-    file << "Hora" << ";" << "Tamaño en bytes" << ";" << "Largo de la nube" << ";" << "Ancho nube" << ";" << "Alto nube" << ";" << "Ancho imagen" << ";" << "Alto imagen" << endl ;
+    //file << "Hora" << ";" << "Tamaño en bytes" << ";" << "Largo de la nube" << ";" << "Ancho nube" << ";" << "Alto nube" << ";" << "Ancho imagen" << ";" << "Alto imagen" << endl ;
     closed           = false;
     connectionClosed = false;
     HINSTANCE hGetProcIDDLL;
@@ -43,6 +43,7 @@ void ThreadServer::threadedFunction() {
     decompress_img  = (f_decompress_img) GetProcAddress(hGetProcIDDLL, "decompress_img");
 
     pthread_mutex_init(&myMutex, NULL);
+    pthread_mutex_lock(&myMutex);
 
     HINSTANCE hGetProcIDDLLPC;
     hGetProcIDDLLPC   =  LoadLibraryA("FrameCompression.dll");
@@ -54,7 +55,14 @@ void ThreadServer::threadedFunction() {
     frame_uncompress   = (f_uncompress)     GetProcAddress(hGetProcIDDLLPC, "frame_uncompress");
 
     ofLogVerbose() << "[ThreadServer::threadedFunction] " << this->ip << ":" << this->port;
+
     TCPCLI.setup(this->ip, this->port, true);
+
+    ofLogVerbose() << "[ThreadServer::threadedFunction] Pasó el connect con el cliente " << this->ip << ":" << this->port;
+
+    while(!TCPCLI.isConnected()) {
+        sleep(200);
+    }
 
     currBytearray = NULL;
     started = true;
@@ -62,16 +70,27 @@ void ThreadServer::threadedFunction() {
     unsigned long long minMillis = 1000/sys_data->fps;
     unsigned long long currMill, baseMill;
 
-    while(isThreadRunning()) {
+    pthread_mutex_unlock(&myMutex);
+
+    server->threadServerReady(this);
+
+    while(isThreadRunning() && !closed) {
         baseMill = ofGetElapsedTimeMillis();
+        if(!TCPCLI.isConnected()) {
+            server->threadServerClosed(this);
+            closed              = true;
+            connectionClosed    = true;
+            break;
+        }
         receiveFrame();
+
         currMill = ofGetElapsedTimeMillis();
         if((currMill - baseMill) < minMillis) {
             sleep(minMillis - (currMill - baseMill));
         }
     }
 
-    file.close();
+    //file.close();
 
     //ofAddListener(ofEvents().update, this, &ThreadServer::receiveFrame);
 }
@@ -165,20 +184,21 @@ void ThreadServer::receiveFrame() {
             recSize = TCPCLI.receiveRawBytes((char*) &v0, sizeof(int));
 
             if(v0 == -10) {
+                server->threadServerClosed(this);
+                closed              = true;
                 ofLogVerbose() << ">>[ThreadServer::receiveFrame] Conexión cerrada por el cliente"<< endl;
                 cout << ">>[ThreadServer::receiveFrame] Conexión cerrada por el cliente"<< endl;
-
-                if(TCPCLI.isConnected()) {
+                TCPCLI.close();
+                /*if(TCPCLI.isConnected()) {
                     //TCPCLI.send("OK");
                     TCPCLI.close();
                 } else {
                     //unlock();
-                    return;
-                }
-
+                    //return;
+                }*/
                 connectionClosed    = true;
                 idle                = true;
-                closed              = true;
+
                 pthread_mutex_lock(&myMutex);
                 fb.~FrameBuffer();
                 pthread_mutex_unlock(&myMutex);
@@ -240,7 +260,7 @@ void ThreadServer::receiveFrame() {
                     ThreadData * tdtmp = tPair.second;
                     FrameUtils::decompressImages(tPair.second, tPair.first, decompress_img);
 
-                    file << currentTime << ";" << currTotal << ";" << tdtmp->nubeLength << ";" << tdtmp->nubeW << ";" << tdtmp->nubeH << ";" << tdtmp->img.getWidth() << ";" << tdtmp->img.getHeight() << endl ;
+                    //file << currentTime << ";" << currTotal << ";" << tdtmp->nubeLength << ";" << tdtmp->nubeW << ";" << tdtmp->nubeH << ";" << tdtmp->img.getWidth() << ";" << tdtmp->img.getHeight() << endl ;
 
                     pthread_mutex_lock(&myMutex);
                     fb.addFrame(tPair.second, tPair.first);
@@ -267,14 +287,12 @@ void ThreadServer::receiveFrame() {
 
 char * ThreadServer::getFrame() {
     ofLogVerbose() << "[ThreadServer::getFrame]";
-    lock();
     return currBytearray;
-    //unlock();
 }
 
 void ThreadServer::exit() {
     ofLogVerbose() << "[ThreadServer::exit]";
-    lock();
+
     b_exit = true;
     if(tData != NULL) {
         delete tData;
@@ -285,6 +303,5 @@ void ThreadServer::exit() {
     }
 
     pthread_mutex_destroy(&myMutex);
-    //unlock();
     stopThread();
 }

@@ -8,6 +8,7 @@
 #include "ServerGlobalData.h"
 #include "FrameBuffer.h"
 #include <pthread.h>
+#include "IServer.h"
 
 typedef std::vector< unsigned char > (*f_compress) (const std::vector< unsigned char > & src);
 typedef std::vector< unsigned char > (*f_uncompress) (const std::vector< unsigned char > & src);
@@ -56,4 +57,5 @@ class ThreadServer : public ofThread {
 		bool connError(std::string msj, bool unl);
 		f_compress       frame_compress;
         f_uncompress     frame_uncompress;
+        IServer * server;
 };

@@ -63,6 +63,7 @@ class Server : public IServer {
         void setVideoPreview(int cli, int cam, ofImage img);
 
         pthread_mutex_t uiMutex;
+        pthread_mutex_t tsrvMutex;
 
 		ofxUDPManager udpConnection;
 		ofxTCPServer TCP;
@@ -91,4 +92,6 @@ class Server : public IServer {
         ofTrueTypeFont myfont;
         void getCamTag(std::string * tagDest, int cliId, int camId);
 		void drawTag(std::string msj, int x, int y);
+		void threadServerReady(void * ntsrv);
+		void threadServerClosed(void * ntsrv);
 };

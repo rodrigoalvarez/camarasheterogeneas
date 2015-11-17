@@ -9,11 +9,11 @@ void MeshThreadedGenerator::threadedFunction() {
     ofLogVerbose() << "--||[MeshThreadedGenerator::threadedFunction]" << endl;
     meshGenerate = (f_meshGenerate)GetProcAddress(generateMeshLibrary, "meshGenerate");
 
-    if(!ofFile::doesFileExist("stats_generacion.csv")) {
+    /*if(!ofFile::doesFileExist("stats_generacion.csv")) {
         ofFile statsFile("stats_generacion.csv",ofFile::Append);
         statsFile << "Generador" << ";"  << "Hora" << ";" << "Duración" << ";" << "Largo de la nube" << endl ;
         statsFile.close();
-    }
+    }*/
 
     /*
     while(isThreadRunning()) {
@@ -128,9 +128,9 @@ void MeshThreadedGenerator::processFrame() {
         char currentTime[84] = "";
         sprintf(currentTime, "%s:%d", buffer, milli);
 
-        ofFile statsFile("stats_generacion.csv",ofFile::Append);
-        statsFile << nMTG << ";" << currentTime << ";" << (statsCurrMill - statsBaseMill) << ";" << nubeLength << endl ;
-        statsFile.close();
+        //ofFile statsFile("stats_generacion.csv",ofFile::Append);
+        //statsFile << nMTG << ";" << currentTime << ";" << (statsCurrMill - statsBaseMill) << ";" << nubeLength << endl ;
+        //statsFile.close();
 
         /*Fin: Stats*/
         /**/

@@ -55,6 +55,7 @@ void FrameBuffer::addFrame(ThreadData * frame, int totalCams) {
             }
             if(buffer[base] /*&& buffer[base]->deletable*/) {
                 cout << "DELETABLE EN TRUE 2" << endl;
+                ofLogWarning() << "[FrameBuffer::addFrame]: DELETABLE EN TRUE 2";
                 delete buffer[base];
             }
         } catch (int e) {

@@ -42,6 +42,7 @@ void Server::exit() {
     }
     delete mb;
     pthread_mutex_destroy(&uiMutex);
+    pthread_mutex_destroy(&tsrvMutex);
     cout << "[Server::exit] END" << endl;
 }
 
@@ -56,6 +57,7 @@ void Server::setup() {
     gdata->loadCalibData("settings.xml");
 
     pthread_mutex_init(&uiMutex, NULL);
+    pthread_mutex_init(&tsrvMutex, NULL);
 
     myfont.loadFont("HelveticaNeueLTStd Bd.otf", 8);
 
@@ -161,7 +163,16 @@ void Server::update() {
 
                 //NOTA: Además del puerto del thread que lo atiende debería pasarle hora actual del servidor (para que sincronice) y fps.
 
-                tservers[totThreadedServers]            = new ThreadServer();
+                ThreadServer * ntsrvr                     = new ThreadServer();
+                ntsrvr->sys_data  = gdata->sys_data;
+                ntsrvr->cliId     = atoi(cli.c_str());
+                ntsrvr->ip        = TCP.getClientIP(i);
+                ntsrvr->port      = atoi(port.c_str());
+                ntsrvr->server    = this;
+                //ntsrvr->tid       = totThreadedServers;
+                ntsrvr->startThread(true, false);
+
+                /*tservers[totThreadedServers]            = new ThreadServer();
                 tservers[totThreadedServers]->sys_data  = gdata->sys_data;
                 tservers[totThreadedServers]->cliId     = atoi(cli.c_str());
                 tservers[totThreadedServers]->ip        = TCP.getClientIP(i);
@@ -169,11 +180,34 @@ void Server::update() {
                 tservers[totThreadedServers]->startThread(true, false);
 
                 currCliPort         ++;
-                totThreadedServers  ++;
+                totThreadedServers  ++;*/
                 //TCP.close();
             }
         }
     }
+}
+
+void Server::threadServerReady(void * ntsrv) {
+    pthread_mutex_lock(&tsrvMutex);
+    tservers[totThreadedServers] = (ThreadServer *) ntsrv;
+    currCliPort         ++;
+    totThreadedServers  ++;
+    pthread_mutex_unlock(&tsrvMutex);
+}
+
+void Server::threadServerClosed(void * ntsrv) {
+    pthread_mutex_lock(&tsrvMutex);
+    bool encontre = false;
+    for(int i = 0; i < totThreadedServers; i++) {
+        if(tservers[i] == ntsrv) {
+            for(int j = i; j < totThreadedServers-1; j++) {
+                tservers[j] == tservers[j+1];
+            }
+            break;
+        }
+    }
+    totThreadedServers  --;
+    pthread_mutex_unlock(&tsrvMutex);
 }
 
 ofImage     tmpImg;
@@ -188,9 +222,9 @@ void Server::computeFrames() {
 
     for(int i = 0; i < totThreadedServers; i++) {
         if(!tservers[i]->closed) {
+            ofLogVerbose() << "[Server::computeFrames] Revisando server " << i;
             totActivos ++;
             int currCam = 1;
-            //ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer lock " << endl;
             pthread_mutex_lock(&tservers[i]->myMutex);
 
             //ofLogVerbose() << "[Server::computeFrames] - Server[" << i << "] : por hacer getHeadFrame " << endl;
