@@ -25,12 +25,12 @@ void MeshGenerator::threadedFunction() {
     for(int i=0; i<sys_data->totalFreeCores; i++) {
         threads[i].sys_data  = sys_data;
         threads[i].nMTG      = i;
-        threads[i].startThread(true, true);
+        threads[i].startThread(false, true);
     }
 
     collector->sys_data  = sys_data;
     collector->threads   = threads;
-    collector->startThread(true, false);
+    collector->startThread(false, true);
     started         = true;
 
     unsigned long long minMillis = 1000/(sys_data->fps);

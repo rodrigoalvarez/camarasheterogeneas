@@ -69,15 +69,6 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
     int height;
 
     ThreadData * iter = (ThreadData *) gresult->textures;
-    /*
-    bool descartado = false;
-    while(iter != NULL) {
-        descartado = descartado || ((iter->img.getWidth() <= 0) || (iter->img.getHeight() <= 0));
-        iter = iter->sig;
-    }
-    ofLogVerbose() << "[MeshCollector::shareFrame] descartado: " << descartado << endl;
-    //if(descartado) return;
-    */
 
     if(gresult->hasDepth) {
         int numFaces = *gresult->numberFaces;
@@ -87,55 +78,95 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
                 ofLogVerbose() << "[MeshCollector::shareFrame]" << ", p1_0: " << gresult->faces[i].p1[0] << ", p1_1: " << gresult->faces[i].p1[1]  << ", p1_2: " << gresult->faces[i].p1[2] << ", p2_0: " << gresult->faces[i].p2[0] << ", p2_1: " << gresult->faces[i].p2[1]  << ", p2_2: " << gresult->faces[i].p2[2] << ", p3_0: " << gresult->faces[i].p3[0] << ", p3_1: " << gresult->faces[i].p3[1]  << ", p3_2: " << gresult->faces[i].p3[2] << endl;
             }*/
             ShareMesh(gresult->idMesh, numFaces, gresult->faces);
+            ofLogVerbose() << "--||--[MeshCollector::shareFrame] 2 ";
         //}
+        ofLogVerbose() << "--||--[MeshCollector::shareFrame] 3 ";
         delete [] gresult->faces;
+        ofLogVerbose() << "--||--[MeshCollector::shareFrame] 4 ";
         delete gresult->numberFaces;
+        ofLogVerbose() << "--||--[MeshCollector::shareFrame] 5 ";
     }
 
     if(gresult->hasRGB) {
-
+        ofLogVerbose() << "--||--[MeshCollector::shareFrame] 6 ";
         iter = (ThreadData *) gresult->textures;
-        int i = 0;
-        do {
-            i++;
-            ofBuffer imageBuffer;
-            ofSaveImage(iter->img.getPixelsRef(), imageBuffer, OF_IMAGE_FORMAT_JPEG);
-            //iter->img.saveImage("mcollector_share_img_" + ofToString(i) + ".jpg");
-            FIMEMORY* stream        = FreeImage_OpenMemory((unsigned char*) imageBuffer.getBinaryBuffer(), imageBuffer.size());
-            FREE_IMAGE_FORMAT fif   = FreeImage_GetFileTypeFromMemory( stream, 0 );
-            FIBITMAP *dib(0);
-            dib                     = FreeImage_LoadFromMemory(fif, stream);
+        try {
+            ofLogVerbose() << "--||--[MeshCollector::shareFrame] 7 ";
+            int i = 0;
+            do {
+                if((iter->img.getWidth() > 0) && (iter->img.getHeight() > 0)) {
+                    ofLogVerbose() << "--||--[MeshCollector::shareFrame]   8 ";
+                    i++;
+                    ofBuffer imageBuffer;
+                    ofLogVerbose() << "--||--[MeshCollector::shareFrame]   9 " << iter->img.bAllocated();
 
-            pixels      = (unsigned char*)FreeImage_GetBits(dib);
-            width       = FreeImage_GetWidth(dib);
-            height      = FreeImage_GetHeight(dib);
-            //ofLogVerbose() << "[MeshCollector::shareFrame] dib width: " << width << ", height: " << height << ", img.width: " << iter->img.getWidth() << ", img.height: " << iter->img.getHeight() << endl;
-            idMomento   = iter->cliId;
-            idMomento   = idMomento*10 + iter->cameraType;
-            idMomento   = idMomento*10 + iter->camId;
-            idMomento   = idMomento*10000 + gresult->nframe % 10000;
+                    ofSaveImage(iter->img.getPixelsRef(), imageBuffer, OF_IMAGE_FORMAT_JPEG);
+                    ofLogVerbose() << "--||--[MeshCollector::shareFrame]   10 ";
+                    //iter->img.saveImage("mcollector_share_img_" + ofToString(i) + ".jpg");
+                    FIMEMORY* stream        = FreeImage_OpenMemory((unsigned char*) imageBuffer.getBinaryBuffer(), imageBuffer.size());
+                    ofLogVerbose() << "--||--[MeshCollector::shareFrame]   11 ";
+                    FREE_IMAGE_FORMAT fif   = FreeImage_GetFileTypeFromMemory( stream, 0 );
+                    ofLogVerbose() << "--||--[MeshCollector::shareFrame]   12 ";
+                    FIBITMAP *dib(0);
+                    ofLogVerbose() << "--||--[MeshCollector::shareFrame]   13 ";
+                    dib                     = FreeImage_LoadFromMemory(fif, stream);
+                    ofLogVerbose() << "--||--[MeshCollector::shareFrame]   14 ";
+                    pixels      = (unsigned char*)FreeImage_GetBits(dib);
 
-            shareImage(&idMomento, pixels, &width, &height);
+                    if(pixels != NULL) {
+                        ofLogVerbose() << "--||--[MeshCollector::shareFrame]   15 ";
+                        width       = FreeImage_GetWidth(dib);
+                        ofLogVerbose() << "--||--[MeshCollector::shareFrame]   16 ";
+                        height      = FreeImage_GetHeight(dib);
+                        ofLogVerbose() << "--||--[MeshCollector::shareFrame]   17 ";
+                        //ofLogVerbose() << "[MeshCollector::shareFrame] dib width: " << width << ", height: " << height << ", img.width: " << iter->img.getWidth() << ", img.height: " << iter->img.getHeight() << endl;
+                        idMomento   = iter->cliId;
+                        idMomento   = idMomento*10 + iter->cameraType;
+                        idMomento   = idMomento*10 + iter->camId;
+                        idMomento   = idMomento*10000 + gresult->nframe % 10000;
 
-            FreeImage_CloseMemory(stream);
-            imageBuffer.clear();
-            free(pixels);
-            FreeImage_Unload(dib);
+                        ofLogVerbose() << "--||--[MeshCollector::shareFrame]   18 ";
 
-            iter = iter->sig;
+                        shareImage(&idMomento, pixels, &width, &height);
+                        ofLogVerbose() << "--||--[MeshCollector::shareFrame]   19 ";
+                        FreeImage_CloseMemory(stream);
+                        ofLogVerbose() << "--||--[MeshCollector::shareFrame]   20 ";
+                        imageBuffer.clear();
+                        ofLogVerbose() << "--||--[MeshCollector::shareFrame]   21 ";
+                        free(pixels);
+                        ofLogVerbose() << "--||--[MeshCollector::shareFrame]   22 ";
+                        FreeImage_Unload(dib);
+                        ofLogVerbose() << "--||--[MeshCollector::shareFrame]   23 ";
+                    } else {
+                        return;
+                    }
+                } else {
+                    return;
+                }
+                iter = iter->sig;
 
-        } while(iter != NULL);
-    }
+            } while(iter != NULL);
+        } catch(const std::exception & exc) {
+            ofLogVerbose() << "--||--[MeshCollector::shareFrame]   CATCH ";
+        }
 
-    if(gresult->hasRGB) {
+        ofLogVerbose() << "--||--[MeshCollector::shareFrame]   24 ";
         if(gresult->textures != NULL) {
+            ofLogVerbose() << "--||--[MeshCollector::shareFrame]   25 ";
             while(gresult->textures != NULL){
+                ofLogVerbose() << "--||--[MeshCollector::shareFrame]   26 ";
                 ThreadData * curr = gresult->textures;
+                ofLogVerbose() << "--||--[MeshCollector::shareFrame]   27 ";
                 gresult->textures = gresult->textures->sig;
+                ofLogVerbose() << "--||--[MeshCollector::shareFrame]   28 ";
                 delete curr;
             }
+            ofLogVerbose() << "--||--[MeshCollector::shareFrame]   29 ";
             gresult->textures = NULL;
         }
     }
+
+    ofLogVerbose() << "--||--[MeshCollector::shareFrame]   30 ";
     delete gresult;
+    ofLogVerbose() << "--||--[MeshCollector::shareFrame]   31 ";
 }

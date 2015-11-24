@@ -122,7 +122,7 @@ void Server::setup() {
     generator.sys_data  = gdata->sys_data;
     generator.buffer    = mb;
     generator.srvinst   = this;
-    generator.startThread(true, true);
+    generator.startThread(false, true);
 }
 
 //Dejo abierto el puerto PORT_0
@@ -170,7 +170,7 @@ void Server::update() {
                 ntsrvr->port      = atoi(port.c_str());
                 ntsrvr->server    = this;
                 //ntsrvr->tid       = totThreadedServers;
-                ntsrvr->startThread(true, false);
+                ntsrvr->startThread(false, true);
 
                 /*tservers[totThreadedServers]            = new ThreadServer();
                 tservers[totThreadedServers]->sys_data  = gdata->sys_data;
