@@ -288,7 +288,7 @@ void Server::draw() {
         int y           = ySep * items + 15;
         int x           = 15;
         gui.draw();
-        /*
+
         for(int i=0; i<drawables; i++) {
             //drawTag(drawableTags[i], x, y);
             pthread_mutex_lock(&uiMutex);
@@ -301,7 +301,7 @@ void Server::draw() {
             items++;
             if(items >= 3) { x+=216; items = 0; }
             y = ySep * items;
-        }*/
+        }
     }
 }
 

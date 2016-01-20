@@ -17,12 +17,11 @@ void Grabber::setConnected(bool con) {
 
 //--------------------------------------------------------------
 void Grabber::setup() {
-
+    pthread_mutex_init(&uiImagesMutex, NULL);
     gdata       = new GlobalData();
     connected   = false;
     gdata->loadCalibData("settings.xml");
     ofLogLevel(OF_LOG_VERBOSE);
-    //ofLogToFile("client_log.txt", false);
     b_exit          = false;
     b_exit_fired    = false;
     b_exit_pressed  = false;
@@ -45,8 +44,6 @@ void Grabber::setup() {
     total2D     = gdata->total2D;    //Hacer que se cargue dinámico.
     total3D     = gdata->total3D;    //Hacer que se cargue dinámico.
     totalONI    = gdata->totalONI;   //Hacer que se cargue dinámico.
-
-    //ofSetFrameRate(gdata->sys_data->fps);
 
     if((gdata->total2D + gdata->total3D + gdata->totalONI) > 0) {
         tData = new ThreadData[gdata->total2D + gdata->total3D + gdata->totalONI];
@@ -160,72 +157,109 @@ void Grabber::drawTag(std::string msj, int x, int y) {
     ofSetColor(256, 256, 256);
 }
 
-ofImage     tmpImg;
+//ofImage     tmpImg;
+ofImage     tmpImg2D[20];
+int inc2D   = 0;
+ofImage     tmpImg3D[20];
+int inc3D   = 0;
+ofImage     tmpImgONI[20];
+int incONI  = 0;
+
 int ySep    = 170;
 int items   = 1;
+
 //--------------------------------------------------------------
 void Grabber::draw() {
 
     if(b_exit) return;
     if(gui.isOn()) {
-        //return;
-        /*items       = 1;
+        items       = 1;
         int y       = ySep * items;
         int x       = 15;
         int i;
+
         for(i=0; i<gdata->total2D; i++) {
-            t2D[i].lock();
             if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) {
-                drawTag(getCamTag(t2D[i].context->id, 0), x, y);
                 pthread_mutex_lock(&t2D[i].uiMutex);
+                drawTag(getCamTag(t2D[i].context->id, 0), x, y);
                 if(t2D[i].img.isAllocated()) {
-                    tmpImg.clone(t2D[i].img);
-                    tmpImg.draw(x, y, 200, 150);
+                    if(inc2D < i) { inc2D = i; }
+                    pthread_mutex_lock(&uiImagesMutex);
+                    tmpImg2D[i].clone(t2D[i].img);
+                    pthread_mutex_unlock(&uiImagesMutex);
                 }
+                items++; if(items >= 3) { x+=216; items = 0; } y = ySep * items;
                 pthread_mutex_unlock(&t2D[i].uiMutex);
-                items++;
-                if(items >= 3) { x+=216; items = 0; }
-                y = ySep * items;
             }
-            t2D[i].unlock();
         }
+
         for(i=0; i<gdata->total3D; i++) {
-            t3D[i].lock();
             if(t3D[i].isDeviceInitted()) { //Si la cámara está inicializada.
                 if(t3D[i].context->use2D == 1) {
-                    drawTag(getCamTag(t3D[i].context->id, 1), x, y);
                     pthread_mutex_lock(&t3D[i].uiMutex);
+                    drawTag(getCamTag(t3D[i].context->id, 1), x, y);
                     if(t3D[i].img.isAllocated()) {
-                        tmpImg.clone(t3D[i].img);
-                        tmpImg.draw(x, y, 200, 150);
+                        if(inc3D < i) { inc3D = i; }
+                        pthread_mutex_lock(&uiImagesMutex);
+                        tmpImg3D[i].clone(t3D[i].img);
+                        pthread_mutex_unlock(&uiImagesMutex);
                     }
+                    items++; if(items >= 3) { x+=216; items = 0; } y = ySep * items;
                     pthread_mutex_unlock(&t3D[i].uiMutex);
-                    items++;
-                    if(items >= 3) { x+=216; items = 0; }
-                    y = ySep * items;
                 }
             }
-            t3D[i].unlock();
         }
 
         for(i=0; i<gdata->totalONI; i++) {
-            tONI[i].lock();
             if(tONI[i].isDeviceInitted()) { //Si la cámara está inicializada.
                 if(tONI[i].context->use2D == 1) {
-                    drawTag(getCamTag(tONI[i].context->id, 2), x, y);
                     pthread_mutex_lock(&tONI[i].uiMutex);
+                    drawTag(getCamTag(tONI[i].context->id, 2), x, y);
                     if(tONI[i].img.isAllocated()) {
-                        tmpImg.clone(tONI[i].img);
-                        tmpImg.draw(x, y, 200, 150);
+                        if(incONI < i) { incONI = i; }
+                        pthread_mutex_lock(&uiImagesMutex);
+                        tmpImgONI[i].clone(tONI[i].img);
+                        pthread_mutex_unlock(&uiImagesMutex);
                     }
+                    items++; if(items >= 3) { x+=216; items = 0; } y = ySep * items;
                     pthread_mutex_unlock(&tONI[i].uiMutex);
-                    items++;
-                    if(items >= 3) { x+=216; items = 0; }
-                    y = ySep * items;
                 }
             }
-            tONI[i].unlock();
+        }
+
+        items   = 1;
+        y       = ySep * items;
+        x       = 15;
+
+        /*for(i=0; i<=inc2D; i++) {
+            pthread_mutex_lock(&uiImagesMutex);
+            try {
+                if(tmpImg2D[i].isAllocated()) {
+                    tmpImg2D[i].draw(x, y, 200, 150);
+                }
+            } catch (...) {
+                ofLogWarning() << "[FrameUtils::getFrameSize] - Exception occurred.";
+            }
+            pthread_mutex_unlock(&uiImagesMutex);
+            items++; if(items >= 3) { x+=216; items = 0; } y = ySep * items;
         }*/
+        for(i=0; i<=inc3D; i++) {
+            pthread_mutex_lock(&uiImagesMutex);
+            if(tmpImg3D[i].isAllocated()) {
+                tmpImg3D[i].draw(x, y, 200, 150);
+            }
+            pthread_mutex_unlock(&uiImagesMutex);
+            items++; if(items >= 3) { x+=216; items = 0; } y = ySep * items;
+        }
+        for(i=0; i<=incONI; i++) {
+            pthread_mutex_lock(&uiImagesMutex);
+            if(tmpImgONI[i].isAllocated()) {
+                tmpImgONI[i].draw(x, y, 200, 150);
+            }
+            pthread_mutex_unlock(&uiImagesMutex);
+            items++; if(items >= 3) { x+=216; items = 0; } y = ySep * items;
+        }
+        /**/
         gui.draw();
         return;
     }
@@ -244,20 +278,14 @@ void Grabber::updateThreadData() {
     int i       = 0;
     ofxCvColorImage cvim;
 
-    /*tData = new ThreadData[gdata->total2D + gdata->total3D + gdata->totalONI];
-    for(int w = 0; w < (gdata->total2D + gdata->total3D + gdata->totalONI); w++) {
-        tData[w].cliId = gdata->sys_data->cliId;
-    }*/
     /**
     * ACTUALIZO LA INFO DE LAS CÁMARAS 2D
     */
     ofLogVerbose() << "ACTUALIZO LA INFO DE LAS CÁMARAS 2D";
     for(i; i<gdata->total2D; i++) {
-        //t2D[i].lock();
         tData[di].camId         = t2D[i].context->id;
         tData[di].state         = 0;
         tData[di].cameraType    = 1;
-        //ofLogVerbose() << "[Grabber::updateThreadData] " << " if " << t2D[i].isDeviceInitted() << " " << t2D[i].isDataAllocated() << " " << t2D[i].context->id;
         if(t2D[i].isDeviceInitted() && t2D[i].isDataAllocated()) { //Si la cámara está inicializada.
             tData[di].state  = DEVICE_2D; // 2D
             tData[di].compressed    = t2D[i].context->useCompression;
@@ -298,7 +326,6 @@ void Grabber::updateThreadData() {
         }
         tData[di].nubeW = tData[di].nubeH = 0;
         gettimeofday(&tData[di].curTime, NULL);
-        //t2D[i].unlock();
         di++;
     }
 
@@ -306,11 +333,9 @@ void Grabber::updateThreadData() {
     * ACTUALIZO LA INFO DE LAS CÁMARAS 3D
     */
     ofLogVerbose() << "ACTUALIZO LA INFO DE LAS CÁMARAS 3D";
-    //cout << "ACTUALIZO LA INFO DE LAS CÁMARAS 3D" << endl;
     i = 0;
 
     for(i; i<gdata->total3D; i++) {
-        //t3D[i].lock();
         tData[di].state         = 0;
         tData[di].camId         = t3D[i].context->id;
         tData[di].cameraType    = 2;
@@ -382,8 +407,6 @@ void Grabber::updateThreadData() {
                             t3D[i].context->row3.x, t3D[i].context->row3.y, t3D[i].context->row3.z, t3D[i].context->row3.w,
                             t3D[i].context->row4.x, t3D[i].context->row4.y, t3D[i].context->row4.z, t3D[i].context->row4.w);
 
-                //ofLogVerbose() << matrix << endl;
-
                 for(y=0; y < tData[di].nubeH; y += t3D[i].context->pcDownSample) {
                     for(x=0; x < tData[di].nubeW; x += t3D[i].context->pcDownSample) {
                         d = rawPix[y * tData[di].nubeW + x];
@@ -442,7 +465,6 @@ void Grabber::updateThreadData() {
             }
         }
         gettimeofday(&tData[di].curTime, NULL);
-        //t3D[i].unlock();
         di++;
     }
 
@@ -450,10 +472,8 @@ void Grabber::updateThreadData() {
     * ACTUALIZO LA INFO DE LAS CÁMARAS ONI
     */
     ofLogVerbose() << "ACTUALIZO LA INFO DE LAS CÁMARAS ONI" << endl;
-    //cout << "ACTUALIZO LA INFO DE LAS CÁMARAS ONI" << endl;
     i = 0;
     for(i; i<gdata->totalONI; i++) {
-        //tONI[i].lock();
         tData[di].state         = 0;
         tData[di].camId         = tONI[i].context->id;
         tData[di].cameraType    = 2;
@@ -530,8 +550,6 @@ void Grabber::updateThreadData() {
                             tONI[i].context->row3.x, tONI[i].context->row3.y, tONI[i].context->row3.z, tONI[i].context->row3.w,
                             tONI[i].context->row4.x, tONI[i].context->row4.y, tONI[i].context->row4.z, tONI[i].context->row4.w);
 
-                //ofLogVerbose() << matrix << endl;
-
                 for(y=0; y < tData[di].nubeH; y += tONI[i].context->pcDownSample) {
                     for(x=0; x < tData[di].nubeW; x += tONI[i].context->pcDownSample) {
                         d = rawPix[y * tData[di].nubeW + x];
@@ -593,13 +611,9 @@ void Grabber::updateThreadData() {
                     delete tmpY;
                     delete tmpZ;
                 }
-
-                //ofLogVerbose() << "[Grabber::updateThreadData] " << " saliendo del for for.";
-
             }
         }
         gettimeofday(&tData[di].curTime, NULL);
-        //tONI[i].unlock();
         di++;
     }
 

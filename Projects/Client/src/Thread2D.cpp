@@ -10,14 +10,8 @@ void Thread2D::threadedFunction() {
     vidGrabber.setDeviceID(context->deviceInstance);
     vidGrabber.setDesiredFrameRate(sys_data->fps);
     vidGrabber.initGrabber(context->resolutionX, context->resolutionY);
-    //vidGrabber.setMirror(true);
-    /**/
-    //return;
     string path = "cameras/2D/" + ofToString(context->id);
-
-   //if(sys_data->goLive == 1) {
-        img.allocate(context->resolutionX, context->resolutionX, OF_IMAGE_COLOR);
-    //}
+    img.allocate(context->resolutionX, context->resolutionX, OF_IMAGE_COLOR);
 
     if(sys_data->persistence == 1) {
         ofDirectory::createDirectory(path, true, true);
@@ -28,7 +22,6 @@ void Thread2D::threadedFunction() {
     }
 
     started = true;
-    //ofAddListener(ofEvents().update, this, &Thread2D::process);
     unsigned long long minMillis = 1000/sys_data->fps;
     unsigned long long currMill, baseMill;
 
@@ -61,8 +54,6 @@ void Thread2D::process() {
     vidGrabber.grabFrame();
 
     if (vidGrabber.isFrameNew()) {
-        //
-        //lock();
         isAllocated = false;
 
         pthread_mutex_lock(&uiMutex);
