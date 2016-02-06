@@ -6,8 +6,11 @@ bool compare_nframe (GeneratedResult * first, GeneratedResult * second) {
 }
 
 void MeshCollector::threadedFunction() {
-    ShareMesh  = (f_compartirMalla)GetProcAddress(memorySharedLibrary, "ShareMesh");
-    shareImage = (f_ShareImage)GetProcAddress(memorySharedLibrary, "ShareImage");
+    outMeshId       = -1;
+    ShareMesh       = (f_ShareMesh)GetProcAddress(memorySharedLibrary,          "ShareMesh");
+    ShareMeshSetup  = (f_ShareMeshSetup)GetProcAddress(memorySharedLibrary,     "ShareMeshSetup");
+    ShareImage      = (f_ShareImage)GetProcAddress(memorySharedLibrary,         "ShareImage");
+    ShareImageSetup = (f_ShareImageSetup)GetProcAddress(memorySharedLibrary,    "ShareImageSetup");
 
     unsigned long long minMillis = 1000/sys_data->fps;
     unsigned long long currMill, baseMill;
@@ -20,15 +23,10 @@ void MeshCollector::threadedFunction() {
             sleep(minMillis - (currMill - baseMill));
         }
     }
-    //ofAddListener(ofEvents().update, this, &MeshCollector::processFrame);
 }
 
 void MeshCollector::exit() {
-    ofRemoveListener(ofEvents().update, this, &MeshCollector::processFrame);
     b_exit  = true;
-}
-
-void MeshCollector::processFrame(ofEventArgs &e) {
 }
 
 void MeshCollector::processFrame() {
@@ -77,7 +75,12 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
             /*for(int i = 0; i<numFaces; i++) {
                 ofLogVerbose() << "[MeshCollector::shareFrame]" << ", p1_0: " << gresult->faces[i].p1[0] << ", p1_1: " << gresult->faces[i].p1[1]  << ", p1_2: " << gresult->faces[i].p1[2] << ", p2_0: " << gresult->faces[i].p2[0] << ", p2_1: " << gresult->faces[i].p2[1]  << ", p2_2: " << gresult->faces[i].p2[2] << ", p3_0: " << gresult->faces[i].p3[0] << ", p3_1: " << gresult->faces[i].p3[1]  << ", p3_2: " << gresult->faces[i].p3[2] << endl;
             }*/
-            ShareMesh(gresult->idMesh, numFaces, gresult->faces);
+            if(outMeshId == -1) {
+                ShareMeshSetup(&gresult->idMesh, &outMeshId);
+                //LLAMO AL SETUP DE LA LIBRERÍA PARA LA MALLA
+            }
+            ShareMesh(&gresult->idMesh, &numFaces, gresult->faces, &outMeshId);
+            //ShareMesh(gresult->idMesh, numFaces, gresult->faces);
             ofLogVerbose() << "--||--[MeshCollector::shareFrame] 2 ";
         //}
         ofLogVerbose() << "--||--[MeshCollector::shareFrame] 3 ";
@@ -126,8 +129,25 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
                         idMomento   = idMomento*10000 + gresult->nframe % 10000;
 
                         ofLogVerbose() << "--||--[MeshCollector::shareFrame]   18 ";
+                        int rgbOutId = -1;
 
-                        shareImage(&idMomento, pixels, &width, &height);
+                        for (outItRGB=outListRGB.begin(); outItRGB!=outListRGB.end(); ++outItRGB) {
+                            if(!(((*outItRGB)->cliId == iter->cliId) && ((*outItRGB)->camId == iter->camId)) ) rgbOutId = (*outItRGB)->outputId;
+                        }
+
+                        if(rgbOutId == -1) {
+                            ShareImageSetup(&idMomento, &width, &height, &rgbOutId);
+                            //LLAMO AL SETUP DE LA LIBRERÍA PARA LA MALLA
+                            RGBDataOutput * rgbDataOut = new RGBDataOutput();
+                            rgbDataOut->cliId    = iter->cliId;
+                            rgbDataOut->camId    = iter->camId;
+                            rgbDataOut->outputId = rgbOutId;
+                            outListRGB.push_back(rgbDataOut);
+                        }
+
+                        //shareImage(&idMomento, pixels, &width, &height);
+                        ShareImage(&idMomento, pixels, &rgbOutId);
+
                         ofLogVerbose() << "--||--[MeshCollector::shareFrame]   19 ";
                         FreeImage_CloseMemory(stream);
                         ofLogVerbose() << "--||--[MeshCollector::shareFrame]   20 ";

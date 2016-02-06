@@ -39,6 +39,12 @@ struct GeneratedResult{
     FaceStruct* faces;
 };
 
+struct RGBDataOutput{
+    int cliId;
+    int camId;
+    int outputId;
+};
+
 typedef void (*f_meshGenerate)(PointsCloud* nbIN, FaceStruct** faces, int* numberFaces, int nroFrame);
 
 class MeshThreadedGenerator : public ofThread {

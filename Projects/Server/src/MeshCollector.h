@@ -13,8 +13,10 @@
 #include <string>
 #include <cctype>
 
-typedef void (*f_compartirMalla)(int idMesh, int numberFaces, FaceStruct* faces);
-typedef void (*f_ShareImage)(int* idImage, unsigned char* pixels, int* wPixels, int* hPixels);
+typedef void (*f_ShareMesh)(int* meshId, int* numberFaces, FaceStruct* faces, int* index);
+typedef void (*f_ShareMeshSetup)(int* meshId, int* index);
+typedef void (*f_ShareImage)(int* imageId, unsigned char* pixels, int* index);
+typedef void (*f_ShareImageSetup)(int* imageId, int* wPixels, int* hPixels, int* index);
 
 class MeshCollector : public ofThread {
 	public:
@@ -46,10 +48,16 @@ class MeshCollector : public ofThread {
         MeshThreadedGenerator * threads;
         int currProc;
         int currFrame;
-        f_compartirMalla ShareMesh;
-        f_ShareImage shareImage;
+        f_ShareMesh ShareMesh;
+        f_ShareMeshSetup ShareMeshSetup;
+        f_ShareImage ShareImage;
+        f_ShareImageSetup ShareImageSetup;
         std::list<GeneratedResult *> list;
         std::list<GeneratedResult *>::iterator it;
+
+        int outMeshId;
+        std::list<RGBDataOutput *> outListRGB;
+        std::list<RGBDataOutput *>::iterator outItRGB;
 
 		void threadedFunction();
 		void processFrame(ofEventArgs &e);
