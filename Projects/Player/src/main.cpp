@@ -1089,6 +1089,8 @@ bool loadLightMapTexture(Model_IMG* model) {
     //glTexImage2D(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_BGR,GL_UNSIGNED_BYTE,model->Pixels);
     gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGB,model->Width,model->Height,GL_BGR,GL_UNSIGNED_BYTE,model->Pixels);
 
+    cout << "Load " << model->Id << endl;
+
     return shouldRedraw;
 }
 
@@ -1159,6 +1161,8 @@ int main(int argc, char **argv) {
     textureSetting = new Model_SET();
     textureSetting->FileLoad();
     textureCount = textureSetting->NValues;
+
+    cout << "Count: " << textureCount << endl;
 
     textureModel = new Model_PLY();
     textureModel->AlfaCoord = textureSetting->alfaCoord;

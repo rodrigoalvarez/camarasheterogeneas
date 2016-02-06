@@ -7,7 +7,16 @@
 using namespace std;
 int masterMeshIndex = 0;
 
-typedef void (*f_ReadSharedMesh)(int* id, int* numberFaces, FaceStruct** faces);
+
+typedef void (*f_ReadSharedMeshSetup)(int* meshId, int* index);
+f_ReadSharedMeshSetup readSharedMeshSetup;
+
+typedef void (*f_ReadSharedMesh)(int* meshId, int* numberFaces, FaceStruct** faces, int* index);
+f_ReadSharedMesh readMesh;
+
+int* indexMesh = new int;
+
+//typedef void (*f_ReadSharedMesh)(int* id, int* numberFaces, FaceStruct** faces);
 
 Model_PLY::Model_PLY() {
     masterMeshIndex += 10000;
@@ -19,15 +28,29 @@ Model_PLY::Model_PLY() {
         std::cout << "Failed to load the library" << std::endl;
     }
     Faces_Triangles = NULL;
+
+    readSharedMeshSetup = (f_ReadSharedMeshSetup)GetProcAddress(shareMeshLibrary, "ReadSharedMeshSetup");
+    readMesh = (f_ReadSharedMesh)GetProcAddress(shareMeshLibrary, "ReadSharedMesh");
+
+    primeraVez = true;
 }
 
 bool Model_PLY::MemoryLoad() {
 
-    f_ReadSharedMesh readMesh = (f_ReadSharedMesh)GetProcAddress(shareMeshLibrary, "ReadSharedMesh");
+    //cout << "M" << endl;
+
+    if (primeraVez) {
+        readSharedMeshSetup(&Id, indexMesh);
+        primeraVez = false;
+    }
+
     numberFaces =  new int;
     *numberFaces = 0;
     int id = Id;
-    readMesh(&id, numberFaces, &faces);
+    //readMesh(&id, numberFaces, &faces);
+    readMesh(&Id, numberFaces, &faces, indexMesh);
+
+    //cout << "N" << endl;
 
     if (*numberFaces > 0 && id >= 0) {
         Id = id;
@@ -52,6 +75,7 @@ bool Model_PLY::MemoryLoad() {
             Faces_Triangles[i*9+8] = facesAux[i].p3[2];
         }
         delete [] facesAux;
+        delete [] faces;
         if (Faces_TrianglesAux != NULL)
             delete [] Faces_TrianglesAux;
         MinCoord = std::numeric_limits<float>::max();
@@ -74,6 +98,7 @@ bool Model_PLY::MemoryLoad() {
     else {
         return false;
     }
+    //cout << "O" << endl;
 }
 
 float* calculateNormal( float *coord1, float *coord2, float *coord3 ) {

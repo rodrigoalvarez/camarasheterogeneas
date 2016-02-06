@@ -14,6 +14,8 @@ class Model_PLY
 
         HINSTANCE shareMeshLibrary;
 
+        bool primeraVez;
+
 		float* Faces_Quads;
 		float* Vertex_Buffer;
 		float* Normals;

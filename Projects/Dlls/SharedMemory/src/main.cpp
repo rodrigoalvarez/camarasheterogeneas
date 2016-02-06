@@ -40,6 +40,12 @@ void DLL_EXPORT ShareMeshSetup(int* meshId, int* index) {
 	meshMemory[*index].memoryMappedMeshSize.setup(meshMemory[*index].MeshSizeKey.str(), sizeof(int), true);
     isConnectedMeshSize = meshMemory[*index].memoryMappedMeshSize.connect();
 
+
+    meshMemory[*index].memoryMappedMesh.setup(meshMemory[*index].MeshKey.str(), sizeof(FaceStruct) * 100000, true);
+    isConnectedMesh = meshMemory[*index].memoryMappedMesh.connect();
+
+    meshMemory[*index].fullMesh = new FaceStruct[100000];
+
     //memoryMappedMesh.setup(MeshKey.str(), sizeof(FaceStruct) * maxNumberFaces, true);
     //isConnectedMesh = memoryMappedMesh.connect();
 
@@ -67,11 +73,15 @@ void DLL_EXPORT ReadSharedMeshSetup(int* meshId, int* index) {
 	meshMemory[*index].memoryMappedMeshSize.setup(meshMemory[*index].MeshSizeKey.str(), sizeof(int), false);
     isConnectedMeshSize = meshMemory[*index].memoryMappedMeshSize.connect();
 
+    meshMemory[*index].memoryMappedMesh.setup(meshMemory[*index].MeshKey.str(), sizeof(FaceStruct) * 100000, false);
+    isConnectedMesh = meshMemory[*index].memoryMappedMesh.connect();
 }
 
 void DLL_EXPORT ShareMesh( int* meshId, int* numberFaces, FaceStruct* faces, int* index) {
 
-    meshMemory[*index].memoryMappedMeshId.setData(meshId);
+    //cout << "A " << *meshId << endl;
+
+    //cout << "B " << *numberFaces << endl;
 
     /*if (*maxNumberFaces < *numberFaces){
         cout << (*numberFaces * 10) << endl;
@@ -80,26 +90,46 @@ void DLL_EXPORT ShareMesh( int* meshId, int* numberFaces, FaceStruct* faces, int
         isConnectedMesh = memoryMappedMesh.connect();
     }*/
     //meshMemory[*index].maxNumberFaces = numberFaces;
-    meshMemory[*index].memoryMappedMesh.setup(meshMemory[*index].MeshKey.str(), sizeof(FaceStruct) * (*numberFaces), true);
-    isConnectedMesh = meshMemory[*index].memoryMappedMesh.connect();
 
-    cout << "x1" << endl;
-    if (*numberFaces > 1) {
-        cout << faces[0].p1[0] << " - " << faces[0].p1[1] << " - " << faces[0].p1[2] << " - ";
-        cout << faces[1].p1[0] << " - " << faces[1].p1[1] << " - " << faces[1].p1[2] << endl;
 
-    } else {
-        cout << faces[0].p1[0] << " - " << faces[0].p1[1] << " - " << faces[0].p1[2] << endl;
 
-    }
-    cout << "x2" << endl;
+    //meshMemory[*index].memoryMappedMesh.setup(meshMemory[*index].MeshKey.str(), sizeof(FaceStruct) * (*numberFaces), true);
+    //isConnectedMesh = meshMemory[*index].memoryMappedMesh.connect();
 
-    meshMemory[*index].memoryMappedMesh.setData(faces);
 
-    //int * pepe = new int;
-    //*pepe = 2;
-    //memoryMappedMeshSize.setData(pepe/*maxNumberFaces*/);
-    meshMemory[*index].memoryMappedMeshSize.setData(numberFaces);
+
+    //if (isConnectedMesh){
+        //cout << "D " << *index << endl;
+
+        /*cout << "x1" << endl;
+        if (*numberFaces > 1) {
+            cout << faces[0].p1[0] << " - " << faces[0].p1[1] << " - " << faces[0].p1[2] << " - ";
+            cout << faces[1].p1[0] << " - " << faces[1].p1[1] << " - " << faces[1].p1[2] << endl;
+
+        } else {
+            cout << faces[0].p1[0] << " - " << faces[0].p1[1] << " - " << faces[0].p1[2] << endl;
+
+        }
+        cout << "x2" << endl;*/
+
+        for (int i = 0; i < *numberFaces; i++) {
+            meshMemory[*index].fullMesh[i] = faces[i];
+        }
+
+        meshMemory[*index].memoryMappedMeshId.setData(meshId);
+
+        meshMemory[*index].memoryMappedMesh.setData(meshMemory[*index].fullMesh);
+
+        //cout << "E " << *index << endl;
+
+        //int * pepe = new int;
+        //*pepe = 2;
+        //memoryMappedMeshSize.setData(pepe/*maxNumberFaces*/);
+        meshMemory[*index].memoryMappedMeshSize.setData(numberFaces);
+
+        //cout << "F " << *index << endl;
+
+    //}
 
 }
 
@@ -112,20 +142,27 @@ void DLL_EXPORT ReadSharedMesh(int* meshId, int* numberFaces, FaceStruct** faces
     if (meshMemory[*index].maxNumberFaces != *numberFaces){//meshMemory[*index].maxNumberFaces < *numberFaces
         meshMemory[*index].maxNumberFaces = *numberFaces;
         //meshMemory[*index].maxNumberFaces = *numberFaces * 10;
-        meshMemory[*index].memoryMappedMesh.setup(meshMemory[*index].MeshKey.str(), sizeof(FaceStruct) * (*numberFaces), false);
-        isConnectedMesh = meshMemory[*index].memoryMappedMesh.connect();
     }
 
-    *faces = meshMemory[*index].memoryMappedMesh.getData();
+    FaceStruct* fullMesh = meshMemory[*index].memoryMappedMesh.getData();
+    *faces = new FaceStruct[*numberFaces];
+    FaceStruct* aux = *faces;
+    for (int i = 0; i < *numberFaces; i++) {
+        aux[i] = fullMesh[i];
+    }
 
-    cout << "x1" << endl;
+    //*faces = meshMemory[*index].memoryMappedMesh.getData();
+
+
+
+    //cout << "x1" << endl;
     //cout << faces << endl;
     //cout << *faces << endl;
     //cout << *(*faces) << endl;
     //cout << (*faces)[0].p1[0] << endl;//faces[0][0]
     //cout << (*faces[0]).p1[0] << " - " << (*faces[0]).p1[1] << " - " << (*faces[0]).p1[2] << " - ";
     //cout << (*faces[1]).p1[0] << " + " << (*faces[1]).p1[1] << " - " << (*faces[1]).p1[2] << endl;
-    cout << "x2" << endl;
+    //cout << "x2" << endl;
 }
 
 ofxSharedMemory<int*> memoryMappedImageId;
