@@ -1,0 +1,10 @@
+EXPORTS
+    DllMain@12 @1
+    ReadSharedImage @2
+    ReadSharedImageSetup @3
+    ReadSharedMesh @4
+    ReadSharedMeshSetup @5
+    ShareImage @6
+    ShareImageSetup @7
+    ShareMesh @8
+    ShareMeshSetup @9
