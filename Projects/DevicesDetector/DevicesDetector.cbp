@@ -146,11 +146,11 @@
 			<Add library="..\..\..\..\addons\ofxOpenCv\libs\opencv\lib\win_cb\libopencv_gpu231.a" />
 			<Add library="..\..\..\..\addons\ofxOpenCv\libs\opencv\lib\win_cb\libopencv_ts231.a" />
 			<Add library="..\..\..\..\addons\ofxOpenCv\libs\opencv\lib\win_cb\libzlib.a" />
-			<Add library="bin\openNI.lib" />
-			<Add library="bin\XnVCNITE_1_5_2.lib" />
-			<Add library="bin\XnVFeatures_1_5_2.lib" />
-			<Add library="bin\XnVHandGenerator_1_5_2.lib" />
-			<Add library="bin\XnVNITE_1_5_2.lib" />
+			<Add library="..\..\..\..\addons\ofxOpenNI\win\copy_to_data_openni_path\lib\openNI.lib" />
+			<Add library="..\..\..\..\addons\ofxOpenNI\win\copy_to_data_openni_path\lib\XnVCNITE_1_5_2.lib" />
+			<Add library="..\..\..\..\addons\ofxOpenNI\win\copy_to_data_openni_path\lib\XnVHandGenerator_1_5_2.lib" />
+			<Add library="..\..\..\..\addons\ofxOpenNI\win\copy_to_data_openni_path\lib\XnVNITE_1_5_2.lib" />
+			<Add library="..\..\..\..\addons\ofxOpenNI\win\copy_to_data_openni_path\lib\XnVFeatures_1_5_2.lib" />
 		</Linker>
 		<ExtraCommands>
 			<Add after='xcopy /e /i /y &quot;$(PROJECT_DIR)..\..\..\..\export\win_cb\*.dll&quot;  &quot;$(PROJECT_DIR)bin&quot;' />
