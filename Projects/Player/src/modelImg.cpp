@@ -7,8 +7,15 @@
 using namespace std;
 int masterImageIndex = 0;
 
-typedef void (*f_ReadSharedImage)(int* Id, int* Width, int* Height, unsigned char** Pixels);
 typedef void (*f_MemoryCheck)(int* Id);
+
+typedef void (*f_ReadSharedImageSetup)(int* imageId, int* index);
+f_ReadSharedImageSetup readSharedImageSetup;
+
+typedef void (*f_ReadSharedImage)(int* Id, int* wPixels, int* hPixels , unsigned char** pixels, int* index);
+f_ReadSharedImage readImage;
+
+int* indexImg = new int;
 
 Model_IMG::Model_IMG() {
 
@@ -17,23 +24,31 @@ Model_IMG::Model_IMG() {
     if (!shareImageLibrary) {
         std::cout << "Failed to load the library" << std::endl;
     }
+
+    readSharedImageSetup = (f_ReadSharedImageSetup)GetProcAddress(shareImageLibrary, "ReadSharedImageSetup");
+    readImage = (f_ReadSharedImage)GetProcAddress(shareImageLibrary, "ReadSharedImage");
+
     primeraVez = true;
 }
 
 bool Model_IMG::MemoryLoad() {
 
-    std::stringstream key1;
+    //cout << "A" << endl;
 
-    key1 << "ImageId" << Id / 10000;
+    if (primeraVez) {
+        readSharedImageSetup(&Id, indexImg);
+        primeraVez = false;
+    }
 
-    f_ReadSharedImage readImage = (f_ReadSharedImage)GetProcAddress(shareImageLibrary, "ReadSharedImage");
+    int idAux = Id;
     int* wPixels = new int;
     int* hPixels = new int;
     *wPixels = 0;
     *hPixels = 0;
+    cout << "Ax " << Id << " " << *indexImg << endl;
+    readImage(&Id, wPixels, hPixels, &pixels, indexImg);
 
-    int idAux = Id;
-    readImage(&Id, wPixels, hPixels, &pixels);
+    //cout << "B " << *wPixels << *hPixels << endl;
 
     if (Id >= 0){
         if (*wPixels > 0 && *hPixels > 0) {
@@ -46,13 +61,13 @@ bool Model_IMG::MemoryLoad() {
 
             Width = *wPixels;
             Height = *hPixels;
-            delete wPixels;
-            delete hPixels;
+            //delete wPixels;
+            //delete hPixels;
             unsigned char* pixelsAux;
             pixelsAux = Pixels;
             Pixels = new unsigned char[Width * Height * 3];
             memcpy(Pixels, pixels, sizeof(unsigned char) * Width * Height * 3);
-            //delete [] pixelsAux;
+            delete [] pixelsAux;
             return true;
         }
         else
@@ -62,6 +77,7 @@ bool Model_IMG::MemoryLoad() {
         Id = idAux;
         return false;
     }
+    //cout << "C" << endl;
 }
 
 bool Model_IMG::MemoryCheck() {

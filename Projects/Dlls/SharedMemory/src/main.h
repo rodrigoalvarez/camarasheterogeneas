@@ -45,6 +45,7 @@ struct MemoryMeshStruct
     std::stringstream MeshKey;
     bool firstTimeMesh;
     int maxNumberFaces;
+    FaceStruct* fullMesh;
 
 };
 

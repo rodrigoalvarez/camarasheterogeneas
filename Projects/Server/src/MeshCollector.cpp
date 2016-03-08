@@ -63,6 +63,7 @@ void MeshCollector::shareNextCompleteFrame() {
 void MeshCollector::shareFrame(GeneratedResult * gresult) {
     int idMomento;
     unsigned char* pixels;
+    int idMeshLocal;
     int width;
     int height;
 
@@ -75,11 +76,16 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
             /*for(int i = 0; i<numFaces; i++) {
                 ofLogVerbose() << "[MeshCollector::shareFrame]" << ", p1_0: " << gresult->faces[i].p1[0] << ", p1_1: " << gresult->faces[i].p1[1]  << ", p1_2: " << gresult->faces[i].p1[2] << ", p2_0: " << gresult->faces[i].p2[0] << ", p2_1: " << gresult->faces[i].p2[1]  << ", p2_2: " << gresult->faces[i].p2[2] << ", p3_0: " << gresult->faces[i].p3[0] << ", p3_1: " << gresult->faces[i].p3[1]  << ", p3_2: " << gresult->faces[i].p3[2] << endl;
             }*/
+            idMeshLocal = gresult->idMesh;
+
             if(outMeshId == -1) {
-                ShareMeshSetup(&gresult->idMesh, &outMeshId);
+                ShareMeshSetup(&idMeshLocal, &outMeshId);
                 //LLAMO AL SETUP DE LA LIBRERÍA PARA LA MALLA
             }
-            ShareMesh(&gresult->idMesh, &numFaces, gresult->faces, &outMeshId);
+            ShareMesh(&idMeshLocal, &numFaces, gresult->faces, &outMeshId);
+
+
+            //cout << outMeshId << endl;
             //ShareMesh(gresult->idMesh, numFaces, gresult->faces);
             ofLogVerbose() << "--||--[MeshCollector::shareFrame] 2 ";
         //}
@@ -132,7 +138,10 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
                         int rgbOutId = -1;
 
                         for (outItRGB=outListRGB.begin(); outItRGB!=outListRGB.end(); ++outItRGB) {
-                            if(!(((*outItRGB)->cliId == iter->cliId) && ((*outItRGB)->camId == iter->camId)) ) rgbOutId = (*outItRGB)->outputId;
+                            if((((*outItRGB)->cliId == iter->cliId) && ((*outItRGB)->camId == iter->camId)) ) {
+                                 rgbOutId = (*outItRGB)->outputId;
+                                 break;
+                            }
                         }
 
                         if(rgbOutId == -1) {
@@ -144,6 +153,8 @@ void MeshCollector::shareFrame(GeneratedResult * gresult) {
                             rgbDataOut->outputId = rgbOutId;
                             outListRGB.push_back(rgbDataOut);
                         }
+
+                        //cout << rgbOutId << endl;
 
                         //shareImage(&idMomento, pixels, &width, &height);
                         ShareImage(&idMomento, pixels, &rgbOutId);
