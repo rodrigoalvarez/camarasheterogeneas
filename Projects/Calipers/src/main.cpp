@@ -252,7 +252,7 @@ void timerFunction(int arg) {
 
 vector<string> getCloudFiles() {
     vector<string> files;
-    ofDirectory directory("C:\\Users\\Rodrigo\\Documents\\CodeBlocks\\Calipers\\bin\\data");
+    ofDirectory directory("data", true, true);
 
     directory.listDir();
     vector<ofFile> allFiles = directory.getFiles();
@@ -281,7 +281,7 @@ vector<string> getCloudFiles() {
 
 vector<string> getImageFiles() {
     vector<string> files;
-    ofDirectory directory("C:\\Users\\Rodrigo\\Documents\\CodeBlocks\\Calipers\\bin\\data");
+    ofDirectory directory("data", true, true);
 
     directory.listDir();
     vector<ofFile> allFiles = directory.getFiles();
@@ -316,7 +316,7 @@ vector<MasterClient*> getClients(int textureCount, MasterTexture* textureMaster,
     int idClient = 0;
     int idCameraM = 0;
     int idCameraT = 0;
-    ofDirectory directory("C:\\Users\\Rodrigo\\Documents\\CodeBlocks\\Calipers\\bin\\data");
+    ofDirectory directory("data", true, true);
 
     directory.listDir();
     vector<ofFile> allFiles = directory.getFiles();
